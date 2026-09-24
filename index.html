@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260924-10">
+  <link rel="stylesheet" href="v3-projects.css?v=20260924-11">
 </head>
 <body>
   <header class="topbar">
@@ -35,6 +35,7 @@
   </header>
 
   <main>
+    <h1 class="sr-only">Cubestow 컨테이너 적재 플래너</h1>
     <section class="workspace" id="planner">
       <div class="project-toolbar" aria-label="프로젝트 관리">
         <div class="current-project"><strong id="currentProjectName">새 프로젝트</strong><small id="saveState" class="save-state">저장되지 않음</small></div>
@@ -46,7 +47,7 @@
       </div>
       <aside class="control-panel">
         <section class="panel-card input-card">
-          <div class="control-heading"><div class="step-heading"><span>01</span><div><h2>제품 데이터</h2><p>직접 입력하거나 불러옵니다.</p></div></div><details class="menu load-menu"><summary>불러오기</summary><div class="menu-list"><button id="openProjects" type="button">저장 목록</button><button id="loadDemo" type="button">샘플</button><button id="openImport" type="button">Excel / CSV</button></div></details></div>
+          <div class="control-heading"><div class="step-heading"><span>01</span><div><h2>제품 데이터</h2><p>직접 입력하거나 불러옵니다.</p><p class="editing-note" id="editingNote" aria-live="polite"></p></div></div><details class="menu load-menu"><summary>불러오기</summary><div class="menu-list"><button id="openProjects" type="button">저장 목록</button><button id="loadDemo" type="button">샘플</button><button id="openImport" type="button">Excel / CSV</button></div></details></div>
           <div id="manualPane">
             <div class="form-grid">
               <label class="third">제품명<input id="productName" autocomplete="off" placeholder="예: 산업용 펌프"></label>
@@ -65,7 +66,7 @@
             </div>
           </div>
         </section>
-        <div class="add-connector"><button class="add-button" id="addProduct" type="button">제품 목록에 추가 <b aria-hidden="true">↓</b></button></div>
+        <div class="add-connector"><button class="add-button" id="addProduct" type="button">제품 목록에 추가 <b aria-hidden="true">↓</b></button><button class="cancel-edit" id="cancelEdit" type="button" hidden>취소</button></div>
         <section class="collapsible-card product-list-card expanded">
           <div class="collapsible-head"><div class="list-heading"><span class="step-badge">02</span><div><strong>제품 목록</strong> <span id="productCount">(0개 품목 · 0박스)</span></div></div><div class="collapsible-actions"><button class="collapse-toggle" id="toggleProducts" type="button" aria-expanded="true">접기 ▴</button></div></div>
           <div class="product-list" id="productList"></div>
@@ -173,7 +174,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
     <h2>Excel · CSV 불러오기</h2>
     <p>파일을 끌어다 놓거나 눌러서 선택하세요. 불러온 품목은 제품 목록에 들어갑니다.</p>
-    <label class="dropzone" id="dropzone">
+    <label class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Excel 또는 CSV 파일 선택">
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
       <span class="upload-icon">⇧</span>
       <strong>Excel 또는 CSV 파일을 놓으세요</strong>
@@ -253,8 +254,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.9</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
-  <script src="vendor/xlsx.full.min.js?v=0.18.5"></script>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.10</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
@@ -263,7 +263,7 @@
   <script src="load-insights.js?v=20260924-2"></script>
   <script src="solution-validator.js?v=20260814-2"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260924-10"></script>
+  <script src="app.js?v=20260924-11"></script>
   <script src="project-store.js?v=20260924-3"></script>
 </body>
 </html>

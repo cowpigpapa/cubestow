@@ -189,3 +189,18 @@ test('product name and group inputs suggest previously entered values',async({pa
   await suggestions.first().click();await expect(page.locator('#productName')).toHaveValue('제어반');
   await page.locator('#productGroup').click();await expect(page.locator('.suggest-box.open li')).toHaveText(['전기장비','기계류']);
 });
+
+test('adding clears the form and a listed product can be edited in full',async({page})=>{
+  await page.goto('/');
+  const add=async(name,weight,l,w,h)=>{await page.fill('#productName',name);await page.fill('#productWeight',weight);await page.fill('#productLength',l);await page.fill('#productWidth',w);await page.fill('#productHeight',h);await page.click('#addProduct')};
+  await add('펌프','420','1200','800','900');
+  await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#productQty')).toHaveValue('1');
+  await add('제어반','180','900','600','1100');
+  await page.getByRole('button',{name:'펌프 수정'}).click();
+  await expect(page.locator('#productLength')).toHaveValue('1200');await expect(page.locator('.input-card')).toHaveClass(/editing/);await expect(page.locator('#addProduct')).toContainText('변경 내용 저장');
+  await page.fill('#productLength','1500');await page.fill('#productWeight','500');await page.click('#addProduct');
+  await expect(page.locator('.product-item').first()).toContainText('1500×800×900 mm · 500 kg');await expect(page.locator('.product-item')).toHaveCount(2);
+  await expect(page.locator('.input-card')).not.toHaveClass(/editing/);await expect(page.locator('#productName')).toHaveValue('');
+  await page.getByRole('button',{name:'제어반 수정'}).click();await page.click('#cancelEdit');
+  await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#cancelEdit')).toBeHidden();
+});
