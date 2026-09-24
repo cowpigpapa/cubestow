@@ -314,3 +314,9 @@ details.menu>summary[aria-label]::after{content:""}
 .balance-card>strong{white-space:nowrap}
 .product-item .edit-product{width:auto;height:auto;min-height:28px;padding:0 10px;border:1px solid #c9e6d6;border-radius:999px;background:#fff;color:#17693a;font-size:12px;font-weight:600;line-height:26px}
 .product-item .edit-product:hover{background:#eefaf2}
+/* 수정 중 안내는 부제 자리를 대신해 카드 높이가 변하지 않는다. 삭제는 빨간 글자 버튼으로 수정·취소와 구분한다. */
+.input-card.editing #inputHint{color:#9a5b00;font-weight:600}
+.product-item{cursor:default}
+.product-item .edit-product.cancel{border-color:#f0c98a;background:#fff4df;color:#9a5b00}
+.product-item .delete-product{width:auto;height:auto;min-height:28px;margin:0;padding:0 10px;border:1px solid #f3c3cf;border-radius:999px;background:#fff;color:#b0284a;font-size:12px;font-weight:600;line-height:26px}
+.product-item .delete-product:hover{background:#fdf0f3}

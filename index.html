@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260924-11">
+  <link rel="stylesheet" href="v3-projects.css?v=20260925-1">
 </head>
 <body>
   <header class="topbar">
@@ -47,7 +47,7 @@
       </div>
       <aside class="control-panel">
         <section class="panel-card input-card">
-          <div class="control-heading"><div class="step-heading"><span>01</span><div><h2>제품 데이터</h2><p>직접 입력하거나 불러옵니다.</p><p class="editing-note" id="editingNote" aria-live="polite"></p></div></div><details class="menu load-menu"><summary>불러오기</summary><div class="menu-list"><button id="openProjects" type="button">저장 목록</button><button id="loadDemo" type="button">샘플</button><button id="openImport" type="button">Excel / CSV</button></div></details></div>
+          <div class="control-heading"><div class="step-heading"><span>01</span><div><h2>제품 데이터</h2><p id="inputHint" aria-live="polite">직접 입력하거나 불러옵니다.</p></div></div><details class="menu load-menu"><summary>불러오기</summary><div class="menu-list"><button id="openProjects" type="button">저장 목록</button><button id="loadDemo" type="button">샘플</button><button id="openImport" type="button">Excel / CSV</button></div></details></div>
           <div id="manualPane">
             <div class="form-grid">
               <label class="third">제품명<input id="productName" autocomplete="off" placeholder="예: 산업용 펌프"></label>
@@ -66,7 +66,7 @@
             </div>
           </div>
         </section>
-        <div class="add-connector"><button class="add-button" id="addProduct" type="button">제품 목록에 추가 <b aria-hidden="true">↓</b></button><button class="cancel-edit" id="cancelEdit" type="button" hidden>취소</button></div>
+        <div class="add-connector"><button class="add-button" id="addProduct" type="button">제품 목록에 추가 <b aria-hidden="true">↓</b></button></div>
         <section class="collapsible-card product-list-card expanded">
           <div class="collapsible-head"><div class="list-heading"><span class="step-badge">02</span><div><strong>제품 목록</strong> <span id="productCount">(0개 품목 · 0박스)</span></div></div><div class="collapsible-actions"><button class="collapse-toggle" id="toggleProducts" type="button" aria-expanded="true">접기 ▴</button></div></div>
           <div class="product-list" id="productList"></div>
@@ -254,7 +254,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.10</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.11</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
@@ -263,7 +263,7 @@
   <script src="load-insights.js?v=20260924-2"></script>
   <script src="solution-validator.js?v=20260814-2"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260924-11"></script>
+  <script src="app.js?v=20260925-1"></script>
   <script src="project-store.js?v=20260924-3"></script>
 </body>
 </html>

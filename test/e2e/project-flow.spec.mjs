@@ -201,6 +201,11 @@ test('adding clears the form and a listed product can be edited in full',async({
   await page.fill('#productLength','1500');await page.fill('#productWeight','500');await page.click('#addProduct');
   await expect(page.locator('.product-item').first()).toContainText('1500×800×900 mm · 500 kg');await expect(page.locator('.product-item')).toHaveCount(2);
   await expect(page.locator('.input-card')).not.toHaveClass(/editing/);await expect(page.locator('#productName')).toHaveValue('');
-  await page.getByRole('button',{name:'제어반 수정'}).click();await page.click('#cancelEdit');
-  await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#cancelEdit')).toBeHidden();
+  await expect(page.getByRole('button',{name:/삭제/})).toHaveCount(0);
+  await page.getByRole('button',{name:'제어반 수정'}).click();await expect(page.locator('#inputHint')).toHaveText('제어반 수정 중');
+  await expect(page.getByRole('button',{name:'제어반 삭제'})).toBeVisible();await expect(page.getByRole('button',{name:'펌프 삭제'})).toHaveCount(0);
+  await page.getByRole('button',{name:'제어반 수정 취소'}).click();
+  await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#inputHint')).toHaveText('직접 입력하거나 불러옵니다.');await expect(page.getByRole('button',{name:/삭제/})).toHaveCount(0);
+  await page.getByRole('button',{name:'제어반 수정'}).click();await page.getByRole('button',{name:'제어반 삭제'}).click();
+  await expect(page.locator('.product-item')).toHaveCount(1);await expect(page.locator('.input-card')).not.toHaveClass(/editing/);
 });
