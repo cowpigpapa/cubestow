@@ -1,7 +1,9 @@
 import {test,expect} from '@playwright/test';
 
+const openMenu=(page,name)=>page.locator('details.menu>summary',{hasText:name}).click();
+const openHelp=(page,name)=>openMenu(page,'도움말').then(()=>page.getByRole('button',{name}).click());
 async function loadSample(page,number=1){
-  await page.getByRole('button',{name:'샘플 불러오기'}).click();
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플 불러오기'}).click();
   await expect(page.getByRole('heading',{name:'샘플 시나리오 선택'})).toBeVisible();
   await page.locator(`[data-sample="${number}"]`).click();
   await expect(page.locator('#loadedCount')).not.toHaveText('—',{timeout:20000});
@@ -9,21 +11,21 @@ async function loadSample(page,number=1){
 
 test('algorithm policy opens inside the app',async({page})=>{
   await page.goto('/');
-  await page.getByRole('button',{name:'알고리즘 정책'}).click();
+  await openHelp(page,'알고리즘 정책');
   await expect(page.getByRole('heading',{name:'알고리즘 정책과 한계'})).toBeVisible();
   await expect(page.locator('#policyDialog')).toHaveAttribute('open','');
 });
 
 test('user guide opens inside the app',async({page})=>{
   await page.goto('/');
-  await page.getByRole('button',{name:'사용 가이드'}).click();
+  await openHelp(page,'사용 가이드');
   await expect(page.locator('#guideDialog')).toHaveAttribute('open','');
   await expect(page.getByRole('heading',{name:'Cubestow 사용 가이드'})).toBeVisible();
 });
 
 test('sample picker lists twenty scenarios and filters them by category',async({page})=>{
   await page.goto('/');
-  await page.getByRole('button',{name:'샘플 불러오기'}).click();
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플 불러오기'}).click();
   await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(20);
   await expect(page.locator('#sampleDialog')).toContainText('혼합 화물');
   await expect(page.locator('#sampleDialog')).toContainText('양문형 냉장고');
@@ -56,7 +58,7 @@ test('product list title and mobile layout do not wrap or overflow',async({page}
 
 test('CTU Code guide opens inside the app',async({page})=>{
   await page.goto('/');
-  await page.getByRole('button',{name:'CTU Code'}).click();
+  await openHelp(page,'CTU Code');
   await expect(page.locator('#ctuDialog')).toHaveAttribute('open','');
   await expect(page.getByRole('heading',{name:'CTU Code란?'})).toBeVisible();
   await expect(page.getByText('Cubestow의 현재 반영 범위')).toBeVisible();
@@ -121,12 +123,12 @@ test('guest project saves, reloads, and recalculates automatically',async({page}
   await page.getByRole('button',{name:'저장',exact:true}).click();
   await expect(page.getByRole('heading',{name:'현재 프로젝트에 저장할까요?'})).toBeVisible();
   await page.getByRole('button',{name:'취소'}).click();
-  await page.getByRole('button',{name:'새 프로젝트'}).click();
+  await openMenu(page,'⋯');await page.getByRole('button',{name:'새 프로젝트'}).click();
   await expect(page.locator('#loadedCount')).toHaveText('—');
-  await page.getByRole('button',{name:'저장 목록'}).click();
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'저장 목록'}).click();
   await page.locator('[data-open]').filter({hasText:'E2E 자동 계산'}).click();
   await expect(page.locator('#loadedCount')).toHaveText('36개',{timeout:20000});
-  await expect(page.locator('#simulationStatus')).toContainText('적재 완료');
+  await expect(page.locator('#simulationStatus')).toBeHidden();await expect(page.locator('#recommendation')).toContainText('계산');
 });
 
 test('weight balance, view presets and printable work instruction work together',async({page})=>{
@@ -145,7 +147,17 @@ test('CTU pre-check and compression status render after simulation',async({page}
 });
 
 test('simulation result does not move the view controls',async({page})=>{
-  await page.goto('/');const view=page.getByRole('button',{name:'문 기준',exact:true}),before=await view.boundingBox();await loadSample(page);const after=await view.boundingBox(),status=await page.locator('#simulationStatus').boundingBox(),canvas=await page.locator('#canvasWrap').boundingBox(),leftRun=await page.locator('#recalculateList').boundingBox(),rightRun=await page.locator('#recalculateOptions').boundingBox(),divider=await page.locator('#planner').evaluate(e=>{const s=getComputedStyle(e,'::after');return{bottom:parseFloat(s.bottom),left:parseFloat(s.left),display:s.display,marginBottom:parseFloat(getComputedStyle(e).marginBottom)}});expect(after.x).toBe(before.x);expect(status.x+status.width).toBeLessThanOrEqual(canvas.x+canvas.width);expect([leftRun.width,leftRun.height]).toEqual([rightRun.width,rightRun.height]);expect(divider).toEqual({bottom:16,left:430,display:'block',marginBottom:12});
+  await page.goto('/');const view=page.getByRole('button',{name:'문 기준',exact:true}),before=await view.boundingBox();await loadSample(page);const after=await view.boundingBox(),divider=await page.locator('#planner').evaluate(e=>{const s=getComputedStyle(e,'::after');return{bottom:parseFloat(s.bottom),left:parseFloat(s.left),display:s.display,marginBottom:parseFloat(getComputedStyle(e).marginBottom)}});expect(after.x).toBe(before.x);await expect(page.locator('#simulationStatus')).toBeHidden();expect(divider).toEqual({bottom:16,left:430,display:'block',marginBottom:12});
+});
+
+test('one run button, view controls inside the 3D view and the axis legend in the securing panel',async({page})=>{
+  await page.goto('/');
+  await expect(page.getByRole('button',{name:/시뮬레이션 실행/})).toHaveCount(1);
+  await expect(page.locator('#canvasWrap .result-control-row #viewIso')).toBeVisible();
+  await expect(page.locator('#canvasWrap .axis-legend')).toHaveCount(0);await expect(page.locator('#canvasHint')).toHaveCount(0);
+  await expect(page.locator('.result-kicker')).toHaveCount(0);
+  await loadSample(page);await page.locator('#securingPanel').evaluate(panel=>panel.open=true);
+  await expect(page.locator('#securingRecommendation .coordinate-legend')).toContainText('문(X=0)에서 안쪽');
 });
 
 test('footer keeps professional contrast and aligns the visitor counter',async({page})=>{

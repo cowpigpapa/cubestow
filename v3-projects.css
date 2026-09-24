@@ -101,3 +101,55 @@ button.collapse-toggle,.collapse-state,.collapse-state::after,.collapsible-actio
 .visitor-count span{font-size:12px!important}
 .step-heading>span{font-size:12px}
 #addProduct{font-size:14px}
+
+/* 1.1.1 화면 정리: 드롭다운 메뉴, 한 줄 툴바, 3D 화면 안 보기 컨트롤, 고정재 패널 좌표 범례 */
+details.menu{position:relative}
+details.menu>summary{list-style:none;cursor:pointer;user-select:none}
+details.menu>summary::-webkit-details-marker{display:none}
+details.menu>summary::after{content:" ▾";font-size:11px;opacity:.7}
+details.menu>summary[aria-label]::after{content:""}
+.menu-list{position:absolute;top:calc(100% + 8px);right:0;z-index:30;display:grid;min-width:168px;padding:6px;border:1px solid var(--v3-line);border-radius:14px;background:#fff;box-shadow:0 12px 32px rgba(0,0,0,.14)}
+.help-menu .menu-list{left:50%;right:auto;transform:translateX(-50%)}
+.menu-list button,.project-toolbar .menu-list button,.topbar nav .menu-list button{display:block;width:100%;min-height:38px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:var(--v3-ink);font:500 14px/38px Inter,"Noto Sans KR",sans-serif;text-align:left;white-space:nowrap}
+.menu-list button:hover,.menu-list button:focus-visible{background:#f2f5fa}
+.topbar nav{align-items:center}
+.topbar .help-menu>summary{color:rgba(255,255,255,.72);font-size:12px}
+.topbar .help-menu>summary:hover,.topbar .help-menu[open]>summary{color:#fff}
+.project-toolbar{display:flex;align-items:center;gap:12px}
+.project-toolbar .safety-notice{margin:0 auto 0 0;max-width:none;padding:0;border:0;background:none}
+.project-toolbar .safety-notice>summary{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border:1px solid #ead9ae;border-radius:999px;background:#fff9e9;cursor:pointer;list-style:none}
+.project-toolbar .safety-notice>summary::-webkit-details-marker{display:none}
+.project-toolbar .safety-notice>summary::before{content:"i";display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#c28b1b;color:#fff;font:700 11px/1 Inter,sans-serif}
+.project-toolbar .safety-notice>span{position:absolute;z-index:30;max-width:420px;margin-top:8px;padding:12px 14px;border:1px solid #ead9ae;border-radius:12px;background:#fffdf6;color:#755414;font-size:13px;line-height:1.5;white-space:normal;box-shadow:0 12px 32px rgba(0,0,0,.12)}
+.toolbar-actions{display:flex;align-items:center;gap:8px}
+.toolbar-actions .current-project{margin:0 4px 0 0}
+.project-toolbar details.menu>summary{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid var(--v3-line);border-radius:999px;background:var(--v3-canvas);color:var(--v3-ink);font:600 14px/1 Inter,"Noto Sans KR",sans-serif}
+.project-toolbar details.menu>summary[aria-label]{min-width:44px;justify-content:center;padding:0;font-size:18px;letter-spacing:1px}
+.result-header{margin-bottom:0}
+.canvas-wrap .result-control-row{position:absolute;top:14px;left:14px;right:14px;z-index:4;margin:0;justify-content:flex-start;flex-wrap:wrap}
+.canvas-wrap .result-control-row .container-nav-slot{margin-left:auto}
+.canvas-wrap .simulation-status{top:auto;bottom:86px;left:50%;transform:translateX(-50%)}
+.coordinate-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 14px;color:var(--v3-muted);font-size:12px}
+.coordinate-legend span{display:inline-flex;align-items:center;gap:6px}
+.coordinate-legend b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#1d1d1f;color:#fff;font-size:11px}
+@media(max-width:900px){
+  .topbar nav{display:flex;flex:0 0 auto;margin-left:auto;gap:0}
+  .topbar nav>a{display:none}
+  .help-menu .menu-list{left:auto;right:0;transform:none}
+  .project-toolbar{display:flex;flex-wrap:wrap;padding-block:8px}
+  .project-toolbar .safety-notice{flex:1 1 100%}
+  .toolbar-actions{flex:1 1 100%;justify-content:flex-end}
+  .toolbar-actions .current-project{margin-right:auto}
+  .project-toolbar details.menu>summary,.project-toolbar .primary{min-height:40px;font-size:13px;padding-inline:14px}
+  .canvas-wrap .result-control-row{top:10px;left:10px;right:10px;gap:6px}
+}
+.simulation-status[hidden]{display:none}
+.project-toolbar .menu-list button{background:transparent!important;border-color:transparent!important;color:var(--v3-ink)!important}
+.project-toolbar .menu-list button:hover{background:#f2f5fa!important}
+.brand>small{white-space:nowrap}
+@media(max-width:480px){.brand>small{display:none}}
+@media(max-width:900px){
+  .canvas-wrap .result-control-row .container-nav-slot{order:1}
+  .canvas-wrap .result-control-row .view-actions{order:2;flex:1 1 100%;max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .canvas-wrap .result-control-row .view-actions button{flex:0 0 auto}
+}
