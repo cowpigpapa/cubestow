@@ -218,7 +218,7 @@ test('incremental top-load check carries converging loads down through stacked s
 test('cargo is loaded flush against the inner end wall',()=>{
   for(const items of [mixed(),widthMix(),fragileMix(),units(10,{rotate:true})])for(const safety of ['strict','standard'])for(const preference of ['auto','density','width','balance']){
     const result=pack(items,{safety,preference});
-    for(const load of result.loads)assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l-(load.wallGap||0),`${safety}/${preference}`);
+    for(const load of result.loads)assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l,`${safety}/${preference}`);
   }
 });
 
@@ -263,4 +263,20 @@ test('incremental stack balance check sums converging loads before passing them 
   const placed=[box(0,0,1000,100),box(0,300,1600,100),box(0,600,1000,400),box(1000,600,600,10)];
   const safe=weight=>engine._internal.stackSafe({name:'c',shape:'box',weight},700,0,900,[900,1000,300],{placed:[...placed]});
   assert.equal(safe(1400),true);assert.equal(safe(1800),false);
+});
+
+// 첫 적재는 예외 없이 안쪽 벽에 붙인다. 앞쪽이 무거워도 문 쪽으로 옮기지 않고 사전검사 경고로만 알린다.
+test('every sample starts loading against the inner end wall in every container',async()=>{
+  vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const containers={'20ft':C20,'40ft':CONTAINERS[1],'40hc':CONTAINERS[2]};
+  for(const [id,sample] of Object.entries(context.__samples))for(const safety of ['strict','standard']){
+    const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+    const result=engine.packShipment({container:containers[sample.container],units:items,safety,transportMode:sample.mode,timeBudgetMs:60000});
+    for(const load of result.loads){
+      if(!load.placed.length)continue;
+      const first=load.placed.find(p=>p.order===1);
+      assert.equal(first.x+first.l,load.container.l,`sample ${id}/${safety}: first item is off the wall`);
+      assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l,`sample ${id}/${safety}`);
+    }
+  }
 });
