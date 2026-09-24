@@ -15,7 +15,7 @@
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
 - 현재 단계: Vercel 공개 베타 · 버전 4.0.0 (버전은 package.json의 semver로만 관리)
-- 서비스: https://loadwise-v3.vercel.app/
+- 서비스: https://cubestow.vercel.app/
 - 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
 - 상단 `알고리즘 정책` 팝업 및 원문: [ALGORITHM-POLICY.md](ALGORITHM-POLICY.md)
