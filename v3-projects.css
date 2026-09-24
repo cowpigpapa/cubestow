@@ -282,3 +282,13 @@ details.menu>summary[aria-label]::after{content:""}
 .select-list li:hover{background:#f2f5fa}
 .select-list li[aria-selected=true]{color:#0066cc;font-weight:600;background:#eef6ff}
 .form-grid .select-button{height:44px;border-color:rgba(0,0,0,.08);border-radius:11px;padding-left:10px}
+
+/* 01·02 카드 파스텔 톤과 입력 이력 추천 목록 */
+.panel-card.input-card{background:#f5f9ff;border-color:#cfdff3}
+.product-list-card{background:#f3faf6;border-color:#c9e6d6}
+.product-list-card .collapsible-head{background:transparent}
+.panel-card .form-grid input,.panel-card .form-grid .select-button{border-color:#d3dde9;background:#fff}
+.suggest-box{position:relative;min-width:0}
+.suggest-box>input{width:100%}
+.suggest-box.open .select-list{opacity:1;visibility:visible;transform:none;transition:opacity .14s ease,transform .14s ease}
+.suggest-box .select-list{max-height:240px;overflow-y:auto}

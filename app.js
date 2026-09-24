@@ -37,7 +37,23 @@ if(typeof window!=='undefined')window.showAppMessage=showAppMessage;
 function init(){
   $('containerType').innerHTML = Object.entries(CONTAINERS).map(([k,c])=>`<option value="${k}">${c.name}</option>`).join('');
   ['productShape','safetyLevel','preference','transportMode','containerType'].forEach(id=>enhanceSelect($(id)));
+  suggestFromHistory($('productName'),'names');suggestFromHistory($('productGroup'),'groups');
   bindEvents(); updateContainerSpec(); renderProducts(); resizeCanvas();
+}
+// 제품명·제품군 입력 이력. 이 브라우저에만 최근 12개를 저장하고, 입력칸 아래에 추천 목록으로 보여 준다.
+const HISTORY_KEY='cubestow.productHistory',HISTORY_LIMIT=12;
+function readHistory(){try{const data=JSON.parse(localStorage.getItem(HISTORY_KEY)||'{}');return{names:Array.isArray(data.names)?data.names:[],groups:Array.isArray(data.groups)?data.groups:[]}}catch{return{names:[],groups:[]}}}
+function rememberProduct(name,group){const data=readHistory(),push=(list,value)=>value?[value,...list.filter(v=>v!==value)].slice(0,HISTORY_LIMIT):list;try{localStorage.setItem(HISTORY_KEY,JSON.stringify({names:push(data.names,name),groups:push(data.groups,group)}))}catch{}}
+function suggestFromHistory(input,kind){
+  const box=document.createElement('div'),list=document.createElement('ul');let items=[],active=-1;
+  box.className='suggest-box';list.className='select-list';list.setAttribute('role','listbox');
+  input.before(box);box.append(input,list);input.setAttribute('aria-autocomplete','list');
+  const setOpen=open=>box.classList.toggle('open',open&&items.length>0);
+  const render=()=>{const query=input.value.trim().toLowerCase();items=readHistory()[kind].filter(v=>v.toLowerCase().includes(query)&&v!==input.value.trim());active=-1;list.innerHTML=items.map((v,i)=>`<li role="option" data-index="${i}" aria-selected="false">${esc(v)}</li>`).join('');setOpen(document.activeElement===input)};
+  const pick=i=>{input.value=items[i];setOpen(false)};
+  input.addEventListener('focus',render);input.addEventListener('input',render);input.addEventListener('blur',()=>setTimeout(()=>setOpen(false),120));
+  input.addEventListener('keydown',e=>{if(!box.classList.contains('open'))return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();active=(active+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;[...list.children].forEach((li,i)=>li.setAttribute('aria-selected',String(i===active)))}else if(e.key==='Enter'&&active>=0){e.preventDefault();pick(active)}else if(e.key==='Escape')setOpen(false)});
+  list.addEventListener('mousedown',e=>{e.preventDefault();const item=e.target.closest('li');if(item)pick(+item.dataset.index)});
 }
 // 조건 선택상자: 운영체제 기본 목록은 열릴 때 깜박이므로 같은 값을 가진 부드러운 목록으로 보여 준다.
 // 값과 change 이벤트는 원래 select가 그대로 가지며, 코드가 값을 바꾸면 syncSelects()로 표시를 맞춘다.
@@ -99,7 +115,7 @@ function bindEvents(){
 function addProduct(){
   const topLoad=$('productMaxTopLoad').value,p={name:$('productName').value.trim(),group:$('productGroup').value.trim()||'기타',shape:$('productShape').value,qty:+$('productQty').value,l:+$('productLength').value,w:+$('productWidth').value,h:+$('productHeight').value,weight:+$('productWeight').value,maxTopLoadKg:topLoad===''?null:+topLoad,rotate:$('allowRotation').checked,fragile:$('fragile').checked};
   if(!p.name||[p.qty,p.l,p.w,p.h,p.weight].some(v=>!v||v<=0)||(p.maxTopLoadKg!=null&&(!Number.isFinite(p.maxTopLoadKg)||p.maxTopLoadKg<0))){showAppMessage('제품명과 수량, 규격, 중량, 상부 허용하중을 올바르게 입력해 주세요.',{title:'제품 정보를 확인해 주세요',tone:'warning'});return}
-  p.id=Date.now()+Math.random(); p.color=COLORS[products.length%COLORS.length];products.push(p);renderProducts();window.loadwiseStorage?.suggestName(`${p.name} 적재`);
+  p.id=Date.now()+Math.random(); p.color=COLORS[products.length%COLORS.length];products.push(p);rememberProduct(p.name,$('productGroup').value.trim());renderProducts();window.loadwiseStorage?.suggestName(`${p.name} 적재`);
 }
 function renderSampleList(filter='전체'){const modes={sea:'해상',combined:'복합',road:'육상'},units=s=>s.products.reduce((sum,p)=>sum+p.qty,0);$('sampleFilters').innerHTML=['전체',...SAMPLE_CATEGORIES].map(c=>`<button type="button" data-sample-filter="${c}" aria-pressed="${c===filter}">${c}</button>`).join('');$('sampleList').innerHTML=Object.entries(SAMPLE_SETS).filter(([,s])=>filter==='전체'||s.category===filter).map(([id,s])=>`<li><button type="button" data-sample="${id}"><b>${String(id).padStart(2,'0')}</b><span><strong>${esc(s.name)}</strong><small>${esc(s.description)}</small></span><em>${esc(s.category)} · ${CONTAINERS[s.container]?.name||''} · ${modes[s.mode]||''} · ${units(s)}개</em></button></li>`).join('');document.querySelectorAll('[data-sample-filter]').forEach(button=>button.onclick=()=>renderSampleList(button.dataset.sampleFilter));document.querySelectorAll('[data-sample]').forEach(button=>button.onclick=()=>loadDemo(+button.dataset.sample))}
 function loadDemo(number=1){const sample=SAMPLE_SETS[number]||SAMPLE_SETS[1];if(CONTAINERS[sample.container]){$('containerType').value=sample.container;updateContainerSpec()}if(sample.mode)$('transportMode').value=sample.mode;products=sample.products.map((p,i)=>({...p,id:Date.now()+i,color:COLORS[i%COLORS.length]}));$('sampleDialog').close();renderProducts();window.loadwiseStorage?.suggestName(`샘플 ${number} · ${sample.name}`,true);simulate();document.querySelector('#planner').scrollIntoView({behavior:'smooth'})}

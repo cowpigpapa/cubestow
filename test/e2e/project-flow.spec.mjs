@@ -180,3 +180,12 @@ test('condition dropdowns open a smooth list and keep the native select value in
   await expect(page.locator('#transportMode')).toHaveValue('sea');await expect(transport.locator('.select-button')).toHaveText('해상 · 보수적');await expect(transport).not.toHaveClass(/open/);
   await transport.locator('.select-button').press('ArrowDown');await expect(page.locator('#transportMode')).toHaveValue('combined');
 });
+
+test('product name and group inputs suggest previously entered values',async({page})=>{
+  await page.goto('/');
+  for(const [name,group] of [['산업용 펌프','기계류'],['제어반','전기장비']]){await page.fill('#productName',name);await page.fill('#productGroup',group);await page.fill('#productWeight','100');await page.fill('#productLength','1000');await page.fill('#productWidth','800');await page.fill('#productHeight','700');await page.click('#addProduct')}
+  await page.reload();await page.locator('#productName').click();await page.keyboard.type('제');
+  const suggestions=page.locator('.suggest-box.open li');await expect(suggestions).toHaveText(['제어반']);
+  await suggestions.first().click();await expect(page.locator('#productName')).toHaveValue('제어반');
+  await page.locator('#productGroup').click();await expect(page.locator('.suggest-box.open li')).toHaveText(['전기장비','기계류']);
+});
