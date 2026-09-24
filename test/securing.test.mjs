@@ -9,7 +9,7 @@ for(const file of ['load-insights.js','solution-validator.js','packing-engine.js
 vm.runInContext('globalThis.__samples=SAMPLE_SETS;globalThis.__containers=CONTAINERS;globalThis.__plan=buildSecuringPlan;',context);
 const overlap=(a,b)=>Math.min(a.x+a.l,b.x+b.l)-Math.max(a.x,b.x)>1&&Math.min(a.y+a.w,b.y+b.w)-Math.max(a.y,b.y)>1&&Math.min(a.z+a.h,b.z+b.h)-Math.max(a.z,b.z)>1;
 
-test('airbags never overlap each other, cargo or dunnage',()=>{
+test('airbags never overlap each other, cargo or dunnage, and never sit at a container end',()=>{
   let checked=0;
   for(const [id,sample] of Object.entries(context.__samples)){
     const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
@@ -20,6 +20,8 @@ test('airbags never overlap each other, cargo or dunnage',()=>{
         plan.airbags.slice(i+1).forEach(b=>assert.ok(!overlap(a,b),`sample ${id}: airbags overlap at ${a.location} / ${b.location}`));
         load.placed.forEach(p=>assert.ok(!overlap(a,p),`sample ${id}: airbag inside cargo ${p.name}`));
         plan.dunnage.forEach(d=>assert.ok(!overlap(a,d),`sample ${id}: airbag overlaps dunnage`));
+        // 컨테이너 끝(안쪽 벽·문)에는 에어백을 두지 않는다.
+        assert.ok(a.x+a.l<load.container.l-1&&a.x>1,`sample ${id}: airbag at a container end (${a.location})`);assert.ok(!/안쪽 벽/.test(a.location),`sample ${id}: inner-wall airbag`);
         checked++;
       });
     }
