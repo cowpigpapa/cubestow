@@ -197,7 +197,7 @@ test('adding clears the form and a listed product can be edited in full',async({
   await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#productQty')).toHaveValue('1');
   await add('제어반','180','900','600','1100');
   await page.getByRole('button',{name:'펌프 수정'}).click();
-  await expect(page.locator('#productLength')).toHaveValue('1200');await expect(page.locator('.input-card')).toHaveClass(/editing/);await expect(page.locator('#addProduct')).toContainText('변경 내용 저장');
+  await expect(page.locator('#productLength')).toHaveValue('1200');await expect(page.locator('#recalculateOptions')).toBeDisabled();await expect(page.locator('.product-item.editing [data-qty-input]')).toBeDisabled();await expect(page.locator('.input-card')).toHaveClass(/editing/);await expect(page.locator('#addProduct')).toContainText('변경 내용 저장');
   await page.fill('#productLength','1500');await page.fill('#productWeight','500');await page.click('#addProduct');
   await expect(page.locator('.product-item').first()).toContainText('1500×800×900 mm · 500 kg');await expect(page.locator('.product-item')).toHaveCount(2);
   await expect(page.locator('.input-card')).not.toHaveClass(/editing/);await expect(page.locator('#productName')).toHaveValue('');
