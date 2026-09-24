@@ -1,4 +1,4 @@
-// LoadWise 적재 엔진: 화면(DOM)에 의존하지 않는 순수 계산 모듈.
+// Cubestow 적재 엔진: 화면(DOM)에 의존하지 않는 순수 계산 모듈.
 // 브라우저 메인 스레드, Web Worker, Node 시험 환경에서 같은 코드로 동작한다.
 (function(root){
   'use strict';

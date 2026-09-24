@@ -1,4 +1,4 @@
-# LoadWise 알고리즘 10회 개선·평가 기록
+# Cubestow 알고리즘 10회 개선·평가 기록
 
 기준 버전: `extreme-dblf-balanced-center-2026.08`  
 결과 버전: `extreme-dblf-validated-portfolio-2026.08`
