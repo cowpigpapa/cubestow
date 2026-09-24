@@ -4,7 +4,7 @@
 - 갱신일: 2026-08-11
 - 제품 단계: Vercel 공개 베타
 - v3 서비스: https://loadwise-v3.vercel.app/
-- 저장소: https://github.com/cowpigpapa/loadwise
+- v3 저장소: https://github.com/cowpigpapa/cubestow
 - 알고리즘 정책: [ALGORITHM-POLICY.md](ALGORITHM-POLICY.md)
 
 ## 1. 제품 정의

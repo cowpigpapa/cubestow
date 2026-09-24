@@ -1,4 +1,8 @@
-# LoadWise
+# Cubestow
+
+Load wisely. Ship safely.
+
+이전 이름: LoadWise
 
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
