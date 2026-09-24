@@ -235,3 +235,33 @@ test('loading a sample after opening a saved project starts a new unsaved projec
   await page.getByRole('button',{name:'저장',exact:true}).click();
   await expect(page.getByRole('textbox',{name:'저장 이름'})).toBeVisible();await expect(page.getByRole('heading',{name:'현재 프로젝트에 저장할까요?'})).toHaveCount(0);
 });
+
+test('changing inputs after a run blocks exports until the plan is recalculated',async({page})=>{
+  await page.goto('/');await loadSample(page);await expect(page.locator('#exportPlan')).toBeEnabled();
+  await page.locator('[data-qty-up="0"]').click();
+  await expect(page.locator('#exportPlan')).toBeDisabled();await expect(page.locator('#exportPdf')).toBeDisabled();
+  await page.click('#recalculateOptions');await expect(page.locator('#exportPlan')).toBeEnabled({timeout:30000});
+});
+
+test('starting and cancelling an edit keeps a saved project saved',async({page})=>{
+  await page.goto('/');await loadSample(page);
+  await page.getByRole('button',{name:'저장',exact:true}).click();await page.getByRole('textbox',{name:'저장 이름'}).fill('편집 확인');await page.getByRole('button',{name:'이 이름으로 저장'}).click();
+  await expect(page.locator('#saveState')).toHaveText('브라우저 저장됨');
+  await page.locator('.edit-product').first().click();await page.locator('.edit-product').first().click();
+  await expect(page.locator('#saveState')).toHaveText('브라우저 저장됨');
+});
+
+test('a change made while a plan is calculating discards the stale result',async({page})=>{
+  await page.goto('/');await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플',exact:true}).click();await page.locator('[data-sample="13"]').click();
+  await expect(page.locator('#simulationStatus')).toHaveClass(/busy/);
+  await page.locator('[data-qty-up="0"]').click();
+  await expect(page.locator('#simulationStatus')).toBeHidden({timeout:60000});
+  await expect(page.locator('#loadedCount')).toHaveText('—');await expect(page.locator('#recalculateOptions')).toContainText('다시 계산');
+});
+
+test('loading another sample while calculating recalculates for the new sample',async({page})=>{
+  await page.goto('/');await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플',exact:true}).click();await page.locator('[data-sample="13"]').click();
+  await expect(page.locator('#simulationStatus')).toHaveClass(/busy/);
+  await loadSample(page,2).catch(()=>{});
+  await expect(page.locator('#loadedCount')).toHaveText('42개',{timeout:60000});await expect(page.locator('#currentProjectName')).toHaveText('샘플 2 · 단일 규격 반복');
+});

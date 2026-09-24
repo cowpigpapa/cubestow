@@ -16,7 +16,9 @@
   function showCurrent(name='새 프로젝트'){suggestedName=name==='새 프로젝트'?suggestedName:name;$('currentProjectName').textContent=name;$('projectName').value=name==='새 프로젝트'?'':name}
   function markDirty(){if(!suppressDirty){dirty=true;state('저장되지 않음','dirty')}}
   // 샘플·파일처럼 내용을 통째로 바꾸면 저장된 프로젝트와의 연결을 끊는다. 그대로 두면 저장 시 원래 프로젝트를 덮어쓴다.
-  function detach(name){currentId=null;dirty=true;state('저장되지 않음','dirty');showCurrent();suggestName(name,true)}
+  // 저장 연결이 바뀔 때마다 올라가는 번호. 저장 도중 다른 것을 불러오면 늦게 끝난 저장이 연결을 되돌리지 않게 한다.
+  let linkGeneration=0;
+  function detach(name){linkGeneration++;currentId=null;dirty=true;state('저장되지 않음','dirty');showCurrent();suggestName(name,true)}
   function suggestName(name,show=false){if(currentId||!name)return;suggestedName=name.trim();if(show)$('currentProjectName').textContent=suggestedName}
   function snapshot(){return window.loadwiseProject.snapshot()}
   function record(name,id=currentId){return{id:id||crypto.randomUUID(),name,payload:snapshot(),updated_at:new Date().toISOString()}}
@@ -27,10 +29,11 @@
   async function save(name){
     name=name.trim();if(!name)return message('프로젝트를 구분할 수 있는 저장 이름을 입력해 주세요.',{title:'저장 이름이 필요합니다',tone:'warning'});if(name.length>80)return message('저장 이름은 80자 이내로 입력해 주세요.',{title:'저장 이름이 너무 깁니다',tone:'warning'});
     saving=true;$('saveProject').disabled=true;$('confirmSave').disabled=true;state('저장 중…');
+    const generation=linkGeneration;let savedId;
     try{
-      if(user){const row={...(!saveAsNew&&currentId?{id:currentId}:{}),user_id:user.id,name,payload:snapshot(),updated_at:new Date().toISOString()},{data,error}=await client.from('projects').upsert(row).select('id').single();if(error)throw error;currentId=data.id}
-      else{const rows=readLocal(),next=record(name,saveAsNew?null:currentId),index=rows.findIndex(x=>x.id===next.id);if(index>=0)rows[index]=next;else rows.push(next);writeLocal(rows);currentId=next.id}
-      showCurrent(name);$('saveDialog').close();dirty=false;state(savedLabel(),'saved');
+      if(user){const row={...(!saveAsNew&&currentId?{id:currentId}:{}),user_id:user.id,name,payload:snapshot(),updated_at:new Date().toISOString()},{data,error}=await client.from('projects').upsert(row).select('id').single();if(error)throw error;savedId=data.id}
+      else{const rows=readLocal(),next=record(name,saveAsNew?null:currentId),index=rows.findIndex(x=>x.id===next.id);if(index>=0)rows[index]=next;else rows.push(next);writeLocal(rows);savedId=next.id}
+      $('saveDialog').close();if(generation===linkGeneration){currentId=savedId;showCurrent(name);dirty=false;state(savedLabel(),'saved')}
     }catch(error){console.error(error);state('저장 실패','error');message(error.message,{title:'프로젝트를 저장하지 못했습니다',tone:'error'})}
     finally{saving=false;saveAsNew=false;$('saveProject').disabled=false;$('confirmSave').disabled=false}
   }
@@ -45,7 +48,7 @@
   }
   async function open(id){
     if(dirty&&!await message('현재 변경사항은 저장되지 않습니다. 선택한 프로젝트를 불러오시겠습니까?',{title:'저장하지 않은 변경사항이 있습니다',tone:'warning',confirmAction:true,actionLabel:'불러오기'}))return;
-    try{const row=(await list()).find(x=>x.id===id);if(!row)return;suppressDirty=true;window.loadwiseProject.apply(row.payload);suppressDirty=false;currentId=row.id;showCurrent(row.name);$('projectsDialog').close();dirty=false;state(savedLabel(),'saved');$('recalculateOptions').click()}
+    try{const row=(await list()).find(x=>x.id===id);if(!row)return;suppressDirty=true;window.loadwiseProject.apply(row.payload);suppressDirty=false;linkGeneration++;currentId=row.id;showCurrent(row.name);$('projectsDialog').close();dirty=false;state(savedLabel(),'saved');$('recalculateOptions').click()}
     catch(error){suppressDirty=false;message(error.message,{title:'프로젝트를 불러오지 못했습니다',tone:'error'})}
   }
   async function remove(id){
