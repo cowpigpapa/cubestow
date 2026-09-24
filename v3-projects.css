@@ -80,3 +80,24 @@ body .workspace{min-height:0;margin-top:6px;margin-bottom:12px;padding-top:64px}
   .result-header{align-items:flex-start}.result-tools{width:100%;justify-content:flex-start}.result-control-row{justify-content:flex-start;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}.simulation-config-bar{grid-template-columns:1fr 1fr;margin-top:12px}.simulation-config-bar .priority-label,.simulation-config-bar .container-spec{grid-column:1/-1}.simulation-config-bar .container-spec{grid-row:auto}.simulation-config-bar .top-simulate{width:100%}
   .loading-plan .plan-head{align-items:flex-start;gap:14px;padding:15px}.plan-actions{flex-wrap:wrap;justify-content:flex-start}.loading-plan .sequence-list,.loading-plan.expanded .sequence-list{padding:0 10px 10px}
 }
+
+/* 글자 크기 체계: 12px 보조·메타 / 14px 본문·버튼 / 16px 카드 제목 / 21px 구역 제목 / 22px 지표. 12px 미만은 쓰지 않는다.
+   앞선 스타일시트들이 같은 선택자를 여러 번 덮어쓰므로 마지막 파일에서 한 번에 정한다. */
+.brand>small,.site-footer .footer-meta,.site-footer .footer-meta span,.site-footer .footer-meta small,
+.securing-visibility button,.securing-visibility button b,.axis-legend,.axis-legend b,.coordinate-note,.canvas-hint,
+.stats span,.stats small,.balance-grid span,.balance-card p,.container-spec span,.simulation-config-bar .container-spec span,
+.product-options label,.qty-stepper,.product-item small,.dropzone small,.simulation-status,.simulation-status>b,
+.visitor-count span,.save-state,.project-toolbar .safety-notice,.collapsible-head span,.collapsible-card>summary div>span,
+button.collapse-toggle,.collapse-state,.collapse-state::after,.collapsible-actions #toggleProducts,.plan-head button,
+.securing-items div,.securing-recommendation p,.sequence-list small,.list-empty,.empty-state span,.recommendation p,
+.eyebrow,.result-kicker,.form-grid label,.container-select,.priority-label,.policy-summary b,.account-identity,.text-button,
+.sequence-empty,.result-control-row .container-tabs .page-label,.result-control-row .view-actions button,
+.simulation-config-bar .top-simulate,#recalculateList,#recalculateOptions{font-size:12px}
+.brand>small{letter-spacing:0;color:#9aa4ad}
+.site-footer .footer-brand span{font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:#b8c5bd}
+.securing-items strong,.sequence-list strong,.sequence-list li{font-size:13px}
+.securing-recommendation h3,.balance-card h3{font-size:16px}
+.playback span,.sequence-list .num{font-size:12px}
+.visitor-count span{font-size:12px!important}
+.step-heading>span{font-size:12px}
+#addProduct{font-size:14px}
