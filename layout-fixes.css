@@ -29,3 +29,16 @@
 
   #planner::after { display: none; }
 }
+
+.strategy-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.strategy-pair label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}

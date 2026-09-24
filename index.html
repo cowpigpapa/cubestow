@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LoadWise v3 — 저장되는 컨테이너 적재 시뮬레이터</title>
+  <title>LoadWise — 저장되는 컨테이너 적재 시뮬레이터</title>
   <meta name="description" content="제품 규격과 수량을 기반으로 컨테이너 적재 계획을 계산하고 3D로 시각화하세요.">
-  <meta property="og:title" content="LoadWise v3">
+  <meta property="og:title" content="LoadWise">
   <meta property="og:description" content="저장하고 다시 불러오는 컨테이너 적재 시뮬레이터">
   <meta property="og:image" content="/og.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20260815-2">
-  <link rel="stylesheet" href="layout-fixes.css?v=20260728-1">
+  <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
   <link rel="stylesheet" href="v3-projects.css?v=20260814-5">
 </head>
@@ -22,7 +22,7 @@
   <header class="topbar">
     <a class="brand" href="#" aria-label="LoadWise 홈">
       <span class="brand-mark"><span></span><span></span><span></span></span>
-      <span>LoadWise <sup>v3</sup></span>
+      <span>LoadWise</span>
     </a>
     <nav aria-label="주 메뉴">
       <a class="active" href="#planner">적재 플래너</a>
@@ -96,13 +96,18 @@
         </div>
 
         <div class="simulation-config-bar">
-          <label class="priority-label">최적화 기준<select id="optimization">
-            <option value="intelligent" selected>1. 자동 추천 · 4개 전략 결과를 비교해 선택</option>
-            <option value="sequence">2. 안전 우선 · 안정적인 바닥 배치</option>
-            <option value="hybrid">3. 안전·폭 균형 · 100% 지지와 폭 채움 결합</option>
-            <option value="volume">4. 공간 활용 우선 · 적재 수량과 공간 집약</option>
-            <option value="balance">5. 무게중심 우선 · 전후·좌우 중량 편차 최소화</option>
-          </select></label>
+          <div class="priority-label strategy-pair">
+            <label title="모든 배치가 반드시 통과해야 하는 조건">안전 기준<select id="safetyLevel">
+              <option value="strict" selected>엄격 · 지지 100%</option>
+              <option value="standard">표준 · 지지 70%↑</option>
+            </select></label>
+            <label title="미배치 수량과 컨테이너 대수가 같을 때 결과를 고르는 기준">우선 기준<select id="preference">
+              <option value="auto" selected>자동 추천</option>
+              <option value="density">공간 활용</option>
+              <option value="width">폭 균형</option>
+              <option value="balance">무게중심</option>
+            </select></label>
+          </div>
           <label class="transport-select">운송모드<select id="transportMode"><option value="sea">해상 · 보수적</option><option value="combined" selected>복합 · 권장</option><option value="road">육상 · 완화</option></select></label>
           <label class="container-select">컨테이너 규격<select id="containerType"></select></label>
           <div class="container-spec" id="containerSpec"></div>
@@ -163,13 +168,13 @@
     <p>제품 등록부터 3D 적재안 확인과 프로젝트 저장까지 한 화면에서 진행할 수 있습니다.</p>
     <div class="policy-summary">
       <article><b>STEP 01</b><strong>제품 등록</strong><span>직접 입력하거나 Excel·CSV 파일을 불러옵니다.</span></article>
-      <article><b>STEP 02</b><strong>조건 선택</strong><span>컨테이너 규격과 적재 최적화 기준을 선택합니다.</span></article>
+      <article><b>STEP 02</b><strong>조건 선택</strong><span>컨테이너 규격, 안전 기준과 우선 기준을 선택합니다.</span></article>
       <article><b>STEP 03</b><strong>결과 확인</strong><span>3D 배치, 적재 순서와 고정재 권고를 검토합니다.</span></article>
       <article><b>STEP 04</b><strong>저장·내보내기</strong><span>프로젝트를 저장하거나 Excel 계획을 내려받습니다.</span></article>
     </div>
     <div class="policy-sections">
       <details open><summary>1. 제품 입력</summary><ul><li>직접 입력에서는 제품명, 형상, 수량, 길이·너비·높이와 개당 중량을 입력합니다.</li><li>여러 제품은 Excel 또는 CSV로 한 번에 등록할 수 있습니다.</li><li>눕힘 허용은 높이 축 변경을 허용하며, 상부 적재 금지는 해당 화물 위의 배치를 막습니다.</li></ul></details>
-      <details><summary>2. 컨테이너와 최적화 기준</summary><ul><li>20ft, 40ft, 40ft High Cube, 45ft High Cube를 지원합니다.</li><li>안전 우선은 지지 조건을 보수적으로 적용하고 공간 활용 우선은 적재 수량을 우선합니다.</li><li>안전·폭 균형은 상부 100% 지지를 유지하면서 짧은 방향의 빈 공간을 먼저 줄입니다.</li><li>무게중심 우선은 전후·좌우 중량 편차를 줄입니다.</li><li>자동 추천은 4개 전략 결과를 비교하고 적재 완결성과 컨테이너 수가 같으면 CTU 중량배분 사전검사가 더 양호한 결과를 우선합니다.</li></ul></details>
+      <details><summary>2. 컨테이너와 적재 기준</summary><ul><li>20ft, 40ft, 40ft High Cube, 45ft High Cube를 지원합니다.</li><li>안전 기준은 모든 배치가 반드시 지켜야 하는 조건입니다. 엄격은 상부 화물 바닥면을 100% 지지하고 세장 화물 위 적재를 막으며, 표준은 70% 이상 지지를 허용합니다.</li><li>같은 안전 기준 안에서는 미배치 수량과 컨테이너 대수를 가장 먼저 줄입니다. 우선 기준은 대수가 같은 결과 중에서만 고릅니다.</li><li>공간 활용은 사용 길이를, 폭 균형은 측면 지지와 운송 안정성 검토 건수를, 무게중심은 전후·좌우 편차를 먼저 줄입니다.</li><li>자동 추천은 CTU 사전검사 등급, 운송 안정성 검토 건수, 중심 편차 순으로 고릅니다.</li></ul></details>
       <details><summary>3. 시뮬레이션 결과 확인</summary><ul><li>3D와 상면 보기로 배치를 확인하고 단계 재생으로 실제 적재 순서를 검토합니다.</li><li>여러 컨테이너가 필요하면 화살표로 각 컨테이너 결과를 이동합니다.</li><li>각재·부목과 에어백 표시는 화면에서 켜고 끌 수 있습니다.</li><li>운송모드별 높은 적층·측면 간극·문측 노출·원통 구름 위험은 구체적인 검토 사유로 표시합니다.</li></ul></details>
       <details><summary>4. 프로젝트 저장</summary><ul><li>비로그인 상태에서는 현재 브라우저에, 로그인 상태에서는 계정별 클라우드에 저장됩니다.</li><li>저장 목록에서 프로젝트를 불러오면 저장된 조건으로 시뮬레이션이 자동 실행됩니다.</li><li>미배치 화물이 있으면 안전 검토를 위해 Excel 내보내기가 제한됩니다.</li></ul></details>
     </div>
@@ -199,24 +204,24 @@
     <h2>접속 통계와 권한 관리</h2>
     <p>로그인한 사용자의 접속 현황을 확인하고 이메일 기준으로 관리자 권한을 부여합니다.</p>
     <div class="admin-metrics"><article><span>로그인 사용자</span><strong id="adminUserCount">—</strong></article><article><span>저장된 프로젝트</span><strong id="adminProjectCount">—</strong></article><article><span>누적 로그인 접속</span><strong id="adminVisitCount">—</strong></article><article><span>최근 24시간</span><strong id="adminRecentCount">—</strong></article></div>
-    <section class="admin-section"><div><h3>관리자 권한</h3><small>등록된 이메일은 매직링크 로그인 후 관리자 메뉴를 사용할 수 있습니다.</small></div><div class="admin-add"><input id="adminEmail" type="email" placeholder="name@company.com" aria-label="관리자 이메일"><button id="grantAdmin" class="dialog-primary" type="button">권한 추가</button></div><div id="adminList" class="admin-list"></div></section>
+    <section class="admin-section"><div><h3>관리자 권한</h3><small>등록된 이메일로 로그인하면 관리자 메뉴를 사용할 수 있습니다.</small></div><div class="admin-add"><input id="adminEmail" type="email" placeholder="name@company.com" aria-label="관리자 이메일"><button id="grantAdmin" class="dialog-primary" type="button">권한 추가</button></div><div id="adminList" class="admin-list"></div></section>
     <section class="admin-section"><div><h3>로그인 사용자 이용 내역</h3><small>저장 수는 현재 남아 있는 클라우드 프로젝트, 시뮬레이션은 로그인 상태의 완료된 계산 누계입니다.</small></div><div class="admin-table-wrap"><table><thead><tr><th>이메일</th><th>저장</th><th>시뮬레이션</th><th>최초 접속</th><th>최근 접속</th><th>접속</th></tr></thead><tbody id="accessList"></tbody></table></div></section>
   </dialog>
 
   <dialog id="policyDialog" class="project-dialog policy-dialog">
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
-    <span class="result-kicker">ALGORITHM POLICY · v1.8</span>
+    <span class="result-kicker">ALGORITHM POLICY · 3.0</span>
     <h2>알고리즘 정책과 한계</h2>
     <p>LoadWise의 결과는 작업 검토를 위한 휴리스틱 제안이며 전역 최적해나 안전 인증을 의미하지 않습니다.</p>
     <div class="policy-summary">
-      <article><b>자동 추천</b><strong>4개 결과 비교</strong><span>미배치·대수·안전·중심편차 순으로 선택</span></article>
-      <article><b>안전 우선</b><strong>상부 지지 100%</strong><span>바닥 우선·중심 지지·측면 안정성</span></article>
-      <article><b>안전·폭 균형</b><strong>지지 100% + 폭 채움</strong><span>안전 조건을 유지하며 횡방향 빈 공간 최소화</span></article>
-      <article><b>공간 활용 우선</b><strong>상부 지지 70% 이상</strong><span>적재 수량 우선·중심 조건 유지</span></article>
-      <article><b>무게중심 우선</b><strong>중량 편차 최소화</strong><span>후보별 전후·좌우 정적 중심 비교</span></article>
+      <article><b>안전 기준 · 엄격</b><strong>상부 지지 100%</strong><span>세장 화물 위 적재 금지·중심 지지</span></article>
+      <article><b>안전 기준 · 표준</b><strong>상부 지지 70% 이상</strong><span>중심 지지·상부 금지 조건은 동일</span></article>
+      <article><b>비교 순서</b><strong>미배치 → 대수</strong><span>같은 안전 기준 안에서 먼저 최소화</span></article>
+      <article><b>우선 기준</b><strong>대수가 같을 때만</strong><span>자동 추천·공간 활용·폭 균형·무게중심</span></article>
+      <article><b>계산 방식</b><strong>16개 후보 비교</strong><span>배치 규칙 4종 × 투입 순서 4종, 백그라운드 계산</span></article>
     </div>
     <div class="policy-sections">
-      <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화합니다.</li><li>허용 회전과 Extreme Point 후보를 생성합니다.</li><li>경계·충돌·중량·상부 금지·바닥 및 중심 지지를 검사합니다.</li><li>상부 허용하중이 입력된 제품은 겹침 면적에 따라 누적 압축하중을 전달해 초과 배치를 제외합니다.</li><li>선택 전략의 공간·안전·폭·무게중심 점수로 후보를 비교합니다.</li><li>자동 추천은 4개 전략 결과를 모두 계산하고 미배치, 컨테이너 수, CTU 사전검사, 고정재 재검토와 무게중심 순으로 비교 근거를 공개합니다.</li><li>미배치 화물은 다음 컨테이너에서 다시 계산합니다.</li></ol></details>
+      <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화하고 부피·중량으로 필요한 컨테이너 대수의 하한을 계산합니다.</li><li>허용 회전과 Extreme Point 후보를 만들고, 후보를 아래·안쪽·좌측으로 밀착시킵니다.</li><li>경계·충돌·중량·상부 금지·지지율·중심 지지·측면 지지·상부 허용하중을 검사합니다. 하나라도 통과하지 못하면 배치하지 않습니다.</li><li>배치 규칙 4종(바닥 우선, 공간 집약, 폭 채움, 무게중심)과 투입 순서 4종을 모두 계산합니다.</li><li>컨테이너마다 적재 부피가 가장 큰 결과를 고르고, 같으면 우선 기준으로 고릅니다. 남은 화물은 다음 컨테이너에서 같은 방식으로 계산합니다.</li><li>후보 비교는 가중치 합산이 아니라 항목별 순서 비교로 하며, 결과는 생성 엔진과 분리된 validator로 다시 검사합니다.</li><li>이전 결과가 한 대로 완료됐고 조건이 같으면, 유효한 기존 배치를 유지하고 바뀐 화물만 다시 배치합니다.</li></ol></details>
       <details><summary>절대 우회하지 않는 안전 조건</summary><ul><li>컨테이너 경계, 제품 충돌과 최대 중량 준수</li><li>상부 적재 금지 화물 위 배치 금지</li><li>상부 화물 중심이 실제 지지 영역 안에 존재</li><li>원통 위 박스 금지, 원통 적층 정렬 조건 적용</li><li>입력 수량 = 적재 수량 + 미배치 수량</li></ul></details>
       <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>자동 밴드 경로와 수량은 생성하지 않고, 재배치 또는 현장 고정이 필요한 이유만 표시합니다.</li></ul></details>
       <details><summary>CTU Code 반영 범위</summary><ul><li>CTU Code의 적입·고정 원칙을 정책과 향후 계산 구조의 기준으로 사용합니다.</li><li>운송모드별 가속도, 미끄럼·전도 모멘트와 고정력 계산은 아직 구현 전입니다.</li><li>본 결과는 CTU Code 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
@@ -262,6 +267,7 @@
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
   <script src="project-model.js?v=20260815-5"></script>
+  <script src="packing-engine.js?v=20260924-1"></script>
   <script src="load-insights.js?v=20260814-2"></script>
   <script src="solution-validator.js?v=20260814-2"></script>
   <script src="app.js?v=20260815-5"></script>

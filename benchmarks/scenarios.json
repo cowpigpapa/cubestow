@@ -1,784 +1,205 @@
 {
-  "generatedAt": "2026-08-15T00:29:44.443Z",
+  "generatedAt": "2026-09-24T04:12:27.642Z",
+  "engine": "ep-lex-portfolio-2026.09",
   "rows": [
     {
       "file": "01-single-small.csv",
+      "safety": "strict",
       "units": 72,
-      "selected": "hybrid",
-      "loaded": 72,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        1,
-        0,
-        2.221726190476204,
-        8.67243133265514,
-        -72,
-        5898
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            4.4548611111111285,
-            9.567273275309896,
-            -72,
-            5898
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            2.221726190476204,
-            8.67243133265514,
-            -72,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            2,
-            0,
-            19.47867063492066,
-            18.509805583813723,
-            -72,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            19.47867063492066,
-            0.014172335600903807,
-            -72,
-            4942
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "01-single-small.csv",
+      "safety": "standard",
+      "units": 72,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "02-single-medium.csv",
+      "safety": "strict",
       "units": 42,
-      "selected": "balance",
-      "loaded": 42,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        -42,
-        5679
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            7.4829931972789145,
-            -42,
-            5898
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            7.4829931972789145,
-            -42,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            7.4829931972789145,
-            -42,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            -42,
-            5679
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "02-single-medium.csv",
+      "safety": "standard",
+      "units": 42,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "03-single-large.csv",
+      "safety": "strict",
       "units": 8,
-      "selected": "balance",
-      "loaded": 8,
-      "unallocated": 0,
       "containers": 2,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        2,
-        1,
-        0,
-        29.36363636363636,
-        0,
-        -8,
-        10298
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            0,
-            29.36363636363636,
-            22.024415055951174,
-            -8,
-            11796
-          ]
-        },
-        "hybrid": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            0,
-            29.36363636363636,
-            22.024415055951174,
-            -8,
-            11796
-          ]
-        },
-        "volume": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            0,
-            29.36363636363636,
-            22.024415055951174,
-            -8,
-            11796
-          ]
-        },
-        "balance": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            1,
-            0,
-            29.36363636363636,
-            0,
-            -8,
-            10298
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "03-single-large.csv",
+      "safety": "standard",
+      "units": 8,
+      "containers": 2,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "04-mixed-heavy.csv",
+      "safety": "strict",
       "units": 23,
-      "selected": "hybrid",
-      "loaded": 23,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        0,
-        0,
-        0,
-        1.7460198133657623,
-        -23,
-        5898
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            0,
-            0,
-            0,
-            2.2507904233805442,
-            -23,
-            5898
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            0,
-            0,
-            0,
-            1.7460198133657623,
-            -23,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            2.1007394214162503,
-            7.157024888971131,
-            -23,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            1,
-            2.100739421416229,
-            6.993510649078289,
-            -23,
-            5800
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "04-mixed-heavy.csv",
+      "safety": "standard",
+      "units": 23,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "05-mixed-sizes.csv",
+      "safety": "strict",
       "units": 37,
-      "selected": "balance",
-      "loaded": 37,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        1,
-        0,
-        0,
-        5.120693769388246,
-        -37,
-        5898
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            5.3276171579743075,
-            -37,
-            5898
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            5.263611587789274,
-            -37,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            5.951084257289752,
-            -37,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            5.120693769388246,
-            -37,
-            5898
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "05-mixed-sizes.csv",
+      "safety": "standard",
+      "units": 37,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "06-cylinders.csv",
+      "safety": "strict",
       "units": 24,
-      "selected": "balance",
-      "loaded": 24,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        1,
-        10,
-        33.2994227994228,
-        0.002576788291075438,
-        -24,
-        4651
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            4,
-            40,
-            26.26314004747372,
-            -24,
-            11796
-          ]
-        },
-        "hybrid": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            4,
-            40,
-            26.26314004747372,
-            -24,
-            11796
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            2,
-            4,
-            33.29942279942284,
-            24.601902374028526,
-            -24,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            10,
-            33.2994227994228,
-            0.002576788291075438,
-            -24,
-            4651
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "06-cylinders.csv",
+      "safety": "standard",
+      "units": 24,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "07-tall-stability.csv",
+      "safety": "strict",
       "units": 14,
-      "selected": "balance",
-      "loaded": 14,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        1,
-        1,
-        25.683737458194003,
-        0.014788524105291412,
-        -14,
-        5065
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            2,
-            0,
-            25.683737458194003,
-            20.6053636457458,
-            -14,
-            5898
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            2,
-            0,
-            25.683737458194003,
-            20.6053636457458,
-            -14,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            2,
-            0,
-            25.683737458194003,
-            20.6053636457458,
-            -14,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            1,
-            25.683737458194003,
-            0.014788524105291412,
-            -14,
-            5065
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "07-tall-stability.csv",
+      "safety": "standard",
+      "units": 14,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "08-fragile-topload.csv",
+      "safety": "strict",
       "units": 28,
-      "selected": "hybrid",
-      "loaded": 28,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        0,
-        0,
-        0,
-        4.687253110913447,
-        -28,
-        5898
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            0,
-            40,
-            35.429382841641235,
-            -28,
-            11796
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            0,
-            0,
-            0,
-            4.687253110913447,
-            -28,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            7.73342059336824,
-            -28,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            1,
-            0,
-            40,
-            0.022529874258464533,
-            -28,
-            9103
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "08-fragile-topload.csv",
+      "safety": "standard",
+      "units": 28,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "09-width-combination.csv",
+      "safety": "strict",
       "units": 40,
-      "selected": "hybrid",
-      "loaded": 40,
-      "unallocated": 0,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
       "valid": true,
-      "score": [
-        0,
-        1,
-        0,
-        0,
-        0,
-        4.004565370239455,
-        -40,
-        5898
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 2,
-          "unallocated": 0,
-          "score": [
-            0,
-            2,
-            2,
-            0,
-            40,
-            38.08312745240517,
-            -40,
-            11796
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            0,
-            0,
-            0,
-            4.004565370239455,
-            -40,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            0,
-            0,
-            9.238921557323494,
-            -40,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 0,
-          "score": [
-            0,
-            1,
-            1,
-            3,
-            0,
-            8.30354740766363,
-            -40,
-            5836
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "09-width-combination.csv",
+      "safety": "standard",
+      "units": 40,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 0,
+      "valid": true,
       "errors": []
     },
     {
       "file": "10-partial-unloadable.csv",
+      "safety": "strict",
       "units": 14,
-      "selected": "balance",
-      "loaded": 12,
-      "unallocated": 2,
       "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 2,
       "valid": true,
-      "score": [
-        2,
-        1,
-        1,
-        0,
-        13.724999999999994,
-        0.31179138321995037,
-        -12,
-        4949
-      ],
-      "strategies": {
-        "sequence": {
-          "containers": 1,
-          "unallocated": 2,
-          "score": [
-            2,
-            1,
-            2,
-            0,
-            13.724999999999994,
-            16.090200067819605,
-            -12,
-            5898
-          ]
-        },
-        "hybrid": {
-          "containers": 1,
-          "unallocated": 2,
-          "score": [
-            2,
-            1,
-            2,
-            0,
-            33.44047619047619,
-            24.63829546739008,
-            -12,
-            5898
-          ]
-        },
-        "volume": {
-          "containers": 1,
-          "unallocated": 2,
-          "score": [
-            2,
-            1,
-            2,
-            0,
-            37.38541666666667,
-            25.1328133830677,
-            -12,
-            5898
-          ]
-        },
-        "balance": {
-          "containers": 1,
-          "unallocated": 2,
-          "score": [
-            2,
-            1,
-            1,
-            0,
-            13.724999999999994,
-            0.31179138321995037,
-            -12,
-            4949
-          ]
-        }
-      },
+      "errors": []
+    },
+    {
+      "file": "10-partial-unloadable.csv",
+      "safety": "standard",
+      "units": 14,
+      "containers": 1,
+      "lowerBound": 1,
+      "unallocated": 2,
+      "valid": true,
       "errors": []
     }
   ]

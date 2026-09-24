@@ -29,7 +29,7 @@
     return{valid:!errors.length,errors:[...new Set(errors)],metrics:{placed:placed.length,weight,compressionVerified:compression.filter(v=>v.limit!=null).length,compressionUnverified:compression.filter(v=>v.limit==null).length,maxTopLoad:compression.reduce((m,v)=>Math.max(m,v.topLoad),0)}};
   }
   function validateShipment(shipment){
-    const loads=shipment?.containers||[],options={minSupport:shipment?.priority==='volume'?.7:1},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
+    const loads=shipment?.containers||[],options={minSupport:shipment?.safety==='standard'||shipment?.priority==='volume'?.7:1},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
     if(Number.isFinite(shipment?.totalUnits)&&loaded+unallocated!==shipment.totalUnits)errors.push(`수량 불일치: 적재 ${loaded} + 미배치 ${unallocated} ≠ 입력 ${shipment.totalUnits}`);
     return{valid:!errors.length,errors,metrics:{loaded,unallocated,containers:loads.length}};
   }
