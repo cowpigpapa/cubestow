@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 const openMenu=(page,name)=>page.locator('details.menu>summary',{hasText:name}).click();
 async function loadSample(page,number=1){
-  await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플 불러오기'}).click();
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플',exact:true}).click();
   await expect(page.getByRole('heading',{name:'샘플 시나리오 선택'})).toBeVisible();
   await page.locator(`[data-sample="${number}"]`).click();
   await expect(page.locator('#loadedCount')).not.toHaveText('—',{timeout:20000});
@@ -24,7 +24,7 @@ test('user guide opens inside the app',async({page})=>{
 
 test('sample picker lists twenty scenarios and filters them by category',async({page})=>{
   await page.goto('/');
-  await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플 불러오기'}).click();
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플',exact:true}).click();
   await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(20);
   await expect(page.locator('#sampleDialog')).toContainText('혼합 화물');
   await expect(page.locator('#sampleDialog')).toContainText('양문형 냉장고');
@@ -37,13 +37,13 @@ test('sample picker lists twenty scenarios and filters them by category',async({
 });
 
 test('file import lets the user load only or start simulation',async({page})=>{
-  await page.goto('/');await page.getByRole('tab',{name:'Excel / CSV'}).click();
+  await page.goto('/');await openMenu(page,'불러오기');await page.getByRole('button',{name:'Excel / CSV'}).click();await expect(page.locator('#importDialog')).toHaveAttribute('open','');await expect(page.locator('#importDialog #downloadTemplate')).toBeVisible();
   await page.locator('#fileInput').setInputFiles('test-projects/03-single-large.csv');
   await expect(page.getByRole('heading',{name:'파일 불러오기 완료'})).toBeVisible();
   await expect(page.getByRole('button',{name:'불러오기만'})).toBeVisible();
   await expect(page.getByRole('button',{name:'시뮬레이션 실행',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'불러오기만'}).click();await expect(page.locator('#productCount')).toContainText('1개 품목');
-  await page.getByRole('tab',{name:'Excel / CSV'}).click();await page.locator('#fileInput').setInputFiles('test-projects/03-single-large.csv');
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'Excel / CSV'}).click();await page.locator('#fileInput').setInputFiles('test-projects/03-single-large.csv');
   await page.locator('#messageDialog').getByRole('button',{name:'시뮬레이션 실행',exact:true}).click();await expect(page.locator('#loadedCount')).toHaveText(/\d+개/,{timeout:20000});await expect(page.locator('#containerTabs .page-label')).toHaveText('1 / 2');
 });
 
@@ -99,7 +99,7 @@ test('metrics follow the 3D view and dense sections collapse',async({page})=>{
   await expect(page.locator('.simulation-config-bar #containerType')).toBeVisible();
   await expect(page.locator('.simulation-config-bar #transportMode')).toHaveValue('combined');
   await expect(page.locator('#toggleBands')).toHaveCount(0);
-  await expect(page.locator('.simulation-config-bar #recalculateOptions')).toBeVisible();
+  await expect(page.locator('.result-header #recalculateOptions')).toBeVisible();
   await expect(page.locator('#canvasWrap + #stats')).toHaveCount(1);
   await expect(page.locator('#balanceCard + .loading-plan')).toHaveCount(1);
   await expect(page.locator('#securingPanel')).not.toHaveAttribute('open','');
@@ -124,7 +124,7 @@ test('guest project saves, reloads, and recalculates automatically',async({page}
   await expect(page.getByRole('heading',{name:'현재 프로젝트에 저장할까요?'})).toBeVisible();
   await expect(page.getByRole('button',{name:'다른 이름으로 저장'})).toBeVisible();
   await page.getByRole('button',{name:'취소'}).click();
-  await openMenu(page,'불러오기');await page.getByRole('button',{name:'새 프로젝트'}).click();
+  await page.getByRole('button',{name:'새 프로젝트'}).click();
   await expect(page.locator('#loadedCount')).toHaveText('—');
   await openMenu(page,'불러오기');await page.getByRole('button',{name:'저장 목록'}).click();
   await page.locator('[data-open]').filter({hasText:'E2E 자동 계산'}).click();

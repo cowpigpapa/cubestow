@@ -15,7 +15,7 @@
   const savedLabel=()=>user?'클라우드 저장됨':'브라우저 저장됨';
   function showCurrent(name='새 프로젝트'){suggestedName=name==='새 프로젝트'?suggestedName:name;$('currentProjectName').textContent=name;$('projectName').value=name==='새 프로젝트'?'':name}
   function markDirty(){if(!suppressDirty){dirty=true;state('저장되지 않음','dirty')}}
-  function suggestName(name){if(!currentId&&name&&$('currentProjectName').textContent==='새 프로젝트')suggestedName=name.trim()}
+  function suggestName(name,show=false){if(currentId||!name)return;suggestedName=name.trim();if(show)$('currentProjectName').textContent=suggestedName}
   function snapshot(){return window.loadwiseProject.snapshot()}
   function record(name,id=currentId){return{id:id||crypto.randomUUID(),name,payload:snapshot(),updated_at:new Date().toISOString()}}
   async function list(){if(user){const{data,error}=await client.from('projects').select('id,name,payload,updated_at').order('updated_at',{ascending:false});if(error)throw error;return data}return readLocal().sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')))}
