@@ -209,3 +209,11 @@ test('adding clears the form and a listed product can be edited in full',async({
   await page.getByRole('button',{name:'제어반 수정'}).click();await page.getByRole('button',{name:'제어반 삭제'}).click();
   await expect(page.locator('.product-item')).toHaveCount(1);await expect(page.locator('.input-card')).not.toHaveClass(/editing/);
 });
+
+test('clicking a product input selects its value so typing replaces it',async({page})=>{
+  await page.goto('/');
+  await page.fill('#productName','산업용 펌프');await page.fill('#productLength','1200');
+  await page.locator('#productGroup').click();
+  await page.locator('#productName').click();await page.keyboard.type('제어반');await expect(page.locator('#productName')).toHaveValue('제어반');
+  await page.locator('#productLength').click();await page.keyboard.type('900');await expect(page.locator('#productLength')).toHaveValue('900');
+});

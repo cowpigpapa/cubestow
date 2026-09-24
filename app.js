@@ -78,6 +78,8 @@ function bindEvents(){
   $('policyButton').onclick=()=>$('policyDialog').showModal();
   $('ctuButton').onclick=()=>$('ctuDialog').showModal();
   $('openImport').onclick=()=>$('importDialog').showModal();
+  // 입력칸을 누르면 값 전체를 선택해 바로 덮어쓸 수 있게 한다(클릭 직후 선택이 풀리지 않도록 한 프레임 뒤에 선택).
+  document.addEventListener('focusin',e=>{const input=e.target;if(input.matches?.('.form-grid input,[data-qty-input]'))requestAnimationFrame(()=>{if(document.activeElement===input)input.select()})});
   $('dropzone').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click()}};
   $('addProduct').onclick=addProduct;
   $('loadDemo').onclick=()=>$('sampleDialog').showModal();
