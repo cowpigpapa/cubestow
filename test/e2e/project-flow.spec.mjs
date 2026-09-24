@@ -225,3 +225,13 @@ test('result cards share one title size and the load sequence header toggles the
   await page.locator('.plan-head h2').click();await expect(page.locator('.loading-plan')).toHaveClass(/expanded/);
   await page.locator('.plan-head h2').click();await expect(page.locator('.loading-plan')).not.toHaveClass(/expanded/);
 });
+
+test('loading a sample after opening a saved project starts a new unsaved project',async({page})=>{
+  await page.goto('/');await loadSample(page);
+  await page.getByRole('button',{name:'저장',exact:true}).click();await page.getByRole('textbox',{name:'저장 이름'}).fill('드럼 적재');await page.getByRole('button',{name:'이 이름으로 저장'}).click();
+  await expect(page.locator('#currentProjectName')).toHaveText('드럼 적재');
+  await loadSample(page,2);
+  await expect(page.locator('#currentProjectName')).toHaveText('샘플 2 · 단일 규격 반복');await expect(page.locator('#saveState')).toHaveText('저장되지 않음');
+  await page.getByRole('button',{name:'저장',exact:true}).click();
+  await expect(page.getByRole('textbox',{name:'저장 이름'})).toBeVisible();await expect(page.getByRole('heading',{name:'현재 프로젝트에 저장할까요?'})).toHaveCount(0);
+});

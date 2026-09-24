@@ -15,6 +15,8 @@
   const savedLabel=()=>user?'클라우드 저장됨':'브라우저 저장됨';
   function showCurrent(name='새 프로젝트'){suggestedName=name==='새 프로젝트'?suggestedName:name;$('currentProjectName').textContent=name;$('projectName').value=name==='새 프로젝트'?'':name}
   function markDirty(){if(!suppressDirty){dirty=true;state('저장되지 않음','dirty')}}
+  // 샘플·파일처럼 내용을 통째로 바꾸면 저장된 프로젝트와의 연결을 끊는다. 그대로 두면 저장 시 원래 프로젝트를 덮어쓴다.
+  function detach(name){currentId=null;dirty=true;state('저장되지 않음','dirty');showCurrent();suggestName(name,true)}
   function suggestName(name,show=false){if(currentId||!name)return;suggestedName=name.trim();if(show)$('currentProjectName').textContent=suggestedName}
   function snapshot(){return window.loadwiseProject.snapshot()}
   function record(name,id=currentId){return{id:id||crypto.randomUUID(),name,payload:snapshot(),updated_at:new Date().toISOString()}}
@@ -83,5 +85,5 @@
     if(client){const{data}=await client.auth.getSession();user=data.session?.user||null;await syncAdminAccess();client.auth.onAuthStateChange((_event,session)=>{const next=session?.user||null;if(user?.id&&user.id!==next?.id){fresh(true);return}user=next;syncAdminAccess()})}
     renderAccount();showCurrent();state('저장되지 않음');trackVisitors();
   }
-  window.loadwiseStorage={markDirty,suggestName};window.addEventListener('loadwise:simulation-complete',recordSimulation);window.addEventListener('DOMContentLoaded',init);
+  window.loadwiseStorage={markDirty,suggestName,detach};window.addEventListener('loadwise:simulation-complete',recordSimulation);window.addEventListener('DOMContentLoaded',init);
 })();

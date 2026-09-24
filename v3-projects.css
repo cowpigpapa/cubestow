@@ -335,3 +335,8 @@ details.menu>summary[aria-label]::after{content:""}
 .product-actions button{width:100%;text-align:center;padding:0}
 .product-item.editing .qty-stepper,.product-item.editing .product-options{opacity:.5}
 #recalculateOptions:disabled{cursor:not-allowed}
+.message-actions button{flex:0 0 auto;white-space:nowrap;padding-inline:20px}
+/* 저장 확인 팝업: 취소(회색)·다른 이름으로 저장(청록)·저장(파랑)을 색으로 구분한다 */
+.message-actions #messageCancel{background:#f2f2f5;border-color:#e2e2e7;color:#3a3a3f}
+.message-actions #messageAlt{background:#e9f6f3;border-color:#b8e0d6;color:#0f6b5c}
+.message-actions #messageAlt:hover{background:#dcf0eb}
