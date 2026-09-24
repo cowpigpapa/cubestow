@@ -1,30 +1,44 @@
+// 합성 시나리오 × 안전 기준 × 우선 기준 회귀 게이트.
+// 결과 파일은 `npm run benchmark -- --write`일 때만 갱신한다.
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
-const context=vm.createContext({console,setTimeout,clearTimeout,performance});
-for(const file of ['load-insights.js','solution-validator.js','app.js'])vm.runInContext(await readFile(file,'utf8'),context);
-const base={name:'box',group:'benchmark',shape:'box',l:1000,w:800,h:700,weight:100,qty:1,rotate:true,fragile:false,color:'#000',volume:560000000};
+const context=vm.createContext({console,performance});
+for(const file of ['load-insights.js','solution-validator.js','packing-engine.js'])vm.runInContext(await readFile(file,'utf8'),context);
+const {LoadwiseEngine:engine,LoadwiseValidator:validator,LoadwiseInsights:insights}=context;
+const C20={name:'20ft Dry',l:5898,w:2352,h:2393,maxWeight:28200},C40HC={name:'40ft High Cube',l:12032,w:2352,h:2698,maxWeight:26500};
+const base={name:'box',group:'benchmark',shape:'box',l:1000,w:800,h:700,weight:100,rotate:true,fragile:false};
+const units=(count,change={},offset=0)=>Array.from({length:count},(_,i)=>({...base,...change,pi:0,unit:offset+i+1}));
+const types=[[1200,1000,900,300],[1000,800,700,150],[800,600,500,80],[600,400,400,40]];
+// maxContainers: 이 대수를 넘으면 회귀로 본다.
 const cases=[
-  {name:'uniform-36',items:Array.from({length:36},(_,i)=>({...base,unit:i+1}))},
-  {name:'mixed',items:Array.from({length:24},(_,i)=>({...base,l:600+(i%4)*180,w:500+(i%3)*140,h:450+(i%2)*250,weight:80+i*7,unit:i+1,volume:(600+(i%4)*180)*(500+(i%3)*140)*(450+(i%2)*250)}))},
-  {name:'tall',items:Array.from({length:12},(_,i)=>({...base,l:800,w:800,h:1800,rotate:false,unit:i+1,volume:1152000000}))},
-  {name:'cylinders',items:Array.from({length:18},(_,i)=>({...base,name:'drum',shape:'cylinder',l:900,w:900,h:700,weight:310,rotate:false,unit:i+1,volume:567000000}))},
-  {name:'width-mix',items:[...Array.from({length:12},(_,i)=>({...base,name:'wide',w:820,unit:i+1,volume:574000000})),...Array.from({length:12},(_,i)=>({...base,name:'medium',w:700,unit:i+13,volume:490000000})),...Array.from({length:16},(_,i)=>({...base,name:'narrow',w:530,unit:i+25,volume:371000000}))]},
-  {name:'fragile-mix',items:[...Array.from({length:6},(_,i)=>({...base,name:'fragile',l:900,w:700,h:500,weight:60,fragile:true,unit:i+1,volume:315000000})),...Array.from({length:18},(_,i)=>({...base,name:'strong',l:800,w:600,h:650,weight:180,unit:i+7,volume:312000000}))]}
+  {name:'uniform-36',container:C20,maxContainers:1,items:units(36)},
+  {name:'mixed',container:C20,maxContainers:1,items:Array.from({length:24},(_,i)=>({...base,l:600+(i%4)*180,w:500+(i%3)*140,h:450+(i%2)*250,weight:80+i*7,pi:0,unit:i+1}))},
+  {name:'tall',container:C20,maxContainers:1,items:units(12,{l:800,w:800,h:1800,rotate:false})},
+  {name:'cylinders',container:C20,maxContainers:1,items:units(18,{name:'drum',shape:'cylinder',l:900,w:900,h:700,weight:310,rotate:false})},
+  {name:'width-mix',container:C20,maxContainers:1,items:[...units(12,{name:'wide',w:820}),...units(12,{name:'medium',w:700},12),...units(16,{name:'narrow',w:530},24)]},
+  {name:'fragile-mix',container:C20,maxContainers:1,items:[...units(6,{name:'fragile',l:900,w:700,h:500,weight:60,fragile:true}),...units(18,{name:'strong',l:800,w:600,h:650,weight:180},6)]},
+  {name:'mix-200',container:C40HC,maxContainers:{strict:3,standard:2},maxMs:8000,items:Array.from({length:200},(_,i)=>{const [l,w,h,weight]=types[i%4];return{...base,name:`T${i%4}`,l,w,h,weight,pi:i%4,unit:i+1}})}
 ];
-const rows=[];
-for(const sample of cases)for(const strategy of ['sequence','hybrid','volume','balance']){
-  context.sample=sample.items;const start=performance.now(),plan=vm.runInContext(`packShipmentAsync(CONTAINERS['20ft'],sample,'${strategy}')`,context);const shipment=await plan,elapsed=performance.now()-start,validation=context.LoadwiseValidator.validateShipment({priority:strategy,containers:shipment.loads,unallocated:shipment.remaining,totalUnits:sample.items.length});
-  const volumeRate=shipment.loads.reduce((sum,load)=>sum+load.volumeRate,0)/Math.max(1,shipment.loads.length),cogRisk=shipment.loads.reduce((worst,load)=>{const b=context.LoadwiseInsights.balance(load);return Math.max(worst,b?Math.max(Math.abs(b.xOffset),Math.abs(b.yOffset)):100)},0);
-  rows.push({engine:'portfolio',case:sample.name,strategy,valid:validation.valid,loaded:validation.metrics.loaded,unallocated:validation.metrics.unallocated,containers:validation.metrics.containers,volumeRate:Number(volumeRate.toFixed(1)),cogRisk:Number(cogRisk.toFixed(1)),elapsedMs:Number(elapsed.toFixed(1)),errors:validation.errors.join('; ')});
-  if(strategy!=='volume'){
-    context.sample=sample.items;context.strategy=strategy;const baselineStart=performance.now(),baseline=await vm.runInContext(`(async()=>{const loads=[];let remaining=sample;while(remaining.length&&loads.length<50){preparePackingWidths(remaining,CONTAINERS['20ft'].w);const raw=await packExtremeRawAsync(CONTAINERS['20ft'],remaining,strategy),load=finalizePacking(CONTAINERS['20ft'],raw);if(!load.placed.length){if(!loads.length)loads.push(load);break}loads.push(load);remaining=load.rejected}return{loads,remaining}})()`,context),baselineValidation=context.LoadwiseValidator.validateShipment({priority:strategy,containers:baseline.loads,unallocated:baseline.remaining,totalUnits:sample.items.length}),baselineVolume=baseline.loads.reduce((sum,load)=>sum+load.volumeRate,0)/Math.max(1,baseline.loads.length),baselineCog=baseline.loads.reduce((worst,load)=>{const b=context.LoadwiseInsights.balance(load);return Math.max(worst,b?Math.max(Math.abs(b.xOffset),Math.abs(b.yOffset)):100)},0);
-    rows.push({engine:'single',case:sample.name,strategy,valid:baselineValidation.valid,loaded:baselineValidation.metrics.loaded,unallocated:baselineValidation.metrics.unallocated,containers:baselineValidation.metrics.containers,volumeRate:Number(baselineVolume.toFixed(1)),cogRisk:Number(baselineCog.toFixed(1)),elapsedMs:Number((performance.now()-baselineStart).toFixed(1)),errors:baselineValidation.errors.join('; ')});
+const rows=[],failures=[];
+for(const sample of cases)for(const safety of ['strict','standard']){
+  const counts=new Set();
+  for(const preference of ['auto','density','width','balance']){
+    const started=performance.now(),result=engine.packShipment({container:sample.container,units:sample.items,safety,preference,timeBudgetMs:8000}),elapsed=performance.now()-started;
+    const validation=validator.validateShipment({safety,containers:result.loads,unallocated:result.remaining,totalUnits:sample.items.length});
+    const cog=Math.max(...result.loads.map(load=>{const b=insights.balance(load);return b?Math.max(Math.abs(b.xOffset),Math.abs(b.yOffset)):0}));
+    const row={case:sample.name,safety,preference,valid:validation.valid,containers:result.loads.length,lowerBound:result.stats.lowerBound,unallocated:result.remaining.length,volumeRate:Number((result.loads.reduce((s,l)=>s+l.volumeRate,0)/result.loads.length).toFixed(1)),cogRisk:Number(cog.toFixed(1)),runs:result.stats.runs,truncated:result.stats.truncated,elapsedMs:Math.round(elapsed)};
+    rows.push(row);counts.add(`${row.containers}/${row.unallocated}`);
+    const limit=typeof sample.maxContainers==='object'?sample.maxContainers[safety]:sample.maxContainers;
+    if(!row.valid)failures.push(`${sample.name}/${safety}/${preference}: 검증 실패 ${validation.errors.slice(0,2).join('; ')}`);
+    if(row.unallocated||row.containers>limit)failures.push(`${sample.name}/${safety}/${preference}: ${row.containers}대·미배치 ${row.unallocated} (기준 ${limit}대)`);
+    if(sample.maxMs&&elapsed>sample.maxMs)failures.push(`${sample.name}/${safety}/${preference}: ${Math.round(elapsed)}ms (기준 ${sample.maxMs}ms)`);
   }
+  if(counts.size>1)failures.push(`${sample.name}/${safety}: 우선 기준에 따라 대수가 달라짐 ${[...counts].join(', ')}`);
 }
 console.table(rows);
-await mkdir('benchmarks',{recursive:true});
-await writeFile('benchmarks/latest.json',JSON.stringify({generatedAt:new Date().toISOString(),engine:'extreme-dblf-validated-portfolio-2026.08',rows},null,2));
-const regressions=rows.filter(r=>r.engine==='portfolio').flatMap(portfolio=>{const single=rows.find(r=>r.engine==='single'&&r.case===portfolio.case&&r.strategy===portfolio.strategy);if(!single)return[];const worse=portfolio.unallocated>single.unallocated||portfolio.containers>single.containers||(portfolio.strategy==='balance'&&portfolio.cogRisk>single.cogRisk+.1);return worse?[`${portfolio.case}/${portfolio.strategy}`]:[]});
-const balanceGate=rows.find(r=>r.engine==='portfolio'&&r.case==='uniform-36'&&r.strategy==='balance');
-if(rows.some(r=>!r.valid)||regressions.length||!balanceGate||balanceGate.containers!==1||balanceGate.cogRisk>5){console.error('Benchmark gate failed',{regressions,balanceGate});process.exitCode=1}
+if(process.argv.includes('--write')){
+  await mkdir('benchmarks',{recursive:true});
+  await writeFile('benchmarks/latest.json',JSON.stringify({generatedAt:new Date().toISOString(),engine:engine.ENGINE_VERSION,rows:rows.map(({elapsedMs,...row})=>row)},null,2)+'\n');
+}
+if(failures.length){console.error('Benchmark gate failed\n'+failures.join('\n'));process.exitCode=1}

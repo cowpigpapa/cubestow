@@ -1,12 +1,13 @@
 {
-  "name": "loadwise-v3",
-  "version": "3.0.0",
+  "name": "loadwise",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node dev-server.mjs",
     "build": "node build.mjs",
     "benchmark": "node benchmark.mjs",
+    "benchmark:write": "node benchmark.mjs --write && node scenario-benchmark.mjs --write",
     "benchmark:scenarios": "node scenario-benchmark.mjs",
     "test": "node --test test/*.test.mjs",
     "test:e2e": "playwright test"
