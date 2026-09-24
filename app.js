@@ -78,8 +78,8 @@ function bindEvents(){
   $('policyButton').onclick=()=>$('policyDialog').showModal();
   $('ctuButton').onclick=()=>$('ctuDialog').showModal();
   $('openImport').onclick=()=>$('importDialog').showModal();
-  // 입력칸을 누르면 값 전체를 선택해 바로 덮어쓸 수 있게 한다(클릭 직후 선택이 풀리지 않도록 한 프레임 뒤에 선택).
-  document.addEventListener('focusin',e=>{const input=e.target;if(input.matches?.('.form-grid input,[data-qty-input]'))requestAnimationFrame(()=>{if(document.activeElement===input)input.select()})});
+  // 입력칸을 누르면 값 전체를 선택해 바로 덮어쓸 수 있게 한다. 포커스 즉시 선택하고, 클릭을 뗄 때 선택이 풀리는 기본 동작만 한 번 막는다.
+  document.addEventListener('focusin',e=>{const input=e.target;if(!input.matches?.('.form-grid input,[data-qty-input]'))return;input.select();const keep=ev=>ev.preventDefault();input.addEventListener('mouseup',keep,{once:true});setTimeout(()=>input.removeEventListener('mouseup',keep),500)});
   $('dropzone').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click()}};
   $('addProduct').onclick=addProduct;
   $('loadDemo').onclick=()=>$('sampleDialog').showModal();
@@ -94,7 +94,7 @@ function bindEvents(){
   $('downloadTemplate').onclick=downloadTemplate;
   $('exportPlan').onclick=exportPlan;
   $('exportPdf').onclick=exportPdf;
-  $('toggleSequence').onclick=toggleSequence;
+  $('toggleSequence').onclick=toggleSequence;document.querySelector('.plan-head').onclick=e=>{if(!e.target.closest('button'))toggleSequence()};
   $('toggleProducts').onclick=toggleProductList;
   $('viewIso').onclick=()=>setView('iso');$('viewTop').onclick=()=>setView('top');$('viewDoor').onclick=()=>setView('door');$('viewLeft').onclick=()=>setView('left');$('viewRight').onclick=()=>setView('right');
   $('viewCog').onclick=toggleCenterOfGravity;$('viewAxes').onclick=()=>{showAxes=!showAxes;const button=$('viewAxes');button.classList.toggle('active',showAxes);button.setAttribute('aria-pressed',String(showAxes));button.querySelector('b').textContent=showAxes?'ON':'OFF';draw()};

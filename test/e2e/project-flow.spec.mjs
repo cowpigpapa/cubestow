@@ -217,3 +217,11 @@ test('clicking a product input selects its value so typing replaces it',async({p
   await page.locator('#productName').click();await page.keyboard.type('제어반');await expect(page.locator('#productName')).toHaveValue('제어반');
   await page.locator('#productLength').click();await page.keyboard.type('900');await expect(page.locator('#productLength')).toHaveValue('900');
 });
+
+test('result cards share one title size and the load sequence header toggles the list',async({page})=>{
+  await page.goto('/');await loadSample(page);
+  const sizes=await page.evaluate(()=>['.balance-card h3','.plan-head h2','.securing-card>summary strong'].map(s=>getComputedStyle(document.querySelector(s)).fontSize));
+  expect(new Set(sizes).size).toBe(1);
+  await page.locator('.plan-head h2').click();await expect(page.locator('.loading-plan')).toHaveClass(/expanded/);
+  await page.locator('.plan-head h2').click();await expect(page.locator('.loading-plan')).not.toHaveClass(/expanded/);
+});

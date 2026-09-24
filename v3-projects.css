@@ -320,3 +320,12 @@ details.menu>summary[aria-label]::after{content:""}
 .product-item .edit-product.cancel{border-color:#f0c98a;background:#fff4df;color:#9a5b00}
 .product-item .delete-product{width:auto;height:auto;min-height:28px;margin:0;padding:0 10px;border:1px solid #f3c3cf;border-radius:999px;background:#fff;color:#b0284a;font-size:12px;font-weight:600;line-height:26px}
 .product-item .delete-product:hover{background:#fdf0f3}
+
+/* 결과 카드 3종(무게중심·적재 순서·고정재 권고) 제목 크기와 여백을 맞춘다. 적재 순서 제목 줄은 눌러서 접고 편다. */
+.balance-card h3,.loading-plan .plan-head h2,.securing-card>summary strong{margin:0;font-size:18px;font-weight:700;color:var(--v3-ink)}
+.loading-plan .plan-head{align-items:center;padding:18px;cursor:pointer}
+.loading-plan .plan-head>div:first-child{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;min-width:0}
+.loading-plan .plan-head .coordinate-note{margin:0;color:var(--v3-muted);font-size:13px}
+.securing-card>summary{padding:18px}
+.securing-card>summary>div{align-items:baseline;gap:12px}
+.securing-card>summary span#securingCount{font-size:13px}
