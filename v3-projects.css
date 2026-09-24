@@ -220,3 +220,31 @@ details.menu>summary[aria-label]::after{content:""}
 .import-dialog .text-button{margin-top:12px}
 .project-toolbar #newProjectTop,.project-toolbar #saveProject{white-space:nowrap}
 @media(max-width:900px){.project-toolbar #newProjectTop,.project-toolbar #saveProject{min-height:40px;padding-inline:14px;font-size:13px}}
+
+/* 보기 방향(세그먼트)과 표시 토글(ON/OFF 칩)을 구분한다 */
+.canvas-wrap .result-control-row .view-actions{order:1}
+.canvas-wrap .result-control-row .securing-visibility{order:2;padding-left:10px;border-left:1px solid var(--v3-line)}
+.canvas-wrap .result-control-row .container-nav-slot{order:3}
+.securing-visibility .cog-toggle.active{border-color:#9fd3b2;color:#17693a}
+.securing-visibility .cog-toggle.active i{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.15)}
+.securing-visibility .axes-toggle.active{border-color:#c4b5f0;color:#5b3fb2}
+.securing-visibility .axes-toggle.active i{background:#7b61d8;box-shadow:0 0 0 3px rgba(123,97,216,.15)}
+@media(max-width:900px){
+  .canvas-wrap .result-control-row .view-actions{order:1;flex:1 1 100%}
+  .canvas-wrap .result-control-row .securing-visibility{order:2;flex:1 1 auto;min-width:0;overflow-x:auto;padding-left:0;border-left:0;scrollbar-width:none}
+  .canvas-wrap .result-control-row .container-nav-slot{order:3}
+}
+/* 실행 버튼이 03 제목 줄로 옮겨 가서 조건 영역은 네 칸이 폭을 나눠 쓴다 */
+@media(min-width:1101px){
+  .simulation-config-bar{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.35fr);gap:10px;padding:12px 14px}
+  .simulation-config-bar .container-spec{justify-content:space-between;min-width:0}
+}
+/* 재생 막대는 왼쪽 아래에 두어 컨테이너 문 쪽 모서리(좌표 원점)를 가리지 않는다 */
+@media(min-width:901px){.canvas-wrap .playback{left:16px;right:auto;transform:none;bottom:14px}}
+@media(min-width:1101px){.simulation-config-bar{grid-template-columns:minmax(0,1.6fr) minmax(0,.85fr) minmax(0,.85fr) auto}}
+@media(max-width:900px){
+  .canvas-wrap .result-control-row .securing-visibility button{padding:5px 8px;gap:5px}
+  .canvas-wrap .result-control-row .securing-visibility button b{display:none}
+  .canvas-wrap .result-control-row .securing-visibility button:not(.active){opacity:.6}
+  .canvas-wrap .result-control-row .container-nav-slot{margin-left:auto}
+}

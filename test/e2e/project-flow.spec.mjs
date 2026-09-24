@@ -151,14 +151,13 @@ test('simulation result does not move the view controls',async({page})=>{
   await page.goto('/');const view=page.getByRole('button',{name:'문 기준',exact:true}),before=await view.boundingBox();await loadSample(page);const after=await view.boundingBox(),divider=await page.locator('#planner').evaluate(e=>{const s=getComputedStyle(e,'::after');return{bottom:parseFloat(s.bottom),left:parseFloat(s.left),display:s.display,marginBottom:parseFloat(getComputedStyle(e).marginBottom)}});expect(after.x).toBe(before.x);await expect(page.locator('#simulationStatus')).toBeHidden();expect(divider).toEqual({bottom:16,left:430,display:'block',marginBottom:12});
 });
 
-test('one run button, view controls inside the 3D view and the axis legend in the securing panel',async({page})=>{
+test('one run button, view controls inside the 3D view and an XYZ axis toggle',async({page})=>{
   await page.goto('/');
   await expect(page.getByRole('button',{name:/시뮬레이션 실행/})).toHaveCount(1);
   await expect(page.locator('#canvasWrap .result-control-row #viewIso')).toBeVisible();
   await expect(page.locator('#canvasWrap .axis-legend')).toHaveCount(0);await expect(page.locator('#canvasHint')).toHaveCount(0);
   await expect(page.locator('.result-kicker')).toHaveCount(0);
-  await loadSample(page);await page.locator('#securingPanel').evaluate(panel=>panel.open=true);
-  await expect(page.locator('#securingRecommendation .coordinate-legend')).toContainText('문(X=0)에서 안쪽');
+  await loadSample(page);await expect(page.locator('#viewAxes')).toHaveAttribute('aria-pressed','true');await page.locator('#viewAxes').click();await expect(page.locator('#viewAxes')).toHaveAttribute('aria-pressed','false');await expect(page.locator('#viewAxes b')).toHaveText('OFF');
 });
 
 test('footer keeps professional contrast and aligns the visitor counter',async({page})=>{
