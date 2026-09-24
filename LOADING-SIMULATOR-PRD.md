@@ -4,7 +4,7 @@
 - 갱신일: 2026-08-11
 - 제품 단계: Vercel 공개 베타
 - v3 서비스: https://loadwise-v3.vercel.app/
-- v3 저장소: https://github.com/cowpigpapa/loading-simulator_v3
+- v3 저장소: https://github.com/cowpigpapa/cubestow
 - 알고리즘 정책: [ALGORITHM-POLICY.md](ALGORITHM-POLICY.md)
 - 운영 중인 v2: https://cowpigpapa.github.io/loading-simulator_v2/
 

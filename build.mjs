@@ -19,6 +19,6 @@ const worker = `export default { async fetch(request, env) {\n  const url = new 
 await writeFile("dist/server/index.js", worker);
 
 const html = await readFile("dist/client/index.html", "utf8");
-if (!html.includes("<title>LoadWise")) throw new Error("LoadWise metadata missing");
+if (!html.includes("<title>Cubestow")) throw new Error("Cubestow metadata missing");
 for(const [,src] of html.matchAll(/<script[^>]+src="([^"]+)"/g))if(!/^https?:/.test(src))await access(`dist/client/${src.split('?')[0]}`);
-console.log("LoadWise build complete");
+console.log("Cubestow build complete");
