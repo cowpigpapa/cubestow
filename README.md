@@ -8,8 +8,7 @@ Load wisely. Ship safely.
 
 - 현재 단계: Vercel 공개 베타 · 버전 4.0.0 (버전은 package.json의 semver로만 관리)
 - 서비스: https://loadwise-v3.vercel.app/
-- 저장소: https://github.com/cowpigpapa/loading-simulator_v3
-- 이전 버전(2.x): https://cowpigpapa.github.io/loading-simulator_v2/
+- 저장소: https://github.com/cowpigpapa/loadwise
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
 - 상단 `알고리즘 정책` 팝업 및 원문: [ALGORITHM-POLICY.md](ALGORITHM-POLICY.md)
 
@@ -67,7 +66,7 @@ Load wisely. Ship safely.
 
 로컬 저장은 다른 브라우저나 기기로 동기화되지 않으며 같은 브라우저 프로필을 사용하는 사람과 분리되지 않습니다. 개인별 보안과 여러 기기 연동이 필요하면 로그인해야 합니다. 클라우드 프로젝트는 PostgreSQL RLS 정책으로 로그인 사용자별 접근을 제한합니다.
 
-최초 관리자는 `juan.hjlee@gmail.com`입니다. 관리자는 로그인 사용자별 현재 저장 프로젝트 수, 완료된 시뮬레이션 누계, 최초·최근 접속과 접속 횟수를 확인하고 다른 이메일에 관리자 권한을 부여할 수 있습니다. 비로그인 방문자는 이메일을 수집하지 않고 기존 오늘·누적 방문 수에만 포함됩니다.
+최초 관리자는 데이터베이스 시드로 등록합니다. 관리자는 로그인 사용자별 현재 저장 프로젝트 수, 완료된 시뮬레이션 누계, 최초·최근 접속과 접속 횟수를 확인하고 다른 이메일에 관리자 권한을 부여할 수 있습니다. 비로그인 방문자는 이메일을 수집하지 않고 기존 오늘·누적 방문 수에만 포함됩니다.
 
 ## 입력 항목
 

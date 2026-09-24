@@ -1,4 +1,4 @@
-# LoadWise v3 컨테이너 로딩 시뮬레이터 PRD
+# LoadWise 컨테이너 로딩 시뮬레이터 PRD
 
 - 문서 버전: 3.3-next
 - 갱신일: 2026-08-11
@@ -6,7 +6,6 @@
 - v3 서비스: https://loadwise-v3.vercel.app/
 - v3 저장소: https://github.com/cowpigpapa/cubestow
 - 알고리즘 정책: [ALGORITHM-POLICY.md](ALGORITHM-POLICY.md)
-- 운영 중인 v2: https://cowpigpapa.github.io/loading-simulator_v2/
 
 ## 1. 제품 정의
 
@@ -83,7 +82,7 @@ LoadWise는 제품의 규격·중량·수량·형상·적층 제약을 입력하
 
 ### FR-00A 관리자와 접속 통계
 
-- `juan.hjlee@gmail.com`을 최초 관리자로 등록한다.
+- 최초 관리자는 데이터베이스 시드로 등록한다.
 - 관리자 권한은 Supabase에서 로그인 토큰의 이메일과 관리자 이메일 목록을 비교해 판정한다.
 - 로그인 사용자의 이메일, 현재 저장 프로젝트 수, 완료된 시뮬레이션 누계, 최초·최근 접속과 접속 횟수를 관리자에게만 제공한다.
 - 관리자는 이메일을 기준으로 다른 사용자의 관리자 권한을 추가·해제할 수 있다.
