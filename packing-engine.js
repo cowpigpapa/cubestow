@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.1';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -404,7 +404,7 @@
       const delta=Math.max(-min,Math.min(Math.round(length/2-cog),length-max));
       placed.forEach(p=>p[axis]+=delta);
     };
-    shift('x','l',c.l);
+    // 길이 방향으로는 옮기지 않는다. 화물은 안쪽 벽에 붙여 싣고, 안쪽 벽 간극을 에어백으로 채우지 않는다.
     shift('y','w',c.w);
   }
 
@@ -491,11 +491,24 @@
       const raw=packContainer(ctx,units,heuristic,order);
       stats.runs++;
       for(const centered of variants){
-        const load=finalizeLoad(ctx.c,raw,centered),key=containerKey(load,ctx);
+        const load=balanceAgainstWall(finalizeLoad(ctx.c,raw,centered)),key=containerKey(load,ctx);
         if(!best||compareKeys(key,bestKey)<0){best=load;bestKey=key}
       }
     }
     return best;
+  }
+
+  // 화물은 안쪽 벽에 붙여 싣는다. 붙였을 때 전후 무게중심 편차가 CTU 사전검사의 위험 수준(10% 초과)이면
+  // 권고 범위(5%)에 들어오는 만큼만 문 쪽으로 옮기고, 띄운 거리를 결과에 남긴다.
+  const WALL_DANGER_OFFSET=.1,WALL_TARGET_OFFSET=.05;
+  function balanceAgainstWall(load){
+    const {placed,container:c}=load,total=placed.reduce((sum,p)=>sum+p.weight,0);
+    if(!total)return load;
+    const cog=placed.reduce((sum,p)=>sum+(p.x+p.l/2)*p.weight,0)/total;
+    if(cog/c.l-.5<=WALL_DANGER_OFFSET)return load;
+    const shift=Math.min(Math.min(...placed.map(p=>p.x)),Math.ceil(cog-c.l*(.5+WALL_TARGET_OFFSET)));
+    if(shift<=0)return load;
+    return{...load,placed:placed.map(p=>({...p,x:p.x-shift})),wallGap:shift,metrics:undefined};
   }
 
   function prepareUnits(units){
@@ -534,7 +547,7 @@
     const pending=units.filter(u=>!kept.has(`${u.pi}:${u.unit}`));
     const raw=packContainer(ctx,pending,PREFERRED_HEURISTIC[ctx.preference]||'dblf',0,retained);
     if(raw.rejected.length)return null;
-    const load=finalizeLoad(c,raw,false);
+    const load=balanceAgainstWall(finalizeLoad(c,raw,false));
     const validator=root.LoadwiseValidator;
     if(validator&&!validator.validateLoad(load,{minSupport:ctx.safety.minSupport}).valid)return null;
     return load;
@@ -565,6 +578,7 @@
         onProgress(Math.min(.98,1-remaining.length/Math.max(1,units.length)));
       }
     }
+    stats.wallGaps=loads.filter(load=>load.wallGap).length;
     onProgress(1);
     const result={
       engine:ENGINE_VERSION,safety:safetyKey,preference,transportMode:mode,
@@ -581,6 +595,7 @@
     if(!left&&count===bound)parts.push('부피·중량 하한과 같은 최소 대수');
     else if(!left)parts.push(`부피·중량 하한 ${bound}대`);
     if(left)parts.push(`미배치 ${left}개`);
+    if(result.stats.wallGaps)parts.push(`무게 쏠림 때문에 ${result.stats.wallGaps}대는 안쪽 벽에서 띄워 적재`);
     if(result.stats.repaired)parts.push('기존 배치 유지');
     if(result.stats.truncated)parts.push('시간 제한으로 일부 후보 생략');
     return parts.join(' · ');

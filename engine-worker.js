@@ -1,5 +1,5 @@
 // 적재 계산을 화면 스레드와 분리해 실행한다.
-importScripts('load-insights.js?v=20260924-2','solution-validator.js?v=20260924-1','packing-engine.js?v=20260924-2');
+importScripts('load-insights.js?v=20260924-2','solution-validator.js?v=20260924-1','packing-engine.js?v=20260924-3');
 self.onmessage=event=>{
   const {id,input}=event.data;
   try{

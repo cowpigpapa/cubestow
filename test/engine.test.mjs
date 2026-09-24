@@ -66,10 +66,12 @@ test('preference never changes the container count under the same safety level',
   }
 });
 
-test('balance preference centers a uniform full load',()=>{
+// 화물은 안쪽 벽에 붙인다. 전후 편차는 CTU 위험 수준(10%)만 넘지 않으면 밀착을 유지하고 좌우는 가운데로 맞춘다.
+test('balance preference keeps a uniform load against the inner wall without a dangerous offset',()=>{
   const items=units(36,{rotate:true}),result=pack(items,{preference:'balance'}),b=context.LoadwiseInsights.balance(result.loads[0]);
   assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
-  assert.ok(Math.abs(b.xOffset)<=5&&Math.abs(b.yOffset)<=5);
+  assert.ok(Math.abs(b.xOffset)<=10&&Math.abs(b.yOffset)<=5);
+  assert.equal(Math.max(...result.loads[0].placed.map(p=>p.x+p.l)),C20.l);
 });
 
 test('oversize and overweight cargo is reported as unallocated',()=>{
@@ -211,4 +213,11 @@ test('incremental top-load check carries converging loads down through stacked s
   const item={name:'c',shape:'box',weight:100},d=[1000,1000,300],total=40+30+20+100;
   assert.equal(engine._internal.compressionSafe(item,0,0,900,d,{placed:stack(total)}),true);
   assert.equal(engine._internal.compressionSafe(item,0,0,900,d,{placed:stack(total-1)}),false);
+});
+
+test('cargo is loaded flush against the inner end wall',()=>{
+  for(const items of [mixed(),widthMix(),fragileMix(),units(10,{rotate:true})])for(const safety of ['strict','standard'])for(const preference of ['auto','density','width','balance']){
+    const result=pack(items,{safety,preference});
+    for(const load of result.loads)assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l-(load.wallGap||0),`${safety}/${preference}`);
+  }
 });
