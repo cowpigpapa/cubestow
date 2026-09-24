@@ -36,7 +36,26 @@ if(typeof window!=='undefined')window.showAppMessage=showAppMessage;
 
 function init(){
   $('containerType').innerHTML = Object.entries(CONTAINERS).map(([k,c])=>`<option value="${k}">${c.name}</option>`).join('');
+  ['productShape','safetyLevel','preference','transportMode','containerType'].forEach(id=>enhanceSelect($(id)));
   bindEvents(); updateContainerSpec(); renderProducts(); resizeCanvas();
+}
+// 조건 선택상자: 운영체제 기본 목록은 열릴 때 깜박이므로 같은 값을 가진 부드러운 목록으로 보여 준다.
+// 값과 change 이벤트는 원래 select가 그대로 가지며, 코드가 값을 바꾸면 syncSelects()로 표시를 맞춘다.
+const selectRenderers=[];
+function syncSelects(){selectRenderers.forEach(render=>render())}
+function enhanceSelect(select){
+  const box=document.createElement('div'),button=document.createElement('button'),list=document.createElement('ul');
+  box.className='select-box';button.type='button';button.className='select-button';button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');
+  list.className='select-list';list.setAttribute('role','listbox');
+  select.before(box);box.append(button,select,list);select.classList.add('native-select');select.tabIndex=-1;select.setAttribute('aria-hidden','true');
+  const render=()=>{button.textContent=select.selectedOptions[0]?.textContent||'';list.innerHTML=[...select.options].map((o,i)=>`<li role="option" data-index="${i}" aria-selected="${o.selected}">${esc(o.textContent)}</li>`).join('')};
+  const setOpen=open=>{box.classList.toggle('open',open);button.setAttribute('aria-expanded',String(open))};
+  const choose=index=>{if(index<0||index>=select.options.length||index===select.selectedIndex)return;select.selectedIndex=index;select.dispatchEvent(new Event('change'));render()};
+  button.onclick=()=>{const open=!box.classList.contains('open');document.querySelectorAll('.select-box.open').forEach(other=>other!==box&&other.classList.remove('open'));if(open)render();setOpen(open)};
+  button.onkeydown=e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();choose(select.selectedIndex+(e.key==='ArrowDown'?1:-1))}else if(e.key==='Escape')setOpen(false)};
+  list.onclick=e=>{e.preventDefault();const item=e.target.closest('li');if(!item)return;choose(+item.dataset.index);setOpen(false);button.focus()};
+  document.addEventListener('click',e=>{if(!box.contains(e.target))setOpen(false)});
+  selectRenderers.push(render);render();
 }
 function bindEvents(){
   $('guideButton').onclick=()=>$('guideDialog').showModal();
@@ -102,8 +121,8 @@ function resetProject(){applyProjectSnapshot({products:[],containerType:'20ft',s
 if(typeof window!=='undefined')window.loadwiseProject={algorithmVersion:LoadwiseProjectModel.CURRENT_ALGORITHM_VERSION,snapshot:projectSnapshot,apply:applyProjectSnapshot,reset:resetProject};
 function changeProductQty(index,delta){if(!products[index])return;products[index].qty=Math.max(1,products[index].qty+delta);renderProducts();markSimulationChanged()}
 function setProductQty(index,value){if(!products[index])return;const qty=Math.max(1,Math.floor(Number(value)||1));if(products[index].qty===qty){renderProducts();return}products[index].qty=qty;renderProducts();markSimulationChanged()}
-function markSimulationChanged(){$('recalculateOptions').classList.add('needs-update');$('recalculateOptions').innerHTML='다시 계산 <b>→</b>'}
-function updateContainerSpec(){const c=CONTAINERS[$('containerType').value]||CONTAINERS['20ft'];$('containerSpec').innerHTML=`<span>내부</span><strong>${(c.l/1000).toFixed(2)} × ${(c.w/1000).toFixed(2)} × ${(c.h/1000).toFixed(2)} m</strong><i></i><span>최대</span><strong>${(c.maxWeight/1000).toFixed(1)} t</strong>`}
+function markSimulationChanged(){syncSelects();$('recalculateOptions').classList.add('needs-update');$('recalculateOptions').innerHTML='다시 계산 <b>→</b>'}
+function updateContainerSpec(){syncSelects();const c=CONTAINERS[$('containerType').value]||CONTAINERS['20ft'];$('containerSpec').innerHTML=`<span>내부</span><strong>${(c.l/1000).toFixed(2)} × ${(c.w/1000).toFixed(2)} × ${(c.h/1000).toFixed(2)} m</strong><i></i><span>최대</span><strong>${(c.maxWeight/1000).toFixed(1)} t</strong>`}
 
 function runPackingEngine(input,onProgress=()=>{}){
   const local=()=>new Promise((resolve,reject)=>setTimeout(()=>{try{resolve(LoadwiseEngine.packShipment({...input,onProgress}))}catch(error){reject(error)}},0));
@@ -120,7 +139,7 @@ function updateSimulationProgress(status,progress,label='배치 후보 계산 �
 function shipmentOutcome(s){const loaded=s.containers.reduce((sum,load)=>sum+load.placed.length,0),left=s.unallocated.length,total=s.totalUnits,rate=total?Math.round(loaded/total*100):0;return{loaded,left,total,rate,state:left===0?'complete':loaded===0?'failed':'partial'}}
 function unallocatedNotice(s){const outcome=shipmentOutcome(s),groups=new Map;s.unallocated.forEach(item=>{const key=`${item.name}\0${item.reason||''}`,group=groups.get(key)||{name:item.name,reason:item.reason||'치수·회전·지지 조건 불충족',count:0};group.count++;groups.set(key,group)});const details=[...groups.values()].slice(0,8).map(group=>`${group.name} × ${group.count} — ${group.reason}`).join('\n'),extra=groups.size>8?`\n외 ${groups.size-8}개 제품군`:'';return`전체 ${outcome.total}개 중 ${outcome.loaded}개만 적재되었습니다.\n\n미배치 화물 ${outcome.left}개\n${details}${extra}\n\n컨테이너 규격이나 제품의 치수·중량·회전 조건을 확인해 주세요. 미배치 화물이 있으면 Excel 내보내기가 제한됩니다.`}
 
-async function simulate(){
+async function simulate(){syncSelects();
   if(!products.length){showAppMessage('직접 입력하거나 파일을 불러와 제품을 하나 이상 등록한 뒤 실행해 주세요.',{title:'등록된 제품이 없습니다',tone:'warning'});return}
   if(simulationRunning)return;simulationRunning=true;const previous=shipment,started=performance.now(),status=$('simulationStatus'),buttons=[$('recalculateOptions')];buttons.forEach(b=>b.disabled=true);status.hidden=false;status.className='simulation-status busy';updateSimulationProgress(status,1,'계산 준비 중');await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,30)));
   try{const containerKey=$('containerType').value,c=CONTAINERS[containerKey],safety=$('safetyLevel').value,preference=$('preference').value,transportMode=currentTransportMode(),label=strategyLabel(safety,preference),units=products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1,volume:p.l*p.w*p.h})));const plan=await runPackingEngine({container:c,units,safety,preference,transportMode,previous:previous?{containers:previous.containers.map(load=>({container:load.container,placed:load.placed})),unallocated:previous.unallocated,totalUnits:previous.totalUnits,safety:previous.safety,preference:previous.preference,transportMode:previous.transportMode}:null},p=>updateSimulationProgress(status,5+p*90,`${label} 계산 중`)),loads=plan.loads,remaining=plan.remaining;updateSimulationProgress(status,97,'고정재 위치 계산 중');await new Promise(resolve=>setTimeout(resolve,0));loads.forEach((load,i)=>{load.containerNumber=i+1;load.securing=buildSecuringPlan(load,transportMode)});shipment={containers:loads,unallocated:remaining,totalUnits:units.length,containerKey,safety:plan.safety,preference:plan.preference,transportMode:plan.transportMode,engine:plan.engine,stats:plan.stats,strategy:{label,reason:plan.reason}};shipment.validation=LoadwiseValidator.validateShipment(shipment);if(!shipment.validation.valid)throw new Error(`독립 안전 검증 실패: ${shipment.validation.errors.slice(0,3).join(' / ')}`);result=loads[0];activeContainer=0;visibleStep=result.placed.length;stopPlayback();$('recalculateOptions').classList.remove('needs-update');$('recalculateOptions').innerHTML='시뮬레이션 실행 <b>→</b>';updateResults();resizeCanvas();draw();const outcome=shipmentOutcome(shipment),elapsed=((performance.now()-started)/1000).toFixed(2);status.className=`simulation-status ${outcome.state==='complete'?'done':outcome.state==='partial'?'warning':'error'}`;status.innerHTML=`<i></i><span>${outcome.state==='complete'?'적재 완료':outcome.state==='partial'?'부분 적재':'적재 불가'} · ${label} · ${elapsed}초</span><b>적재 ${outcome.rate}%</b>`;status.hidden=true;$('calcTime').hidden=false;$('calcTime').textContent=`계산 ${elapsed}초`;if(outcome.left)showAppMessage(unallocatedNotice(shipment),{title:outcome.state==='failed'?'현재 조건으로 적재할 수 없습니다':'일부 화물을 적재할 수 없습니다',tone:outcome.state==='failed'?'error':'warning'});window.dispatchEvent(new CustomEvent('loadwise:simulation-complete'))}catch(error){console.error(error);status.className='simulation-status error';status.innerHTML='<i></i><span>계산 중 오류가 발생했습니다</span>';showAppMessage(error.message?.startsWith('독립 안전 검증 실패')?'계산 결과가 독립 안전 검증을 통과하지 못해 표시하지 않았습니다. 안전 기준이나 우선 기준을 바꿔 다시 실행해 주세요.':'계산을 완료하지 못했습니다. 입력 조건을 확인한 뒤 다시 실행해 주세요.',{title:'시뮬레이션 오류',tone:'error'})}finally{simulationRunning=false;buttons.forEach(b=>b.disabled=!products.length)}

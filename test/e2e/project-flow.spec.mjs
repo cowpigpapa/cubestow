@@ -171,3 +171,12 @@ test('CTU sliding and tipping reference calculation appears in the securing pane
   await expect(page.locator('#securingRecommendation')).toContainText('필요 억제력');
   await expect(page.locator('#securingCount')).toContainText('CTU 고정 필요');
 });
+
+test('condition dropdowns open a smooth list and keep the native select value in sync',async({page})=>{
+  await page.goto('/');
+  const transport=page.locator('.select-box').filter({has:page.locator('#transportMode')});
+  await transport.locator('.select-button').click();await expect(transport).toHaveClass(/open/);
+  await transport.getByRole('option',{name:'해상 · 보수적'}).click();
+  await expect(page.locator('#transportMode')).toHaveValue('sea');await expect(transport.locator('.select-button')).toHaveText('해상 · 보수적');await expect(transport).not.toHaveClass(/open/);
+  await transport.locator('.select-button').press('ArrowDown');await expect(page.locator('#transportMode')).toHaveValue('combined');
+});
