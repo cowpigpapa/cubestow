@@ -18,7 +18,7 @@ const cases=[
   {name:'cylinders',container:C20,maxContainers:1,items:units(18,{name:'drum',shape:'cylinder',l:900,w:900,h:700,weight:310,rotate:false})},
   {name:'width-mix',container:C20,maxContainers:1,items:[...units(12,{name:'wide',w:820}),...units(12,{name:'medium',w:700},12),...units(16,{name:'narrow',w:530},24)]},
   {name:'fragile-mix',container:C20,maxContainers:1,items:[...units(6,{name:'fragile',l:900,w:700,h:500,weight:60,fragile:true}),...units(18,{name:'strong',l:800,w:600,h:650,weight:180},6)]},
-  {name:'mix-200',container:C40HC,maxContainers:{strict:3,standard:2},maxMs:8000,items:Array.from({length:200},(_,i)=>{const [l,w,h,weight]=types[i%4];return{...base,name:`T${i%4}`,l,w,h,weight,pi:i%4,unit:i+1}})}
+  {name:'mix-200',container:C40HC,maxContainers:{strict:2,standard:2},maxMs:8000,items:Array.from({length:200},(_,i)=>{const [l,w,h,weight]=types[i%4];return{...base,name:`T${i%4}`,l,w,h,weight,pi:i%4,unit:i+1}})}
 ];
 const rows=[],failures=[];
 for(const sample of cases)for(const safety of ['strict','standard']){

@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.09';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -151,23 +151,53 @@
     return risk;
   }
 
+  const contactArea=(p,q)=>Math.max(0,Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x))*Math.max(0,Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y));
+  const withinTopLoad=(p,load)=>!Number.isFinite(p.maxTopLoadKg)||load<=p.maxTopLoadKg+1e-6;
+  // p를 받치는 화물과 접촉면적. 받치는 화물은 항상 p보다 낮은 위치에 있다.
+  function supportsOf(p,placed,self){
+    const supports=[];let total=0;
+    placed.forEach((q,j)=>{
+      if(j===self||Math.abs(q.z+q.h-p.z)>=TOL)return;
+      const area=contactArea(p,q);
+      if(area>0){supports.push({j,area});total+=area}
+    });
+    return{supports,total};
+  }
   function compressionLoads(placed){
     const carried=placed.map(p=>p.weight),top=placed.map(()=>0);
     [...placed.keys()].sort((a,b)=>placed[b].z-placed[a].z).forEach(i=>{
       const p=placed[i];if(p.z<=0)return;
-      const supports=[];let total=0;
-      placed.forEach((q,j)=>{
-        if(j===i||Math.abs(q.z+q.h-p.z)>=TOL)return;
-        const area=Math.max(0,Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x))*Math.max(0,Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y));
-        if(area>0){supports.push({j,area});total+=area}
-      });
+      const {supports,total}=supportsOf(p,placed,i);
       supports.forEach(({j,area})=>{const load=carried[i]*area/total;top[j]+=load;carried[j]+=load});
     });
     return top;
   }
-  function compressionSafe(item,x,y,z,d,placed){
-    const all=[...placed,{...item,x,y,z,l:d[0],w:d[1],h:d[2]}],loads=compressionLoads(all);
-    return all.every((p,i)=>!Number.isFinite(p.maxTopLoadKg)||loads[i]<=p.maxTopLoadKg+1e-6);
+  // 새 화물이 기존 화물을 받치지 않으면 기존 하중 분배는 바뀌지 않는다. 이때는 커밋마다 한 번 계산한
+  // 하중에 새 화물 중량이 아래로 전달되는 몫만 더한다. 그 밖의 경우는 전체를 다시 계산한다.
+  function compressionSafe(item,x,y,z,d,state){
+    const placed=state.placed,box={...item,x,y,z,l:d[0],w:d[1],h:d[2]};
+    if(state.topLoads?.length!==placed.length){
+      state.topLoads=compressionLoads(placed);
+      state.topLoadsOk=placed.every((p,i)=>withinTopLoad(p,state.topLoads[i]));
+    }
+    if(!state.topLoadsOk||placed.some(p=>Math.abs(box.z+box.h-p.z)<TOL&&contactArea(p,box)>0)){
+      const all=[...placed,box],loads=compressionLoads(all);
+      return all.every((p,i)=>withinTopLoad(p,loads[i]));
+    }
+    const self=placed.length,at=i=>i===self?box:placed[i],added=new Map([[self,item.weight]]),queue=[self];
+    // 높은 화물부터 처리해야 한 화물로 모이는 추가 하중을 모두 합친 뒤 아래로 넘길 수 있다.
+    while(queue.length){
+      queue.sort((a,b)=>at(a).z-at(b).z);
+      const i=queue.pop(),p=at(i);
+      if(p.z<=0)continue;
+      const {supports,total}=supportsOf(p,placed,i),load=added.get(i);
+      for(const {j,area} of supports){
+        if(!added.has(j))queue.push(j);
+        added.set(j,(added.get(j)||0)+load*area/total);
+      }
+    }
+    for(const [j,load] of added)if(j!==self&&!withinTopLoad(placed[j],state.topLoads[j]+load))return false;
+    return true;
   }
 
   function transverseVoid(x,y,z,d,placed,c){
@@ -259,7 +289,7 @@
     const needSides=ctx.heuristic==='width'||z>0||item.shape==='cylinder'||h/base>profile.slender||(z+h)/base>Math.min(1.5,profile.column);
     const sides=needSides?lateralSupportDirections(pos,d,placed,c,true):null,supported=sides?countSides(sides):4;
     if((z+h)/base>1.5&&supported<2)return null;
-    if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,placed))return null;
+    if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,flag=risk>0?1:0,area=-(l*w);
     switch(ctx.heuristic){
       case 'dblf':{
@@ -449,9 +479,16 @@
     let best=null,bestKey=null;
     const variants=[false,true];
     const runs=portfolioRuns(ctx.preference);
+    // 투입 순서가 같은 실행은 결과도 같으므로 한 번만 계산한다.
+    const index=new Map(units.map((u,i)=>[u,i])),sequences=[],seen=new Set();
     for(let i=0;i<runs.length;i++){
       if(i>0&&now()>deadline){stats.truncated=true;break}
-      const raw=packContainer(ctx,units,runs[i].heuristic,runs[i].order);
+      const {heuristic,order}=runs[i];
+      sequences[order]=sequences[order]||sortUnits(units,order).map(u=>index.get(u)).join(',');
+      const runKey=`${heuristic}|${sequences[order]}`;
+      if(seen.has(runKey)){stats.skipped++;continue}
+      seen.add(runKey);
+      const raw=packContainer(ctx,units,heuristic,order);
       stats.runs++;
       for(const centered of variants){
         const load=finalizeLoad(ctx.c,raw,centered),key=containerKey(load,ctx);
@@ -510,7 +547,7 @@
     const onProgress=typeof input.onProgress==='function'?input.onProgress:()=>{};
     const units=prepareUnits(input.units||[]);
     const ctx={c,safetyKey,safety:SAFETY_LEVELS[safetyKey],preference,mode,widthGap:createWidthOracle(units,c.w),hasTopLoadLimits:units.some(u=>Number.isFinite(u.maxTopLoadKg))};
-    const bound=lowerBound(c,units),stats={runs:0,truncated:false,repaired:false,lowerBound:bound};
+    const bound=lowerBound(c,units),stats={runs:0,skipped:0,truncated:false,repaired:false,lowerBound:bound};
     const deadline=started+budget,loads=[];
     let remaining=units;
     const repaired=input.previous?repairFromPrevious(ctx,units,input.previous):null;
@@ -519,7 +556,9 @@
     }else{
       while(remaining.length&&loads.length<MAX_CONTAINERS){
         const left=Math.max(1,lowerBound(c,remaining)),share=Math.max(0,deadline-now())/left;
-        const load=packOneContainer(ctx,remaining,now()+share,stats);
+        // 폭 조합은 이 컨테이너에 남은 화물로만 계산한다. 앞 컨테이너에 모두 실린 규격의 폭은 쓸 수 없다.
+        const widthGap=remaining===units?ctx.widthGap:createWidthOracle(remaining,c.w);
+        const load=packOneContainer({...ctx,widthGap},remaining,now()+share,stats);
         if(!load.placed.length){if(!loads.length)loads.push(load);remaining=load.rejected;break}
         loads.push(load);
         remaining=load.rejected;

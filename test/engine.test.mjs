@@ -147,3 +147,68 @@ test('200 mixed units finish within the time budget and stay valid',()=>{
   assert.equal(result.remaining.length,0);
   assert.ok(result.loads.length>=result.stats.lowerBound);
 });
+
+test('portfolio skips runs whose input order repeats an earlier run',()=>{
+  const result=pack(units(36,{rotate:true}));
+  assert.equal(result.stats.runs,4);assert.equal(result.stats.skipped,12);
+  assertValidShipment(result,units(36,{rotate:true}));
+});
+
+test('run de-duplication does not rely on unit ids',()=>{
+  const items=mixed(),anonymous=items.map(({pi,unit,...p})=>p);
+  const withIds=pack(items),withoutIds=pack(anonymous);
+  assert.equal(withoutIds.stats.runs,withIds.stats.runs);assert.equal(withIds.stats.runs,16);
+});
+
+test('later containers ignore widths of cargo already loaded in earlier containers',()=>{
+  const types=[[1200,1000,900,300],[1000,800,700,150],[800,600,500,80],[600,400,400,40]];
+  const items=Array.from({length:200},(_,i)=>{const [l,w,h,weight]=types[i%4];return{...base,name:`T${i%4}`,l,w,h,weight,rotate:true,pi:i%4,unit:i+1}});
+  const container=CONTAINERS[2],result=engine.packShipment({container,units:items,safety:'strict',timeBudgetMs:60000});
+  assertValidShipment(result,items);
+  assert.equal(result.remaining.length,0);
+  assert.equal(result.loads.length,result.stats.lowerBound);
+  // 두 번째 컨테이너는 남은 화물만 따로 계산한 결과와 같아야 한다(앞 컨테이너 이력과 무관).
+  const firstIds=new Set(result.loads[0].placed.map(p=>`${p.pi}:${p.unit}`)),rest=items.filter(p=>!firstIds.has(`${p.pi}:${p.unit}`));
+  const alone=engine.packShipment({container,units:rest,safety:'strict',timeBudgetMs:60000});
+  assert.equal(alone.loads[0].placed.length,result.loads[1].placed.length);
+});
+
+test('incremental top-load check matches a full recomputation by the validator',()=>{
+  let seed=20260924;
+  const rand=()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const pick=(min,max,step)=>min+step*Math.floor(rand()*((max-min)/step+1));
+  const container={l:4000,w:2400,h:4000,maxWeight:1e9},drop=(box,placed)=>Math.max(0,...placed.filter(q=>overlapArea(box,q)>0).map(q=>q.z+q.h));
+  const limit=()=>rand()<.6?pick(50,600,50):undefined,overloaded=placed=>validator.validateLoad({container,placed}).errors.some(e=>e.includes('상부 허용하중'));
+  let checked=0,rejected=0,fallback=0,incrementalRejected=0;
+  for(let scenario=0;scenario<200;scenario++){
+    const placed=[];
+    for(let k=0;k<20;k++){
+      const box={name:'b',shape:'box',l:pick(400,1200,100),w:pick(400,1200,100),h:pick(300,900,100),weight:pick(10,200,10),maxTopLoadKg:limit()};
+      box.x=pick(0,container.l-box.l,100);box.y=pick(0,container.w-box.w,100);box.z=drop(box,placed);
+      // 기존 배치는 엔진이 실제로 만드는 상태처럼 상부 허용하중을 지킨다.
+      if(!overloaded([...placed,box]))placed.push(box);
+    }
+    const state={placed:[...placed]};
+    for(let k=0;k<30;k++){
+      const item={name:'c',shape:'box',weight:pick(10,300,10),maxTopLoadKg:limit()},d=[pick(300,1000,100),pick(300,1000,100),pick(200,600,100)];
+      let pos={x:pick(0,container.l-d[0],100),y:pick(0,container.w-d[1],100),z:0};
+      const under=placed.filter(p=>p.z>d[2]);
+      if(k%5===0&&under.length){const p=under[Math.floor(rand()*under.length)];pos={x:p.x,y:p.y,z:p.z-d[2]};fallback++}
+      else pos.z=drop({...pos,l:d[0],w:d[1]},placed);
+      const all=[...placed,{...item,...pos,l:d[0],w:d[1],h:d[2]}];
+      const expected=!overloaded(all);
+      assert.equal(engine._internal.compressionSafe(item,pos.x,pos.y,pos.z,d,state),expected,`scenario ${scenario} candidate ${k}`);
+      checked++;if(!expected){rejected++;if(k%5)incrementalRejected++}
+    }
+  }
+  assert.ok(checked===6000&&fallback>=1000&&incrementalRejected>=300,`checked ${checked}, fallback ${fallback}, rejected on the incremental path ${incrementalRejected}`);
+});
+
+test('incremental top-load check carries converging loads down through stacked supports',()=>{
+  // 후보 → 두 화물(M1·M2) → 한 화물(B1)로 모인 하중이 바닥 화물(B0)까지 모두 전달돼야 한다.
+  const box=(x,y,z,l,w,h,weight,maxTopLoadKg)=>({name:'b',shape:'box',x,y,z,l,w,h,weight,maxTopLoadKg});
+  const stack=limit=>[box(0,0,0,1000,1000,300,50,limit),box(0,0,300,1000,1000,300,40),box(0,0,600,500,1000,300,30),box(500,0,600,500,1000,300,20)];
+  const item={name:'c',shape:'box',weight:100},d=[1000,1000,300],total=40+30+20+100;
+  assert.equal(engine._internal.compressionSafe(item,0,0,900,d,{placed:stack(total)}),true);
+  assert.equal(engine._internal.compressionSafe(item,0,0,900,d,{placed:stack(total-1)}),false);
+});

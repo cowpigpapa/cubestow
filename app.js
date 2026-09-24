@@ -110,7 +110,7 @@ function updateContainerSpec(){const c=CONTAINERS[$('containerType').value]||CON
 
 function runPackingEngine(input,onProgress=()=>{}){
   const local=()=>new Promise((resolve,reject)=>setTimeout(()=>{try{resolve(LoadwiseEngine.packShipment({...input,onProgress}))}catch(error){reject(error)}},0));
-  if(!engineWorker&&typeof Worker!=='undefined'&&location.protocol!=='file:')try{engineWorker=new Worker('engine-worker.js?v=20260924-1')}catch{engineWorker=null}
+  if(!engineWorker&&typeof Worker!=='undefined'&&location.protocol!=='file:')try{engineWorker=new Worker('engine-worker.js?v=20260924-2')}catch{engineWorker=null}
   if(!engineWorker)return local();
   const id=++engineJob,worker=engineWorker;
   return new Promise((resolve,reject)=>{
