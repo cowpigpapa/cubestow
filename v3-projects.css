@@ -133,9 +133,6 @@ details.menu>summary[aria-label]::after{content:""}
 .coordinate-legend span{display:inline-flex;align-items:center;gap:6px}
 .coordinate-legend b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#1d1d1f;color:#fff;font-size:11px}
 @media(max-width:900px){
-  .topbar nav{display:flex;flex:0 0 auto;margin-left:auto;gap:0}
-  .topbar nav>a{display:none}
-  .help-menu .menu-list{left:auto;right:0;transform:none}
   .project-toolbar{display:flex;flex-wrap:wrap;padding-block:8px}
   .project-toolbar .safety-notice{flex:1 1 100%}
   .toolbar-actions{flex:1 1 100%;justify-content:flex-end}
@@ -152,4 +149,47 @@ details.menu>summary[aria-label]::after{content:""}
   .canvas-wrap .result-control-row .container-nav-slot{order:1}
   .canvas-wrap .result-control-row .view-actions{order:2;flex:1 1 100%;max-width:100%;overflow-x:auto;scrollbar-width:none}
   .canvas-wrap .result-control-row .view-actions button{flex:0 0 auto}
+}
+
+/* 1.1.2 균형 조정: 헤더 베타 칩·계정 메뉴, 툴바 좌우 배치, 단계 번호, 지표 5칸, 계산 시간 */
+.header-beta{position:relative;margin:0 auto 0 14px;padding:0;border:0;background:none}
+.header-beta>summary{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px;border:1px solid rgba(234,217,174,.45);border-radius:999px;background:rgba(255,249,233,.1);color:#f1d08a;font-size:12px;cursor:pointer;list-style:none;white-space:nowrap}
+.header-beta>summary::-webkit-details-marker{display:none}
+.header-beta>summary::before{content:"i";display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:#c28b1b;color:#fff;font:700 10px/1 Inter,sans-serif}
+.header-beta strong{color:inherit;font-weight:600}
+.header-beta>span{position:absolute;top:calc(100% + 10px);left:0;z-index:40;width:340px;padding:12px 14px;border:1px solid #ead9ae;border-radius:12px;background:#fffdf6;color:#755414;font-size:13px;line-height:1.5;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+.topbar nav{flex:0 1 auto}
+.account-menu>summary{display:inline-flex;align-items:center;max-width:240px;min-height:36px;padding:0 14px;border:1px solid rgba(255,255,255,.22);border-radius:999px;color:#fff;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-menu>summary::before{content:"";flex:0 0 8px;height:8px;margin-right:8px;border-radius:50%;background:#34c759}
+.account-menu .menu-list{min-width:150px}
+.account-menu .menu-list button{border:0;background:transparent;color:var(--v3-ink);min-height:38px;font-size:14px;text-align:left;border-radius:9px;padding:0 12px}
+.account-menu .menu-list button:hover{background:#f2f5fa}
+.project-toolbar{justify-content:space-between}
+.project-toolbar .current-project{display:flex;align-items:baseline;gap:10px;min-width:0;margin:0}
+.project-toolbar .current-project strong{display:block;font-size:15px;font-weight:600;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-heading{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.step-badge{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:var(--ink,#1d1d1f);color:var(--lime,#fff);font-size:12px;font-weight:700}
+.result-header .step-heading{align-items:center}
+.result-header .step-heading h2{margin:0}
+.stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+.stats>div:nth-child(4){border-right:1px solid var(--line)}
+.calc-time{position:absolute;right:16px;bottom:14px;z-index:3;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.85);color:var(--v3-muted);font-size:12px}
+.calc-time[hidden]{display:none}
+@media(max-width:900px){
+  .header-beta{margin-left:8px}
+  .header-beta>span{width:min(300px,80vw)}
+  .stats{grid-template-columns:1fr 1fr}
+  .stats>div:nth-child(5){grid-column:1/-1;border-top:1px solid var(--line)}
+}
+@media(max-width:480px){.header-beta strong{display:none}.header-beta>summary{padding:0 7px}}
+.collapsible-head>.list-heading{flex-direction:row;align-items:center;gap:12px}
+.list-heading>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.collapsible-head .step-badge{display:grid;overflow:visible;color:#fff;font-size:12px;font-weight:700}
+.collapsible-head>div.list-heading:first-child{flex-direction:row;align-items:center;gap:12px}
+@media(max-width:900px){
+  .header-beta>span{position:fixed;top:56px;left:16px;right:16px;width:auto}
+  .project-toolbar{flex-wrap:nowrap}
+  .project-toolbar .current-project{flex-direction:column;align-items:flex-start;gap:2px}
+  .project-toolbar .current-project strong{max-width:46vw;font-size:14px}
+  .toolbar-actions{flex:0 0 auto}
 }

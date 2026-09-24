@@ -1,7 +1,6 @@
 import {test,expect} from '@playwright/test';
 
 const openMenu=(page,name)=>page.locator('details.menu>summary',{hasText:name}).click();
-const openHelp=(page,name)=>openMenu(page,'도움말').then(()=>page.getByRole('button',{name}).click());
 async function loadSample(page,number=1){
   await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플 불러오기'}).click();
   await expect(page.getByRole('heading',{name:'샘플 시나리오 선택'})).toBeVisible();
@@ -11,14 +10,14 @@ async function loadSample(page,number=1){
 
 test('algorithm policy opens inside the app',async({page})=>{
   await page.goto('/');
-  await openHelp(page,'알고리즘 정책');
+  await page.getByRole('button',{name:'알고리즘 정책'}).click();
   await expect(page.getByRole('heading',{name:'알고리즘 정책과 한계'})).toBeVisible();
   await expect(page.locator('#policyDialog')).toHaveAttribute('open','');
 });
 
 test('user guide opens inside the app',async({page})=>{
   await page.goto('/');
-  await openHelp(page,'사용 가이드');
+  await page.getByRole('button',{name:'사용 가이드'}).click();
   await expect(page.locator('#guideDialog')).toHaveAttribute('open','');
   await expect(page.getByRole('heading',{name:'Cubestow 사용 가이드'})).toBeVisible();
 });
@@ -58,7 +57,7 @@ test('product list title and mobile layout do not wrap or overflow',async({page}
 
 test('CTU Code guide opens inside the app',async({page})=>{
   await page.goto('/');
-  await openHelp(page,'CTU Code');
+  await page.getByRole('button',{name:'CTU Code'}).click();
   await expect(page.locator('#ctuDialog')).toHaveAttribute('open','');
   await expect(page.getByRole('heading',{name:'CTU Code란?'})).toBeVisible();
   await expect(page.getByText('Cubestow의 현재 반영 범위')).toBeVisible();
@@ -86,9 +85,10 @@ test('login offers social, email and guest options',async({page})=>{
   await expect(page.locator('.guest-save-note')).toContainText('현재 브라우저');
 });
 
-test('beta safety notice stays in the project toolbar',async({page})=>{
+test('beta safety notice sits in the header and expands to the full warning',async({page})=>{
   await page.goto('/');
-  await expect(page.locator('.project-toolbar .safety-notice')).toContainText('작업 검토용 베타');
+  await expect(page.locator('.topbar .safety-notice')).toContainText('작업 검토용 베타');
+  await page.locator('.topbar .safety-notice summary').click();await expect(page.locator('.topbar .safety-notice')).toContainText('현장 전문가가 검증');
   await expect(page.locator('.result-panel .safety-notice')).toHaveCount(0);
 });
 
@@ -122,13 +122,14 @@ test('guest project saves, reloads, and recalculates automatically',async({page}
   await expect(page.locator('#saveState')).toHaveText('브라우저 저장됨');
   await page.getByRole('button',{name:'저장',exact:true}).click();
   await expect(page.getByRole('heading',{name:'현재 프로젝트에 저장할까요?'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'다른 이름으로 저장'})).toBeVisible();
   await page.getByRole('button',{name:'취소'}).click();
-  await openMenu(page,'⋯');await page.getByRole('button',{name:'새 프로젝트'}).click();
+  await openMenu(page,'불러오기');await page.getByRole('button',{name:'새 프로젝트'}).click();
   await expect(page.locator('#loadedCount')).toHaveText('—');
   await openMenu(page,'불러오기');await page.getByRole('button',{name:'저장 목록'}).click();
   await page.locator('[data-open]').filter({hasText:'E2E 자동 계산'}).click();
   await expect(page.locator('#loadedCount')).toHaveText('36개',{timeout:20000});
-  await expect(page.locator('#simulationStatus')).toBeHidden();await expect(page.locator('#recommendation')).toContainText('계산');
+  await expect(page.locator('#simulationStatus')).toBeHidden();await expect(page.locator('#calcTime')).toContainText('계산');await expect(page.locator('#containerCount')).toHaveText('1대');
 });
 
 test('weight balance, view presets and printable work instruction work together',async({page})=>{
