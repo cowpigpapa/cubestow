@@ -262,3 +262,8 @@ details.menu>summary[aria-label]::after{content:""}
 /* 무게중심 토글 점은 판정과 무관한 파랑(판정 색은 3D 표시와 무게중심 카드에서 보여 준다) */
 .securing-visibility .cog-toggle.active{border-color:#b6c8f5;color:#2448b8}
 .securing-visibility .cog-toggle.active i{background:#3563e9;box-shadow:0 0 0 3px rgba(53,99,233,.15)}
+/* 무게중심 좌표는 판정값이 아닌 참고 정보라 제목 옆에 두고, 판정 칸 6개는 3열로 나눈다 */
+.balance-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px;min-width:0}
+.balance-title .cog-position{color:var(--v3-muted);font-size:13px}
+.balance-title .cog-position b{margin-left:4px;color:var(--v3-ink);font-weight:600}
+@media(min-width:761px){.balance-grid{grid-template-columns:repeat(3,1fr)}}
