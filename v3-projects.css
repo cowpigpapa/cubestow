@@ -248,3 +248,14 @@ details.menu>summary[aria-label]::after{content:""}
   .canvas-wrap .result-control-row .securing-visibility button:not(.active){opacity:.6}
   .canvas-wrap .result-control-row .container-nav-slot{margin-left:auto}
 }
+
+/* 프로젝트 관리 버튼(불러오기·새 프로젝트)은 같은 연한 청록, 무게중심 칸은 판정 색 */
+.load-menu>summary,.project-toolbar #newProjectTop{background:#e9f6f3!important;border-color:#b8e0d6!important;color:#0f6b5c!important}
+.load-menu>summary:hover,.load-menu[open]>summary,.project-toolbar #newProjectTop:hover{background:#dcf0eb!important;border-color:#94d0c2!important}
+.balance-grid span[data-level]{border:1px solid transparent}
+.balance-grid span[data-level=good]{background:#eefaf2;border-color:#cdebd8}
+.balance-grid span[data-level=good] b{color:#16803c}
+.balance-grid span[data-level=caution]{background:#fff7e6;border-color:#f3dca8}
+.balance-grid span[data-level=caution] b{color:#9a6700}
+.balance-grid span[data-level=danger]{background:#fff1ef;border-color:#f3c4bd}
+.balance-grid span[data-level=danger] b{color:#b42318}
