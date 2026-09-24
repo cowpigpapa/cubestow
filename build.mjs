@@ -4,7 +4,7 @@ await rm("dist", { recursive: true, force: true });
 await mkdir("dist/client/vendor", { recursive: true });
 await mkdir("dist/server", { recursive: true });
 
-for (const file of ["index.html", "styles.css", "layout-fixes.css", "v2.css", "v3-projects.css", "packing-engine.js", "engine-worker.js", "app.js", "project-model.js", "project-store.js", "load-insights.js", "solution-validator.js"]) {
+for (const file of ["index.html", "styles.css", "layout-fixes.css", "v2.css", "v3-projects.css", "packing-engine.js", "engine-worker.js", "app.js", "project-model.js", "project-store.js", "load-insights.js", "sample-scenarios.js", "solution-validator.js"]) {
   await cp(file, `dist/client/${file}`);
 }
 await cp("vendor/three.min.js", "dist/client/vendor/three.min.js");

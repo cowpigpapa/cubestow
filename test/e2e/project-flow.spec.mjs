@@ -21,13 +21,18 @@ test('user guide opens inside the app',async({page})=>{
   await expect(page.getByRole('heading',{name:'Cubestow 사용 가이드'})).toBeVisible();
 });
 
-test('sample picker offers three testing scenarios',async({page})=>{
+test('sample picker lists twenty scenarios and filters them by category',async({page})=>{
   await page.goto('/');
   await page.getByRole('button',{name:'샘플 불러오기'}).click();
-  await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(3);
+  await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(20);
   await expect(page.locator('#sampleDialog')).toContainText('혼합 화물');
-  await expect(page.locator('#sampleDialog')).toContainText('단일 규격');
-  await expect(page.locator('#sampleDialog')).toContainText('3종 크기 조합');
+  await expect(page.locator('#sampleDialog')).toContainText('양문형 냉장고');
+  await page.locator('[data-sample-filter="원통"]').click();
+  await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(3);
+  await page.locator('[data-sample="16"]').click();
+  await expect(page.locator('#containerType')).toHaveValue('40ft');
+  await expect(page.locator('#transportMode')).toHaveValue('sea');
+  await expect(page.locator('#loadedCount')).toHaveText('24개',{timeout:30000});
 });
 
 test('file import lets the user load only or start simulation',async({page})=>{

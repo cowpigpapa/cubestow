@@ -221,3 +221,46 @@ test('cargo is loaded flush against the inner end wall',()=>{
     for(const load of result.loads)assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l-(load.wallGap||0),`${safety}/${preference}`);
   }
 });
+
+test('incremental stack balance check matches the validator',()=>{
+  let seed=7;
+  const rand=()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const pick=(min,max,step)=>min+step*Math.floor(rand()*((max-min)/step+1));
+  const container={l:3000,w:2400,h:4000,maxWeight:1e9},drop=(box,placed)=>Math.max(0,...placed.filter(q=>overlapArea(box,q)>0).map(q=>q.z+q.h));
+  const unbalanced=placed=>validator.validateLoad({container,placed}).errors.some(e=>e.includes('합성 무게중심'));
+  let checked=0,rejected=0,fallback=0;
+  for(let scenario=0;scenario<200;scenario++){
+    const placed=[];
+    for(let k=0;k<18;k++){
+      const box={name:'b',shape:'box',l:pick(300,1500,100),w:pick(300,1500,100),h:pick(200,600,100),weight:pick(10,300,10)};
+      box.x=pick(0,container.l-box.l,100);box.y=pick(0,container.w-box.w,100);box.z=drop(box,placed);
+      if(!unbalanced([...placed,box]))placed.push(box);
+    }
+    const state={placed:[...placed]};
+    for(let k=0;k<30;k++){
+      const item={name:'c',shape:'box',weight:pick(10,600,10)},d=[pick(300,1600,100),pick(300,1600,100),pick(200,500,100)];
+      let pos={x:pick(0,container.l-d[0],100),y:pick(0,container.w-d[1],100),z:0};
+      const under=placed.filter(p=>p.z>d[2]);
+      if(k%5===0&&under.length){const p=under[Math.floor(rand()*under.length)];pos={x:p.x,y:p.y,z:p.z-d[2]};fallback++}
+      else pos.z=drop({...pos,l:d[0],w:d[1]},placed);
+      const expected=!unbalanced([...placed,{...item,...pos,l:d[0],w:d[1],h:d[2]}]);
+      assert.equal(engine._internal.stackSafe(item,pos.x,pos.y,pos.z,d,state),expected,`scenario ${scenario} candidate ${k}`);
+      checked++;if(!expected&&k%5)rejected++;
+    }
+  }
+  assert.ok(checked===6000&&fallback>=1000&&rejected>=300,`checked ${checked}, fallback ${fallback}, rejected on the incremental path ${rejected}`);
+});
+
+test('generated stacks keep their combined center of gravity over the supports',()=>{
+  // 길고 얇은 플랫팩을 엇갈려 쌓는 경우 엔진이 합성 무게중심 조건을 스스로 지켜야 한다
+  const items=[...units(30,{name:'panel',l:2050,w:620,h:160,weight:58,rotate:true}),...units(40,{name:'shelf',l:1850,w:420,h:120,weight:32,rotate:true},30),...units(20,{name:'top',l:1650,w:950,h:110,weight:38,rotate:true},70)];
+  for(const safety of ['strict','standard'])assertValidShipment(pack(items,{safety}),items);
+});
+
+test('incremental stack balance check sums converging loads before passing them down',()=>{
+  // 후보 → M1·M2 → B1로 모인 하중 전체로 B1의 합성 무게중심을 봐야 한다. B1은 x 0~1000에서만 받쳐진다.
+  const box=(x,z,l,weight)=>({name:'b',shape:'box',x,y:0,z,l,w:1000,h:300,weight});
+  const placed=[box(0,0,1000,100),box(0,300,1600,100),box(0,600,1000,400),box(1000,600,600,10)];
+  const safe=weight=>engine._internal.stackSafe({name:'c',shape:'box',weight},700,0,900,[900,1000,300],{placed:[...placed]});
+  assert.equal(safe(1400),true);assert.equal(safe(1800),false);
+});

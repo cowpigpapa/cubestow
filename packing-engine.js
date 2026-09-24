@@ -172,32 +172,107 @@
     });
     return top;
   }
-  // 새 화물이 기존 화물을 받치지 않으면 기존 하중 분배는 바뀌지 않는다. 이때는 커밋마다 한 번 계산한
-  // 하중에 새 화물 중량이 아래로 전달되는 몫만 더한다. 그 밖의 경우는 전체를 다시 계산한다.
-  function compressionSafe(item,x,y,z,d,state){
-    const placed=state.placed,box={...item,x,y,z,l:d[0],w:d[1],h:d[2]};
-    if(state.topLoads?.length!==placed.length){
-      state.topLoads=compressionLoads(placed);
-      state.topLoadsOk=placed.every((p,i)=>withinTopLoad(p,state.topLoads[i]));
-    }
-    if(!state.topLoadsOk||placed.some(p=>Math.abs(box.z+box.h-p.z)<TOL&&contactArea(p,box)>0)){
-      const all=[...placed,box],loads=compressionLoads(all);
-      return all.every((p,i)=>withinTopLoad(p,loads[i]));
-    }
-    const self=placed.length,at=i=>i===self?box:placed[i],added=new Map([[self,item.weight]]),queue=[self];
-    // 높은 화물부터 처리해야 한 화물로 모이는 추가 하중을 모두 합친 뒤 아래로 넘길 수 있다.
+  const supportsExisting=(box,placed)=>placed.some(p=>Math.abs(box.z+box.h-p.z)<TOL&&contactArea(p,box)>0);
+  // 새 화물(box)의 값이 받침 경로를 따라 나눠 내려간 몫(기존 화물 번호 → 값). box가 기존 화물을 받치지 않을 때만
+  // 기존 분배가 그대로이므로 이 몫만 더하면 된다. 높은 화물부터 처리해야 한 화물로 모이는 몫을 모두 합친 뒤 넘길 수 있다.
+  // visit(i,p,value)가 false를 돌려주면 중단하고 null을 돌려준다.
+  function spreadDown(box,value,placed,add,visit){
+    const self=placed.length,at=i=>i===self?box:placed[i],added=new Map([[self,value]]),queue=[self];
     while(queue.length){
       queue.sort((a,b)=>at(a).z-at(b).z);
       const i=queue.pop(),p=at(i);
       if(p.z<=0)continue;
-      const {supports,total}=supportsOf(p,placed,i),load=added.get(i);
+      const part=added.get(i);
+      if(visit&&!visit(i,p,part))return null;
+      const {supports,total}=supportsOf(p,placed,i);
       for(const {j,area} of supports){
         if(!added.has(j))queue.push(j);
-        added.set(j,(added.get(j)||0)+load*area/total);
+        added.set(j,add(added.get(j),part,area/total));
       }
     }
-    for(const [j,load] of added)if(j!==self&&!withinTopLoad(placed[j],state.topLoads[j]+load))return false;
+    added.delete(self);
+    return added;
+  }
+  const addWeight=(sum=0,part,share)=>sum+part*share;
+  // 커밋된 배치의 누적 상부하중. 직전 커밋이 기존 화물을 받치지 않았다면 그 화물의 몫만 더한다.
+  function syncTopLoads(state){
+    const placed=state.placed,n=placed.length;
+    if(state.topLoads?.length===n)return;
+    const last=placed[n-1],before=placed.slice(0,n-1);
+    if(state.topLoads?.length===n-1&&!supportsExisting(last,before)){
+      const loads=[...state.topLoads,0];
+      for(const [j,load] of spreadDown(last,last.weight,before,addWeight))loads[j]+=load;
+      state.topLoads=loads;
+    }else state.topLoads=compressionLoads(placed);
+    state.topLoadsOk=placed.every((p,i)=>withinTopLoad(p,state.topLoads[i]));
+  }
+  // 새 화물이 기존 화물을 받치지 않으면 기존 하중 분배는 바뀌지 않으므로 새 화물 중량이 내려가는 몫만 더해 본다.
+  // 그 밖의 경우는 전체를 다시 계산한다.
+  function compressionSafe(item,x,y,z,d,state){
+    const placed=state.placed,box={...item,x,y,z,l:d[0],w:d[1],h:d[2]};
+    syncTopLoads(state);
+    if(!state.topLoadsOk||supportsExisting(box,placed)){
+      const all=[...placed,box],loads=compressionLoads(all);
+      return all.every((p,i)=>withinTopLoad(p,loads[i]));
+    }
+    for(const [j,load] of spreadDown(box,item.weight,placed,addWeight))if(!withinTopLoad(placed[j],state.topLoads[j]+load))return false;
     return true;
+  }
+
+  // 스택 합성 무게중심 검사(validator와 같은 기준). 화물 위에 얹힌 화물까지 합친 무게중심이 받침면들의 볼록 껍질 안에 있어야 한다.
+  function hull(points){
+    const sorted=[...new Map(points.map(p=>[`${p.x}:${p.y}`,p])).values()].sort((a,b)=>a.x-b.x||a.y-b.y),cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+    if(sorted.length<3)return sorted;
+    const lower=[],upper=[];
+    for(const p of sorted){while(lower.length>1&&cross(lower.at(-2),lower.at(-1),p)<=0)lower.pop();lower.push(p)}
+    for(const p of [...sorted].reverse()){while(upper.length>1&&cross(upper.at(-2),upper.at(-1),p)<=0)upper.pop();upper.push(p)}
+    return lower.slice(0,-1).concat(upper.slice(0,-1));
+  }
+  function insidePolygon(point,polygon){
+    if(polygon.length<3)return polygon.some(p=>Math.hypot(p.x-point.x,p.y-point.y)<2);
+    let sign=0;
+    for(let i=0;i<polygon.length;i++){const a=polygon[i],b=polygon[(i+1)%polygon.length],cross=(b.x-a.x)*(point.y-a.y)-(b.y-a.y)*(point.x-a.x);if(Math.abs(cross)<1e-6)continue;const next=Math.sign(cross);if(sign&&next!==sign)return false;sign=next}
+    return true;
+  }
+  // 받침면 안에 합성 무게중심이 있는지 본다. 받침이 없으면 검사할 면이 없으므로 통과한다(validator와 같다).
+  function balancedOnSupports(load,p,placed,self){
+    const points=[];
+    placed.forEach((q,j)=>{
+      if(j===self||Math.abs(q.z+q.h-p.z)>=TOL)return;
+      const x0=Math.max(p.x,q.x),x1=Math.min(p.x+p.l,q.x+q.l),y0=Math.max(p.y,q.y),y1=Math.min(p.y+p.w,q.y+q.w);
+      if(x1>x0&&y1>y0)points.push({x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1});
+    });
+    return!points.length||insidePolygon({x:load.mx/load.w,y:load.my/load.w},hull(points));
+  }
+  const ownMoment=p=>({w:p.weight,mx:(p.x+p.l/2)*p.weight,my:(p.y+p.w/2)*p.weight});
+  function stackMoments(placed){
+    const loads=placed.map(ownMoment);let ok=true;
+    [...placed.keys()].sort((a,b)=>placed[b].z-placed[a].z).forEach(i=>{
+      const p=placed[i];if(p.z<=0)return;
+      if(!balancedOnSupports(loads[i],p,placed,i))ok=false;
+      const {supports,total}=supportsOf(p,placed,i);
+      supports.forEach(({j,area})=>{const share=area/total;loads[j].w+=loads[i].w*share;loads[j].mx+=loads[i].mx*share;loads[j].my+=loads[i].my*share});
+    });
+    return{loads,ok};
+  }
+  const addMoment=(sum={w:0,mx:0,my:0},part,share)=>({w:sum.w+part.w*share,mx:sum.mx+part.mx*share,my:sum.my+part.my*share});
+  // 커밋된 배치의 스택 모멘트. 직전 커밋이 기존 화물을 받치지 않았다면 그 화물의 몫만 더하고 바뀐 화물만 다시 검사한다.
+  function syncStack(state){
+    const placed=state.placed,n=placed.length;
+    if(state.stack?.loads.length===n)return;
+    const last=placed[n-1],before=placed.slice(0,n-1);
+    if(state.stack?.loads.length===n-1&&state.stack.ok&&!supportsExisting(last,before)){
+      const loads=[...state.stack.loads,ownMoment(last)],added=spreadDown(last,ownMoment(last),before,addMoment);
+      for(const [j,part] of added)loads[j]=addMoment(loads[j],part,1);
+      state.stack={loads,ok:[n-1,...added.keys()].every(i=>placed[i].z<=0||balancedOnSupports(loads[i],placed[i],placed,i))};
+    }else state.stack=stackMoments(placed);
+  }
+  // compressionSafe와 같은 방식: 새 화물이 기존 화물을 받치지 않으면 새 화물의 중량·모멘트가 아래로 전달되는 몫만 더해 본다.
+  function stackSafe(item,x,y,z,d,state){
+    const placed=state.placed,box={...item,x,y,z,l:d[0],w:d[1],h:d[2]},self=placed.length;
+    syncStack(state);
+    if(!state.stack.ok||supportsExisting(box,placed))return stackMoments([...placed,box]).ok;
+    return spreadDown(box,ownMoment(box),placed,addMoment,(i,p,part)=>balancedOnSupports(i===self?part:addMoment(state.stack.loads[i],part,1),p,placed,i))!==null;
   }
 
   function transverseVoid(x,y,z,d,placed,c){
@@ -290,6 +365,7 @@
     const sides=needSides?lateralSupportDirections(pos,d,placed,c,true):null,supported=sides?countSides(sides):4;
     if((z+h)/base>1.5&&supported<2)return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
+    if(!stackSafe(item,x,y,z,d,state))return null;
     const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,flag=risk>0?1:0,area=-(l*w);
     switch(ctx.heuristic){
       case 'dblf':{
@@ -605,6 +681,6 @@
     ENGINE_VERSION,SAFETY_LEVELS,PREFERENCES,TRANSPORT_PROFILES,
     packShipment,allowedRotations,uniqueRotations,lateralSupportDirections,
     transportStabilityAssessment,transportReviews,lowerBound,
-    _internal:{compareKeys,compact,supportInfo,evaluate,findPlacement,packContainer,createState,createWidthOracle,transportPlacementRisk,compressionSafe,finalizeLoad,preferenceKey,repairFromPrevious,prepareUnits}
+    _internal:{stackSafe,compareKeys,compact,supportInfo,evaluate,findPlacement,packContainer,createState,createWidthOracle,transportPlacementRisk,compressionSafe,finalizeLoad,preferenceKey,repairFromPrevious,prepareUnits}
   };
 })(typeof self!=='undefined'?self:globalThis);

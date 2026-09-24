@@ -190,12 +190,9 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
     <span class="result-kicker">TEST SCENARIOS</span>
     <h2>샘플 시나리오 선택</h2>
-    <p>알고리즘 특성을 비교하기 좋은 세 가지 화물 구성을 준비했습니다.</p>
-    <div class="sample-grid">
-      <button type="button" data-sample="1"><b>샘플 1</b><strong>혼합 화물</strong><span>박스·원통·취약 화물이 섞인 종합 검증</span></button>
-      <button type="button" data-sample="2"><b>샘플 2</b><strong>단일 규격</strong><span>같은 제품 42개의 정렬·반복 적재 검증</span></button>
-      <button type="button" data-sample="3"><b>샘플 3</b><strong>3종 크기 조합</strong><span>대·중·소 화물의 빈 공간 활용 검증</span></button>
-    </div>
+    <p>가전·가구·부품·원통 등 20가지 적재 상황입니다. 불러오면 권장 컨테이너와 운송모드가 함께 선택되고 바로 계산합니다.</p>
+    <div class="sample-filters" id="sampleFilters" role="toolbar" aria-label="샘플 분류"></div>
+    <ol class="sample-list" id="sampleList"></ol>
   </dialog>
 
   <dialog id="adminDialog" class="project-dialog admin-dialog">
@@ -270,6 +267,7 @@
   <script src="packing-engine.js?v=20260924-3"></script>
   <script src="load-insights.js?v=20260924-2"></script>
   <script src="solution-validator.js?v=20260814-2"></script>
+  <script src="sample-scenarios.js?v=20260924-3"></script>
   <script src="app.js?v=20260924-3"></script>
   <script src="project-store.js?v=20260812-3"></script>
 </body>
