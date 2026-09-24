@@ -8,7 +8,7 @@ Load wisely. Ship safely.
 
 - 현재 단계: Vercel 공개 베타 · 버전 4.0.0 (버전은 package.json의 semver로만 관리)
 - 서비스: https://loadwise-v3.vercel.app/
-- 저장소: https://github.com/cowpigpapa/loadwise
+- 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
 - 상단 `알고리즘 정책` 팝업 및 원문: [ALGORITHM-POLICY.md](ALGORITHM-POLICY.md)
 
