@@ -1,5 +1,5 @@
 (function(root){
-  const CURRENT_SCHEMA_VERSION=5,CURRENT_ALGORITHM_VERSION='ep-lex-portfolio-2026.10.8';
+  const CURRENT_SCHEMA_VERSION=5,CURRENT_ALGORITHM_VERSION='ep-lex-portfolio-2026.10.9';
   const allowedContainers=new Set(['20ft','40ft','40hc','45hc']),allowedSafety=new Set(['strict','standard']),allowedPreferences=new Set(['auto','density','width','balance']),legacyOptimizations={intelligent:['strict','auto'],sequence:['strict','auto'],hybrid:['strict','width'],volume:['standard','density'],balance:['strict','balance']},allowedTransportModes=new Set(['sea','combined','road']);
   function number(value,fallback=0){const n=Number(value);return Number.isFinite(n)&&n>0?n:fallback}
   function normalizeProduct(p={}){const maxTopLoadKg=p.maxTopLoadKg==null||p.maxTopLoadKg===''?null:Math.max(0,Number(p.maxTopLoadKg));return{name:String(p.name||'').trim(),group:String(p.group||'기타').trim()||'기타',shape:p.shape==='cylinder'?'cylinder':'box',qty:Math.max(1,Math.floor(number(p.qty,1))),l:number(p.l),w:number(p.w),h:number(p.h),weight:number(p.weight),maxTopLoadKg:Number.isFinite(maxTopLoadKg)?maxTopLoadKg:null,rotate:Boolean(p.rotate),fragile:Boolean(p.fragile),source:['manual','csv','excel','json'].includes(p.source)?p.source:'manual'}}

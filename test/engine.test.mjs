@@ -296,6 +296,8 @@ test('every sample starts loading against the inner end wall in every container'
       const first=load.placed.find(p=>p.order===1);
       assert.equal(first.x+first.l,load.container.l,`sample ${id}/${safety}: first item is off the wall`);
       assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l,`sample ${id}/${safety}`);
+      // 최종 적재 상태에서 높은 화물은 모두 2면 이상 측면 지지된다(좌우 무게중심 맞춤·슬라이스 재배열 뒤에도).
+      for(const p of load.placed)if((p.z+p.h)/Math.min(p.l,p.w)>1.5)assert.ok(Object.values(engine.lateralSupportDirections(p,[p.l,p.w,p.h],load.placed.filter(q=>q!==p),load.container)).filter(Boolean).length>=2,`sample ${id}/${safety}: ${p.name} side support`);
     }
   }
 });
@@ -308,5 +310,14 @@ test('household move sample fits one container under strict safety without a dan
   assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
   assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger');
   assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),C20.l);
+  assertValidShipment(result,items);
+});
+
+test('standing TVs fit one container when side support is judged on the finished load',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[6],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  // 2단으로 세운 55형 TV의 윗단은 놓는 순간에는 옆 칸이 비어 있어도, 줄을 다 채우면 양옆이 지지된다.
+  const result=engine.packShipment({container:CONTAINERS[1],units:items,safety:'standard',transportMode:sample.mode,timeBudgetMs:60000});
+  assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
   assertValidShipment(result,items);
 });

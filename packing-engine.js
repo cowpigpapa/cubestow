@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.8';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.9';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -394,7 +394,7 @@
     // 측면 지지는 결과에 영향을 줄 때만 계산한다.
     const needSides=ctx.heuristic==='width'||z>0||item.shape==='cylinder'||h/base>profile.slender||(z+h)/base>Math.min(1.5,profile.column);
     const sides=needSides?lateralSupportDirections(pos,d,placed,c,true):null,supported=sides?countSides(sides):4;
-    if((z+h)/base>1.5&&supported<2)return null;
+    if((z+h)/base>1.5&&supported<(ctx.deferSides?1:2))return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     if(!stackSafe(item,x,y,z,d,state))return null;
     const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,flag=risk>0?1:0,area=-(l*w);
@@ -521,7 +521,32 @@
     }
     return rest;
   }
+  // 최종 상태에서 높은 화물(누적 높이/바닥 최소 치수 > 1.5)이 2면 이상 지지되는지 확인하고, 못 미치는 화물과 그 위에 얹힌 화물을 뺀다.
+  // 화물을 빼면 이웃의 지지가 줄 수 있으므로 더 뺄 것이 없을 때까지 반복한다. 받침·상부하중·적층 무게중심은 위 화물이 빠질 뿐이라 나빠지지 않는다.
+  function settleSides(c,placed,fixed){
+    let kept=placed,removed=[];
+    for(let round=0;round<placed.length;round++){
+      const failing=kept.filter(p=>!fixed.has(p)&&(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],kept.filter(q=>q!==p),c,true))<2);
+      if(!failing.length)break;
+      const drop=new Set(failing);
+      let grew=true;
+      while(grew){grew=false;for(const p of kept)if(!drop.has(p)&&p.z>0&&[...drop].some(q=>Math.abs(q.z+q.h-p.z)<TOL&&Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)>TOL&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>TOL)){drop.add(p);grew=true}}
+      if([...drop].some(p=>fixed.has(p)))return null;
+      removed=removed.concat(kept.filter(p=>drop.has(p)));kept=kept.filter(p=>!drop.has(p));
+    }
+    return{kept,removed};
+  }
   function packContainer(ctx,units,heuristic,order,seed=[]){
+    if(!ctx.deferSides||seed.length)return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
+    const raw=packContainerOnce(ctx,units,heuristic,order,seed),settled=settleSides(ctx.c,raw.placed,new Set());
+    if(!settled)return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
+    if(!settled.removed.length)return raw;
+    // 뺀 화물과 원래 못 실은 화물을 남은 배치를 고정한 채 기존 규칙으로 다시 놓는다.
+    const ids=new Set([...settled.removed,...raw.rejected].map(u=>u.uid)),retry=units.filter(u=>ids.has(u.uid));
+    const again=packContainerOnce({...ctx,deferSides:false},retry,'dblf',order,settled.kept);
+    return{...again,heuristic,order};
+  }
+  function packContainerOnce(ctx,units,heuristic,order,seed=[]){
     const run={...ctx,heuristic:HEURISTICS[heuristic].key||heuristic},state=createState(ctx.c,seed),rejected=[];
     // 같은 조건의 화물이 실패하면 새 배치가 생기기 전까지 다시 계산하지 않는다.
     let failed=new Set();
@@ -708,6 +733,11 @@
     // 앞뒤 반전안이 측면 지지 검사에 걸리면 반전 없이 순서만 바꾼 안을 쓴다.
     return build(order,mirror)||(mirror.size?build(ordered,new Set()):null);
   }
+  // 완성된 배치안에서 높은 화물(누적 높이/바닥 최소 치수 > 1.5)이 모두 2면 이상 측면 지지되는지 확인한다(화면 좌표).
+  // 좌우 무게중심 맞춤으로 적재 전체를 옮기면 옆벽에 기대던 화물이 벽에서 떨어질 수 있다.
+  function sidesHold(load){
+    return load.placed.every(p=>(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,[p.l,p.w,p.h],load.placed.filter(q=>q!==p),load.container))>=2);
+  }
   function packOneContainer(ctx,units,deadline,stats){
     let best=null,bestKey=null;
     const variants=[false,true];
@@ -727,7 +757,9 @@
       if(best&&raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
       const shifted=rebalanceSlices(ctx,raw);
       for(const source of shifted?[raw,shifted]:[raw])for(const centered of variants){
-        const load=finalizeLoad(ctx.c,source,centered),key=containerKey(load,ctx);
+        const load=finalizeLoad(ctx.c,source,centered);
+        if(!sidesHold(load))continue;
+        const key=containerKey(load,ctx);
         if(!best||compareKeys(key,bestKey)<0){best=load;bestKey=key}
       }
       // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
@@ -737,14 +769,14 @@
   }
 
   function prepareUnits(units){
-    return units.map(u=>{
-      const unit={...u,volume:u.volume||u.l*u.w*u.h};
+    return units.map((u,uid)=>{
+      const unit={...u,uid,volume:u.volume||u.l*u.w*u.h};
       unit.rotations=allowedRotations(unit);
       unit.typeKey=`${unit.shape}|${unit.l}x${unit.w}x${unit.h}|${unit.weight}|${unit.rotate?1:0}|${unit.fragile?1:0}|${unit.maxTopLoadKg??''}`;
       return unit;
     });
   }
-  const stripUnit=({rotations,typeKey,...rest})=>rest;
+  const stripUnit=({rotations,typeKey,uid,...rest})=>rest;
   function cleanLoad(load){
     return{...load,placed:load.placed.map(stripUnit),rejected:load.rejected.map(stripUnit)};
   }
@@ -784,7 +816,7 @@
     const mode=TRANSPORT_PROFILES[input.transportMode]?input.transportMode:'combined',budget=Number.isFinite(input.timeBudgetMs)?input.timeBudgetMs:8000;
     const onProgress=typeof input.onProgress==='function'?input.onProgress:()=>{};
     const units=prepareUnits(input.units||[]);
-    const ctx={c,safetyKey,safety:SAFETY_LEVELS[safetyKey],preference,mode,widthGap:createWidthOracle(units,c.w),hasTopLoadLimits:units.some(u=>Number.isFinite(u.maxTopLoadKg))};
+    const ctx={c,safetyKey,safety:SAFETY_LEVELS[safetyKey],preference,mode,widthGap:createWidthOracle(units,c.w),deferSides:true,hasTopLoadLimits:units.some(u=>Number.isFinite(u.maxTopLoadKg))};
     const bound=lowerBound(c,units),stats={runs:0,skipped:0,truncated:false,repaired:false,lowerBound:bound};
     const deadline=started+budget,loads=[];
     let remaining=units;
