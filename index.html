@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260925-5">
+  <link rel="stylesheet" href="v3-projects.css?v=20260925-6">
 </head>
 <body>
   <header class="topbar">
@@ -82,9 +82,9 @@
         <div class="simulation-config-bar">
           <div class="priority-label strategy-pair">
             <label title="모든 배치가 반드시 통과해야 하는 조건">안전 기준<select id="safetyLevel">
-              <option value="secure">최고 안전 · 3면 막힘</option>
+              <option value="secure">CTU 안전 · 3면 막힘</option>
               <option value="strict" selected>엄격 · 지지 100%</option>
-              <option value="standard">표준 · 지지 70%↑</option>
+              <option value="standard">많이 싣기 · 지지 70%</option>
             </select></label>
             <label title="미배치 수량과 컨테이너 대수가 같을 때 결과를 고르는 기준">우선 기준<select id="preference">
               <option value="auto" selected>자동 추천</option>
@@ -94,6 +94,13 @@
             </select></label>
           </div>
           <label class="transport-select">운송모드<select id="transportMode"><option value="sea">해상 · 보수적</option><option value="combined" selected>복합 · 권장</option><option value="road">육상 · 완화</option></select></label>
+          <div class="securing-options-field"><span>고정재</span><details id="securingOptions" class="securing-options"><summary id="securingOptionsSummary">모두 사용</summary><div class="securing-option-list" role="group" aria-label="사용할 고정재">
+            <label><input type="checkbox" value="airbag" checked><i class="securing-icon" data-icon="airbag"></i>에어백</label>
+            <label><input type="checkbox" value="filler" checked><i class="securing-icon" data-icon="filler"></i>충전재·스페이서</label>
+            <label><input type="checkbox" value="nails" checked><i class="securing-icon" data-icon="timber"></i>바닥 못 고정</label>
+            <label><input type="checkbox" value="lashing" checked><i class="securing-icon" data-icon="strap"></i>래싱·스트랩</label>
+            <small>끈 고정재는 다른 방법으로 대신합니다. CTU 안전에서 래싱을 끄면 막힘만으로 전도를 막도록 배치합니다.</small>
+          </div></details></div>
           <label class="container-select">컨테이너 규격<select id="containerType"></select></label>
           <div class="container-spec" id="containerSpec"></div>
         </div>
@@ -215,7 +222,7 @@
       <article><b>계산 방식</b><strong>24개 후보 비교</strong><span>배치 규칙 6종 × 투입 순서 4종, 백그라운드 계산</span></article>
     </div>
     <div class="policy-sections">
-      <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화하고 부피·중량으로 필요한 컨테이너 대수의 하한을 계산합니다.</li><li>허용 회전과 Extreme Point 후보를 만들고, 후보를 아래·안쪽·좌측으로 밀착시킵니다.</li><li>경계·충돌·중량·상부 금지·지지율·중심 지지·측면 지지·상부 허용하중·스택 합성 무게중심을 검사합니다. 하나라도 통과하지 못하면 배치하지 않습니다. 측면 지지는 적재를 마친 최종 상태에서 다시 확인합니다. 최고 안전 기준은 모든 화물의 안쪽·좌·우 3면이 벽·화물·에어백 간극으로 막혀야 합니다(문쪽은 각재·부목으로 막음).</li><li>배치 규칙 6종(같은 규격 기둥 쌓기, 균형 기둥 쌓기, 바닥 우선, 공간 집약, 폭 채움, 무게중심)과 투입 순서 4종을 계산합니다. 전부 싣고 무게배분이 양호한 안이 나오면 계산을 일찍 마칩니다.</li><li>컨테이너마다 적재 부피가 가장 큰 결과를 고르고, 같으면 우선 기준으로 고릅니다. 남은 화물은 다음 컨테이너에서 같은 방식으로 계산합니다. 첫 적재는 예외 없이 안쪽 벽에 붙입니다. 서로 걸치지 않는 구간(슬라이스)은 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 가운데로 맞추고, 남는 쏠림은 사전검사 경고로 알립니다.</li><li>후보 비교는 가중치 합산이 아니라 항목별 순서 비교로 하며, 결과는 생성 엔진과 분리된 validator로 다시 검사합니다.</li><li>이전 결과가 한 대로 완료됐고 조건이 같으면, 유효한 기존 배치를 유지하고 바뀐 화물만 다시 배치합니다.</li></ol></details>
+      <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화하고 부피·중량으로 필요한 컨테이너 대수의 하한을 계산합니다.</li><li>허용 회전과 Extreme Point 후보를 만들고, 후보를 아래·안쪽·좌측으로 밀착시킵니다.</li><li>경계·충돌·중량·상부 금지·지지율·중심 지지·측면 지지·상부 허용하중·스택 합성 무게중심을 검사합니다. 하나라도 통과하지 못하면 배치하지 않습니다. 측면 지지는 적재를 마친 최종 상태에서 다시 확인합니다. CTU 안전 기준은 모든 화물의 안쪽·좌·우 3면이 벽·화물·에어백 간극으로 막혀야 하고(문쪽은 각재로 막음), 래싱을 쓰지 않으면 CTU 전도 기준을 모든 화물에 적용합니다. 많이 싣기는 적재량을 우선합니다.</li><li>배치 규칙 6종(같은 규격 기둥 쌓기, 균형 기둥 쌓기, 바닥 우선, 공간 집약, 폭 채움, 무게중심)과 투입 순서 4종을 계산합니다. 전부 싣고 무게배분이 양호한 안이 나오면 계산을 일찍 마칩니다.</li><li>컨테이너마다 적재 부피가 가장 큰 결과를 고르고, 같으면 우선 기준으로 고릅니다. 남은 화물은 다음 컨테이너에서 같은 방식으로 계산합니다. 첫 적재는 예외 없이 안쪽 벽에 붙입니다. 서로 걸치지 않는 구간(슬라이스)은 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 가운데로 맞추고, 남는 쏠림은 사전검사 경고로 알립니다.</li><li>후보 비교는 가중치 합산이 아니라 항목별 순서 비교로 하며, 결과는 생성 엔진과 분리된 validator로 다시 검사합니다.</li><li>이전 결과가 한 대로 완료됐고 조건이 같으면, 유효한 기존 배치를 유지하고 바뀐 화물만 다시 배치합니다.</li></ol></details>
       <details><summary>절대 우회하지 않는 안전 조건</summary><ul><li>컨테이너 경계, 제품 충돌과 최대 중량 준수</li><li>상부 적재 금지 화물 위 배치 금지</li><li>상부 화물 중심이 실제 지지 영역 안에 존재</li><li>원통 위 박스 금지, 원통 적층 정렬 조건 적용</li><li>입력 수량 = 적재 수량 + 미배치 수량</li></ul></details>
       <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>자동 밴드 경로와 수량은 생성하지 않고, 재배치 또는 현장 고정이 필요한 이유만 표시합니다.</li></ul></details>
       <details><summary>CTU Code 반영 범위</summary><ul><li>CTU Code의 적입·고정 원칙을 정책과 향후 계산 구조의 기준으로 사용합니다.</li><li>운송모드별 가속도 계수(IMO Quick Lashing Guide)로 막히지 않은 방향의 미끄럼 억제력과 전도 위험을 참고 계산합니다. 마찰계수는 재질을 확인하지 못했을 때의 최대값 0.3을 쓰고, 문은 막힌 경계로 보지 않습니다.</li><li>본 결과는 CTU Code 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
@@ -255,16 +262,16 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.31</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.32</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
-  <script src="project-model.js?v=20260925-11"></script>
-  <script src="packing-engine.js?v=20260925-11"></script>
+  <script src="project-model.js?v=20260925-12"></script>
+  <script src="packing-engine.js?v=20260925-12"></script>
   <script src="load-insights.js?v=20260925-1"></script>
-  <script src="solution-validator.js?v=20260925-5"></script>
+  <script src="solution-validator.js?v=20260925-6"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260925-21"></script>
+  <script src="app.js?v=20260925-22"></script>
   <script src="project-store.js?v=20260925-2"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-25T13:59:59.806Z",
-  "engine": "ep-lex-portfolio-2026.10.12",
+  "generatedAt": "2026-09-25T14:57:45.093Z",
+  "engine": "ep-lex-portfolio-2026.10.13",
   "rows": [
     {
       "case": "uniform-36",
@@ -544,7 +544,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 22.6,
-      "cogRisk": 19.3,
+      "cogRisk": 6.2,
       "runs": 12,
       "truncated": false
     },
@@ -635,8 +635,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 5.7,
-      "runs": 8,
+      "cogRisk": 8.3,
+      "runs": 12,
       "truncated": false
     },
     {
@@ -648,8 +648,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 5.7,
-      "runs": 9,
+      "cogRisk": 8,
+      "runs": 12,
       "truncated": false
     },
     {
@@ -661,8 +661,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 5.7,
-      "runs": 9,
+      "cogRisk": 8,
+      "runs": 12,
       "truncated": false
     },
     {
@@ -674,8 +674,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 5.7,
-      "runs": 9,
+      "cogRisk": 8,
+      "runs": 12,
       "truncated": false
     },
     {

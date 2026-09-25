@@ -11,8 +11,8 @@
   };
   // 최고 안전 기준: 문쪽을 뺀 안쪽·좌·우 면이 막혔는지(화면 좌표: 문 x=0, 안쪽 벽 x=l).
   // 막힘 = 벽 접촉, 또는 600mm 이내 이웃 화물 면이 그 면 면적의 50% 이상을 덮음(에어백 간극 포함). 좌·우는 벽까지 사이에 화물이 없으면 벽 간극을 막는다.
-  const BLOCK_GAP=600;
-  function openSides(p,placed,c){
+  const BLOCK_GAP=500;
+  function openSides(p,placed,c,fill={gap:BLOCK_GAP,floor:true}){
     const back=[],front=[],left=[],right=[];let leftClear=true,rightClear=true,doorClear=true;
     for(const q of placed){
       if(q===p)continue;
@@ -20,20 +20,20 @@
       if(q.x+q.l<=p.x+2&&q.y+q.w>p.y+2&&q.y<p.y+p.w-2)doorClear=false;
       if(q.z+q.h<=p.z+2||q.z>=p.z+p.h-2)continue;
       const gapFront=p.x-(q.x+q.l);
-      if(gapFront>=-2&&gapFront<=BLOCK_GAP&&q.y+q.w>p.y&&q.y<p.y+p.w)front.push([q.y,q.y+q.w,q.z,q.z+q.h]);
+      if(gapFront>=-2&&gapFront<=fill.gap&&q.y+q.w>p.y&&q.y<p.y+p.w)front.push([q.y,q.y+q.w,q.z,q.z+q.h]);
       const gapBack=q.x-(p.x+p.l);
-      if(gapBack>=-2&&gapBack<=BLOCK_GAP&&q.y+q.w>p.y&&q.y<p.y+p.w)back.push([q.y,q.y+q.w,q.z,q.z+q.h]);
+      if(gapBack>=-2&&gapBack<=fill.gap&&q.y+q.w>p.y&&q.y<p.y+p.w)back.push([q.y,q.y+q.w,q.z,q.z+q.h]);
       if(q.x+q.l>p.x+2&&q.x<p.x+p.l-2){
         const gapLeft=p.y-(q.y+q.w),gapRight=q.y-(p.y+p.w);
-        if(gapLeft>=-2){leftClear=false;if(gapLeft<=BLOCK_GAP)left.push([q.x,q.x+q.l,q.z,q.z+q.h])}
-        if(gapRight>=-2){rightClear=false;if(gapRight<=BLOCK_GAP)right.push([q.x,q.x+q.l,q.z,q.z+q.h])}
+        if(gapLeft>=-2){leftClear=false;if(gapLeft<=fill.gap)left.push([q.x,q.x+q.l,q.z,q.z+q.h])}
+        if(gapRight>=-2){rightClear=false;if(gapRight<=fill.gap)right.push([q.x,q.x+q.l,q.z,q.z+q.h])}
       }
     }
     const half=(rects,a0,a1)=>coveredArea(rects,a0,a1,p.z,p.z+p.h)>=(a1-a0)*p.h*.5-1,open=[];
     if(!(doorClear||half(front,p.y,p.y+p.w)))open.push('문쪽');
     if(!(p.x+p.l>=c.l-2||half(back,p.y,p.y+p.w)))open.push('안쪽');
     // 벽까지 비어 있으면 바닥 화물은 충전재(세운 팔레트·골판지)와 에어백으로, 높은 곳 화물은 에어백 한계(600mm) 안에서만 막을 수 있다.
-    const wallOk=gap=>p.z<=2||gap<=BLOCK_GAP;
+    const wallOk=gap=>p.z<=2&&fill.floor||gap<=fill.gap;
     if(!(p.y<=2||leftClear&&wallOk(p.y)||half(left,p.x,p.x+p.l)))open.push('좌');
     if(!(p.y+p.w>=c.w-2||rightClear&&wallOk(c.w-p.y-p.w)||half(right,p.x,p.x+p.l)))open.push('우');
     return open;
@@ -71,9 +71,11 @@
       const count=Object.keys(walls).filter(k=>walls[k]||cover(spans[k])>=p.h*.5).length;
       if(count<2)errors.push(`${i+1}번 화물 측면 지지 부족(${count}/2면)`);
     });
-    if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c).filter(s=>s!=='문쪽');if(open.length)errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(최고 안전)`)});
+    const fill=options.fill||{gap:BLOCK_GAP,floor:true};
+    if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c,fill).filter(s=>s!=='문쪽');if(open.length)errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(최고 안전)`)});
     // 높은 적층 전도: 쌓인 화물의 (바닥부터 높이 ÷ 그 방향 폭)이 3을 넘으면 그 방향 양쪽 면이 막혀 있어야 한다(엄격 이상).
-    if(options.towerLimit)placed.forEach((p,i)=>{if(p.z<=0)return;const H=p.z+p.h,deep=H/Math.max(1,p.l)>options.towerLimit,wide=H/Math.max(1,p.w)>options.towerLimit;if(!deep&&!wide)return;const open=openSides(p,placed,c),bad=[...(deep?['문쪽','안쪽']:[]),...(wide?['좌','우']:[])].filter(s=>open.includes(s));if(bad.length)errors.push(`${i+1}번 화물 높은 적층의 ${bad.join('·')} 면이 막히지 않음(전도 위험)`)});
+    // 전도 한계: 숫자면 쌓인 화물에 모든 방향 같은 한계, 객체({side,forward,backward})면 CTU 운송모드 한계를 모든 화물에 적용한다.
+    if(options.towerLimit)placed.forEach((p,i)=>{const numeric=typeof options.towerLimit==='number',lim=numeric?{side:options.towerLimit,forward:options.towerLimit,backward:options.towerLimit}:options.towerLimit;if(numeric&&p.z<=0)return;const H=p.z+p.h,rx=H/Math.max(1,p.l),ry=H/Math.max(1,p.w);if(rx<=lim.forward&&rx<=lim.backward&&ry<=lim.side)return;const open=openSides(p,placed,c,fill),bad=[...(rx>lim.backward?['문쪽']:[]),...(rx>lim.forward?['안쪽']:[]),...(ry>lim.side?['좌','우']:[])].filter(s=>open.includes(s));if(bad.length)errors.push(`${i+1}번 화물 높은 적층의 ${bad.join('·')} 면이 막히지 않음(전도 위험)`)});
     const loads=placed.map(p=>({weight:p.weight,mx:(p.x+p.l/2)*p.weight,my:(p.y+p.w/2)*p.weight}));
     [...placed.keys()].sort((a,b)=>placed[b].z-placed[a].z).forEach(i=>{const p=placed[i];if(p.z<=0)return;const supports=placed.map((q,j)=>({q,j,area:Math.abs(q.z+q.h-p.z)<2?footprintOverlap(p,q):0})).filter(v=>v.j!==i&&v.area>0),total=supports.reduce((sum,v)=>sum+v.area,0),points=supports.flatMap(({q})=>{const x0=Math.max(p.x,q.x),x1=Math.min(p.x+p.l,q.x+q.l),y0=Math.max(p.y,q.y),y1=Math.min(p.y+p.w,q.y+q.w);return[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}]});
       if(points.length&&!inside({x:loads[i].mx/loads[i].weight,y:loads[i].my/loads[i].weight},hull(points)))errors.push(`${i+1}번 화물 스택의 합성 무게중심이 지지영역 밖에 있음`);
@@ -84,8 +86,12 @@
     if(weight>c.maxWeight+1e-6)errors.push(`허용중량 초과: ${weight}kg / ${c.maxWeight}kg`);
     return{valid:!errors.length,errors:[...new Set(errors)],metrics:{placed:placed.length,weight,compressionVerified:compression.filter(v=>v.limit!=null).length,compressionUnverified:compression.filter(v=>v.limit==null).length,maxTopLoad:compression.reduce((m,v)=>Math.max(m,v.topLoad),0)}};
   }
+  // CTU 정보자료 5 가속도(도로·해상 C)로 방향별 전도 한계 v/c. 복합운송은 둘 중 불리한 값.
+  function ctuTipLimits(mode){const acc={road:{side:[.5,1],forward:[.8,1],backward:[.5,1]},seaC:{side:[.8,1],forward:[.4,.2],backward:[.4,.2]}},profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'],lim=k=>Math.min(...profiles.map(p=>acc[p][k][1]/acc[p][k][0]));return{side:lim('side'),forward:lim('forward'),backward:lim('backward')}}
   function validateShipment(shipment){
-    const loads=shipment?.containers||[],strict=!(shipment?.safety==='standard'||shipment?.priority==='volume'),options={minSupport:strict?1:.7,cylinderOnFloor:strict,blockSides:shipment?.safety==='secure',towerLimit:strict?3:0},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
+    // 고정재 선택: 에어백·충전재를 모두 쓰지 않으면 틈을 채워 막을 수 없다. CTU 안전에서 래싱을 쓰지 않으면 CTU 전도 한계(운송모드별 v/c)로 검사한다.
+    const securing=shipment?.securing||{},noFill=securing.airbag===false&&securing.filler===false,ctuTip=shipment?.safety==='secure'&&securing.lashing===false;
+    const loads=shipment?.containers||[],strict=!(shipment?.safety==='standard'||shipment?.priority==='volume'),options={minSupport:strict?1:.7,cylinderOnFloor:strict,blockSides:shipment?.safety==='secure',towerLimit:ctuTip?ctuTipLimits(shipment.transportMode):strict?3:0,fill:{gap:noFill?2:BLOCK_GAP,floor:securing.filler!==false}},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
     if(Number.isFinite(shipment?.totalUnits)&&loaded+unallocated!==shipment.totalUnits)errors.push(`수량 불일치: 적재 ${loaded} + 미배치 ${unallocated} ≠ 입력 ${shipment.totalUnits}`);
     return{valid:!errors.length,errors,metrics:{loaded,unallocated,containers:loads.length}};
   }

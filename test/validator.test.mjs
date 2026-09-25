@@ -57,12 +57,21 @@ test('highest safety requires inner, left and right faces blocked; the door face
   assert.match(check([{x:100,y:0,z:0,l:200,w:200,h:200,weight:5}]).errors.join(' / '),/안쪽 면이 막히지 않음/);
 });
 test('strict validation rejects a tall narrow stack whose open face would let it tip',()=>{
-  const c={l:1000,w:1000,h:2000,maxWeight:1000},box=z=>({x:800,y:0,z,l:200,w:200,h:200,weight:5});
-  // 안쪽 벽·좌측 벽 모서리에 200mm 박스 4단(800mm, 높이/폭 4). 문쪽 앞은 1단 박스뿐이라 윗단 앞면이 비어 있다.
+  const c={l:1000,w:900,h:2000,maxWeight:1000},box=z=>({x:800,y:0,z,l:200,w:200,h:200,weight:5});
+  // 안쪽 벽·좌측 벽 모서리에 200mm 박스 4단(800mm, 높이/폭 4). 문쪽 앞은 1단 박스뿐이라 윗단 앞면이 비어 있다. 우측 벽 간극은 에어백 한계(500mm) 안이다.
   const tower=[0,200,400,600].map(box),front={x:600,y:0,z:0,l:200,w:200,h:200,weight:5},right=[0,200,400,600].map(z=>({x:800,y:200,z,l:200,w:200,h:200,weight:5}));
   const open=validate({container:c,placed:[...tower,front,...right]},{towerLimit:3});
   assert.match(open.errors.join(' / '),/높은 적층의 문쪽 면이 막히지 않음/);
   // 앞에 같은 높이의 화물 기둥이 있으면 막힌다.
   const frontColumn=[0,200,400,600].map(z=>({x:600,y:0,z,l:200,w:200,h:200,weight:5})),frontRight=[0,200,400,600].map(z=>({x:600,y:200,z,l:200,w:200,h:200,weight:5}));
   assert.doesNotMatch(validate({container:c,placed:[...tower,...right,...frontColumn,...frontRight]},{towerLimit:3}).errors.join(' / '),/전도 위험/);
+});
+test('CTU safety without lashing checks every item against the transport-mode tipping limits',()=>{
+  const c={l:2000,w:1000,h:2000,maxWeight:5000},crate={x:1000,y:0,z:0,l:600,w:1000,h:600,weight:100};
+  // 복합운송 앞뒤 한계 0.5: 높이 600 / 길이 600 = 1이라 문쪽 앞(1000mm 비어 있음)이 막혀야 한다. 문쪽 첫 줄이 아니면 걸린다.
+  const front={x:0,y:0,z:0,l:300,w:1000,h:300,weight:50};
+  const ship=placed=>context.LoadwiseValidator.validateShipment({safety:'secure',transportMode:'combined',securing:{lashing:false},containers:[{container:c,placed}],unallocated:[],totalUnits:placed.length});
+  assert.match(ship([{...crate,x:1400},front]).errors.join(' / '),/전도 위험/);
+  // 같은 배치라도 래싱을 쓰면(기본) 쌓이지 않은 화물에는 전도 한계를 적용하지 않는다.
+  assert.doesNotMatch(context.LoadwiseValidator.validateShipment({safety:'secure',transportMode:'combined',containers:[{container:c,placed:[{...crate,x:1400},front]}],unallocated:[],totalUnits:2}).errors.join(' / '),/전도 위험/);
 });

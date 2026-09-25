@@ -356,3 +356,14 @@ test('strict safety keeps large crates toward the inner wall and never builds ta
   // 검증기(엄격)가 높은 적층의 열린 면을 전도 위험으로 검사한다.
   assertValidShipment(result,items);
 });
+
+test('CTU safety without lashing places cargo so every tipping-prone face is blocked',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[3],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const securing={airbag:true,filler:true,nails:true,lashing:false};
+  const result=engine.packShipment({container:C20,units:items,safety:'secure',transportMode:sample.mode,securing,timeBudgetMs:60000});
+  // 검증기가 CTU 운송모드 전도 한계(복합: 좌우 1.25, 앞뒤 0.5)로 모든 화물을 독립 검사한다.
+  const validation=validator.validateShipment({safety:'secure',transportMode:sample.mode,securing,containers:result.loads,unallocated:result.remaining,totalUnits:items.length});
+  assert.equal(validation.valid,true,validation.errors.slice(0,3).join('; '));
+  assert.equal(result.remaining.length,0);
+});

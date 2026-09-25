@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.12';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.13';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -169,7 +169,8 @@
     for(let i=0;i+1<cuts.length;i++){const m=(cuts[i]+cuts[i+1])/2,spans=clipped.filter(r=>r[0]<=m&&r[1]>=m).map(r=>[r[2],r[3]]).sort((a,b)=>a[0]-b[0]);let len=0,end=-Infinity;for(const [q0,q1] of spans){const from=Math.max(q0,end);if(q1>from){len+=q1-from;end=q1}}area+=len*(cuts[i+1]-cuts[i])}
     return area;
   }
-  const BLOCK_GAP=600;
+  // 이웃 화물까지 이 간극 이하면 채워서 막을 수 있다(에어백 제조사 최대 간극 500mm, CTU §2.3.8). 에어백·충전재를 모두 쓰지 않으면 직접 닿아야 한다.
+  let BLOCK_GAP=500,FLOOR_FILL=true;
   // packing=true: 적재 좌표(안쪽 벽 x=0), false: 화면 좌표(안쪽 벽 x=l). 안쪽·좌·우 면이 각각 막혔는지 돌려준다.
   // 벽까지 비어 있으면 바닥 화물은 충전재(세운 팔레트·골판지)와 에어백으로, 높은 곳 화물은 에어백 한계(600mm) 안에서만 막을 수 있다.
   function blockedSides(s,d,placed,c,packing){
@@ -193,19 +194,24 @@
     }
     const half=(rects,a0,a1)=>coveredArea(rects,a0,a1,z0,z1)>=(a1-a0)*(z1-z0)*.5-1;
     const innerWall=packing?x0<=TOL:x1>=c.l-TOL;
-    const wallOk=gap=>z0<=TOL||gap<=BLOCK_GAP;
+    const wallOk=gap=>z0<=TOL&&FLOOR_FILL||gap<=BLOCK_GAP;
     return{front:doorClear||half(front,y0,y1),back:innerWall||half(back,y0,y1),left:y0<=TOL||leftClear&&wallOk(y0)||half(left,x0,x1),right:y1>=c.w-TOL||rightClear&&wallOk(c.w-y1)||half(right,x0,x1)};
   }
   // 최고 안전 기준에서만 켠다.
   let STRICT_BLOCK=false;
-  // 엄격 이상에서 켠다. 높은 적층의 전도 방향 면 막힘 검사.
-  let TOWER_CHECK=false;const TOWER_LIMIT=3;
+  // 전도 방지: 화물(바닥부터 높이 H, 그 방향 폭 B)의 H/B가 한계를 넘는 방향은 막혀 있어야 한다.
+  // 엄격·CTU 안전(래싱 사용): 쌓인 화물에 한계 3(Cubestow 설정, 전도 위험 방향은 래싱으로 고정).
+  // CTU 안전(래싱 끔): CTU 정보자료 5 가속도의 v/c를 운송모드별로(복합은 도로·해상 C 중 불리한 값) 모든 화물에 적용한다.
+  const TIP_ACC={road:{side:[.5,1],forward:[.8,1],backward:[.5,1]},seaC:{side:[.8,1],forward:[.4,.2],backward:[.4,.2]}};
+  let TOWER_CHECK=false,TIP={side:3,forward:3,backward:3},TIP_STACKED_ONLY=true;
+  function tipLimits(mode){const profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'],lim=k=>Math.min(...profiles.map(p=>TIP_ACC[p][k][1]/TIP_ACC[p][k][0]));return{side:lim('side'),forward:lim('forward'),backward:lim('backward')}}
+  // 적재 좌표에서 back=안쪽 벽 쪽(전방 가속도), front=문쪽(후방 가속도).
   function towerOk(s,d,placed,c,packing){
-    const [l,w,h]=d;if(s.z<=0)return true;
-    const H=s.z+h,deep=H/Math.max(1,l)>TOWER_LIMIT,wide=H/Math.max(1,w)>TOWER_LIMIT;
-    if(!deep&&!wide)return true;
+    const [l,w,h]=d;if(TIP_STACKED_ONLY&&s.z<=0)return true;
+    const H=s.z+h,rx=H/Math.max(1,l),ry=H/Math.max(1,w),needBack=rx>TIP.forward,needFront=rx>TIP.backward,needSide=ry>TIP.side;
+    if(!needBack&&!needFront&&!needSide)return true;
     const b=blockedSides(s,d,placed,c,packing);
-    return(!deep||b.front&&b.back)&&(!wide||b.left&&b.right);
+    return(!needBack||b.back)&&(!needFront||b.front)&&(!needSide||b.left&&b.right);
   }
   const blockedOk=b=>b.back&&b.left&&b.right;
   const countSides=sides=>(sides.front?1:0)+(sides.back?1:0)+(sides.left?1:0)+(sides.right?1:0);
@@ -582,7 +588,18 @@
     for(let round=0;round<placed.length;round++){
       const failing=kept.filter(p=>{if(fixed.has(p))return false;const others=kept.filter(q=>q!==p);return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,c,true))<2||STRICT_BLOCK&&!blockedOk(blockedSides(p,[p.l,p.w,p.h],others,c,true))||TOWER_CHECK&&!towerOk(p,[p.l,p.w,p.h],others,c,true)});
       if(!failing.length)break;
-      const drop=new Set(failing);
+      const drop=new Set();
+      for(const p of failing){
+        // 문쪽 면만 모자라서 걸렸으면(다른 조건은 통과) 앞에 닿은 화물들을 뺀다. 그러면 이 화물이 문쪽 첫 줄이 되거나, 다시 놓인 화물이 제대로 막는다.
+        const others=kept.filter(q=>q!==p),d=[p.l,p.w,p.h];
+        let onlyFront=false;
+        if(TOWER_CHECK&&!((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,others,c,true))<2)&&!(STRICT_BLOCK&&!blockedOk(blockedSides(p,d,others,c,true)))){
+          const b=blockedSides(p,d,others,c,true),H=p.z+p.h,rx=H/Math.max(1,p.l),ry=H/Math.max(1,p.w);
+          onlyFront=!b.front&&(rx<=TIP.forward||b.back)&&(ry<=TIP.side||b.left&&b.right);
+        }
+        const ahead=onlyFront?others.filter(q=>!fixed.has(q)&&q.x>=p.x+p.l-TOL&&q.x-(p.x+p.l)<=BLOCK_GAP&&q.y+q.w>p.y&&q.y<p.y+p.w&&q.z+q.h>p.z+TOL&&q.z<p.z+p.h-TOL):[];
+        if(ahead.length)ahead.forEach(q=>drop.add(q));else drop.add(p);
+      }
       let grew=true;
       while(grew){grew=false;for(const p of kept)if(!drop.has(p)&&p.z>0&&[...drop].some(q=>Math.abs(q.z+q.h-p.z)<TOL&&Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)>TOL&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>TOL)){drop.add(p);grew=true}}
       if([...drop].some(p=>fixed.has(p)))return null;
@@ -887,6 +904,9 @@
     const units=prepareUnits(input.units||[]);
     STRICT_BLOCK=Boolean(SAFETY_LEVELS[safetyKey].blockSides);
     TOWER_CHECK=safetyKey!=='standard';
+    const securing={airbag:true,filler:true,nails:true,lashing:true,...(input.securing||{})},ctuTip=Boolean(SAFETY_LEVELS[safetyKey].blockSides)&&securing.lashing===false;
+    TIP=ctuTip?tipLimits(mode):{side:3,forward:3,backward:3};TIP_STACKED_ONLY=!ctuTip;
+    BLOCK_GAP=securing.airbag||securing.filler?500:TOL;FLOOR_FILL=securing.filler!==false;
     const ctx={c,safetyKey,safety:SAFETY_LEVELS[safetyKey],preference,mode,widthGap:createWidthOracle(units,c.w),deferSides:true,hasTopLoadLimits:units.some(u=>Number.isFinite(u.maxTopLoadKg))};
     const bound=lowerBound(c,units),stats={runs:0,skipped:0,truncated:false,repaired:false,lowerBound:bound};
     const deadline=started+budget,loads=[];

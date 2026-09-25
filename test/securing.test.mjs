@@ -54,3 +54,19 @@ test('airbags fill at most a 600 mm gap off the floor, and other securing items 
   }
   assert.ok(fillers>0,'no filler or strap was recommended in any sample');
 });
+
+test('securing options replace or drop airbags, fillers, floor nails and lashing as chosen',()=>{
+  const sample=context.__samples[3],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const load=context.LoadwiseEngine.packShipment({container:context.__containers[sample.container],units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:60000}).loads[0];
+  const all=context.__plan(load,sample.mode,{airbag:true,filler:true,nails:true,lashing:true});
+  assert.ok(all.airbags.length>0&&all.dunnage.some(d=>d.kind==='beam')&&all.dunnage.some(d=>d.kind==='lashing'));
+  // 에어백을 끄면 같은 자리를 충전재로 채운다.
+  const noBag=context.__plan(load,sample.mode,{airbag:false,filler:true,nails:true,lashing:true});
+  assert.equal(noBag.airbags.length,0);assert.ok(noBag.dunnage.filter(d=>d.kind==='filler').length>=all.dunnage.filter(d=>d.kind==='filler').length+all.airbags.length);
+  // 바닥 못을 끄면 바닥 각재·쐐기 대신 문쪽 펜스를 쓴다.
+  const noNail=context.__plan(load,sample.mode,{airbag:true,filler:true,nails:false,lashing:true});
+  assert.ok(!noNail.dunnage.some(d=>d.kind==='beam'||d.kind==='chock'));assert.ok(noNail.dunnage.some(d=>d.kind==='fence'));
+  // 래싱을 끄면 스트랩·래싱을 빼고 재배치 검토로 남긴다.
+  const noLash=context.__plan(load,sample.mode,{airbag:true,filler:true,nails:true,lashing:false});
+  assert.ok(!noLash.dunnage.some(d=>d.kind==='lashing'||d.kind==='strap'));assert.ok(noLash.reviews.some(r=>/래싱 미사용/.test(r.location)));
+});

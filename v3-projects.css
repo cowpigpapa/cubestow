@@ -227,6 +227,15 @@ details.menu>summary[aria-label]::after{content:""}
 .canvas-wrap .result-control-row .container-nav-slot{order:3}
 .securing-visibility .cog-toggle.active{border-color:#9fd3b2;color:#17693a}
 .securing-visibility .cog-toggle.active i{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.15)}
+.securing-options-field{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--v3-muted,#667);position:relative}
+.securing-options summary{list-style:none;cursor:pointer;border:1px solid var(--v3-line,#dde3e0);border-radius:10px;background:#fff;padding:10px 30px 10px 12px;font-size:14px;color:#1b1f1d;white-space:nowrap;position:relative;min-width:0;width:100%;overflow:hidden;text-overflow:ellipsis}
+.securing-options summary::-webkit-details-marker{display:none}
+.securing-options summary::after{content:'';position:absolute;right:12px;top:50%;width:7px;height:7px;border-right:1.6px solid #555;border-bottom:1.6px solid #555;transform:translateY(-70%) rotate(45deg)}
+.securing-option-list{position:absolute;z-index:30;top:calc(100% + 4px);left:0;min-width:240px;background:#fff;border:1px solid var(--v3-line,#dde3e0);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.12);padding:8px;display:grid;gap:2px}
+.securing-option-list label{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;font-size:13px;color:#1b1f1d;cursor:pointer}
+.securing-option-list label:hover{background:#f3f6f4}
+.securing-option-list .securing-icon{margin:0}
+.securing-option-list small{padding:6px 8px 2px;color:#6b7470;font-size:11px;line-height:1.45;max-width:260px}
 .securing-icon{display:inline-flex;width:18px;height:18px;flex:0 0 18px;vertical-align:-4px;margin-right:6px}.securing-icon svg{width:100%;height:100%}
 .securing-visibility i.securing-icon{width:16px;height:16px;flex-basis:16px;margin:0;background:none!important;box-shadow:none!important;border-radius:0}
 .securing-visibility button:not(.active) i.securing-icon{filter:grayscale(1);opacity:.55}
@@ -344,3 +353,7 @@ details.menu>summary[aria-label]::after{content:""}
 .message-actions #messageCancel{background:#f2f2f5;border-color:#e2e2e7;color:#3a3a3f}
 .message-actions #messageAlt{background:#e9f6f3;border-color:#b8e0d6;color:#0f6b5c}
 .message-actions #messageAlt:hover{background:#dcf0eb}
+/* 고정재 선택이 들어가 조건 영역은 다섯 칸(안전·우선, 운송모드, 고정재, 컨테이너, 내부 치수)이다 */
+@media(min-width:1101px){.simulation-config-bar{grid-template-columns:minmax(0,1.9fr) minmax(0,.78fr) minmax(0,.78fr) minmax(0,.78fr) auto}}
+.securing-options-field{color:rgb(67,80,71);font-size:12px;font-weight:600}
+.securing-options summary{height:38px;display:flex;align-items:center;box-sizing:border-box}
