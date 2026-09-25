@@ -299,3 +299,14 @@ test('every sample starts loading against the inner end wall in every container'
     }
   }
 });
+
+test('household move sample fits one container under strict safety without a dangerous offset',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[18],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const result=engine.packShipment({container:C20,units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:60000}),load=result.loads[0];
+  // 쌓인 박스 기둥이 장롱·액자의 측면 지지가 되고, 한 덩어리 적재는 앞뒤 반전으로 무거운 기둥을 가운데 쪽으로 옮긴다.
+  assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
+  assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger');
+  assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),C20.l);
+  assertValidShipment(result,items);
+});

@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.7';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.8';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -666,29 +666,47 @@
     let total=0;
     for(const sl of slices){sl.len=sl.end-sl.start;sl.w=0;sl.mx=0;sl.my=0;for(const p of sl.items){sl.w+=p.weight;sl.mx+=p.weight*(p.x+p.l/2-sl.start);sl.my+=p.weight*(p.y+p.w/2-c.w/2)}total+=sl.w}
     if(total<=0)return null;
-    const offset=order=>{let x=0,m=0;for(const sl of order){m+=sl.mx+sl.w*x;x+=sl.len}return Math.abs(m/total-c.l/2)};
+    // 앞뒤 반전한 슬라이스는 구간 안 모멘트가 (길이 × 무게 − 원래 모멘트)가 된다.
+    const mirror=new Set(),moment=sl=>mirror.has(sl)?sl.len*sl.w-sl.mx:sl.mx;
+    const offset=order=>{let x=0,m=0;for(const sl of order){m+=moment(sl)+sl.w*x;x+=sl.len}return Math.abs(m/total-c.l/2)};
     let order=slices,score=offset(order);
-    if(slices.length>1&&slices.length<=7){
-      const permute=(done,left)=>{if(!left.length){const v=offset(done);if(v<score-1e-6){score=v;order=done}return}left.forEach((sl,i)=>permute([...done,sl],[...left.slice(0,i),...left.slice(i+1)]))};
-      permute([],slices);
-    }else if(slices.length>7){
-      let improved=true,guard=0;
-      while(improved&&guard++<50){improved=false;
-        for(let i=0;i<order.length;i++)for(let j=i+1;j<order.length;j++){const next=[...order];[next[i],next[j]]=[next[j],next[i]];const v=offset(next);if(v<score-1e-6){score=v;order=next;improved=true}}
+    const arrange=()=>{
+      if(slices.length>1&&slices.length<=7){
+        const permute=(done,left)=>{if(!left.length){const v=offset(done);if(v<score-1e-6){score=v;order=done}return}left.forEach((sl,i)=>permute([...done,sl],[...left.slice(0,i),...left.slice(i+1)]))};
+        permute([],slices);
+      }else if(slices.length>7){
+        let improved=true,guard=0;
+        while(improved&&guard++<50){improved=false;
+          for(let i=0;i<order.length;i++)for(let j=i+1;j<order.length;j++){const next=[...order];[next[i],next[j]]=[next[j],next[i]];const v=offset(next);if(v<score-1e-6){score=v;order=next;improved=true}}
+        }
       }
-    }
+    };
+    arrange();
+    const ordered=order;
+    // 순서를 정한 뒤 슬라이스마다 앞뒤 반전이 편차를 줄이면 뒤집고, 뒤집은 것이 있으면 순서를 한 번 더 고른다.
+    let toggled=false;
+    for(let round=0;round<3;round++){let changed=false;for(const sl of slices){if(sl.items.length<2)continue;mirror.has(sl)?mirror.delete(sl):mirror.add(sl);const v=offset(order);if(v<score-1e-6){score=v;changed=toggled=true}else mirror.has(sl)?mirror.delete(sl):mirror.add(sl)}if(!changed)break}
+    if(toggled)arrange();
     // 좌우 반전: 좌우 모멘트가 큰 슬라이스부터 누적 모멘트를 줄이는 쪽으로 뒤집는다.
     let sum=0;const flip=new Set();
     for(const sl of [...slices].sort((a,b)=>Math.abs(b.my)-Math.abs(a.my))){if(Math.abs(sum-sl.my)<Math.abs(sum+sl.my)-1e-6){flip.add(sl);sum-=sl.my}else sum+=sl.my}
-    if(order===slices&&!flip.size&&slices.every((sl,i)=>i===0?sl.start===0:sl.start===slices[i-1].end))return null;
-    const next=[];let x=0;
-    for(const sl of order){for(const p of sl.items)next.push({...p,x:x+p.x-sl.start,y:flip.has(sl)?c.w-p.y-p.w:p.y});x+=sl.len}
-    // 앞뒤 이웃이 바뀌므로 높이 비율이 큰 화물의 측면 지지 규칙(2면 이상)을 다시 확인한다.
-    for(const p of next){
-      const base=Math.max(1,Math.min(p.l,p.w));
-      if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next.filter(q=>q!==p),c,true))<2)return null;
-    }
-    return{...raw,placed:next,rebalanced:true};
+    const build=(order,mirrored)=>{
+      if(order===slices&&!flip.size&&!mirrored.size&&slices.every((sl,i)=>i===0?sl.start===0:sl.start===slices[i-1].end))return null;
+      const next=[];let x=0;
+      for(const sl of order){for(const p of sl.items)next.push({...p,x:mirrored.has(sl)?x+sl.end-(p.x+p.l):x+p.x-sl.start,y:flip.has(sl)?c.w-p.y-p.w:p.y});x+=sl.len}
+      // 첫 적재 화물(바닥 화물 중 문쪽 면이 가장 안쪽인 것, 적재 순서 규칙과 같다)은 예외 없이 안쪽 벽에 붙어야 한다.
+      // 반전하면 위층 화물만 벽에 닿고 바닥 화물은 떨어질 수 있으므로 확인한다.
+      let first=null;for(const p of next)if(p.z===0&&(!first||p.x+p.l<first.x+first.l||p.x+p.l===first.x+first.l&&p.y<first.y))first=p;
+      if(!first||first.x>0)return null;
+      // 앞뒤 이웃과 안쪽 벽 접촉이 바뀌므로 높이 비율이 큰 화물의 측면 지지 규칙(2면 이상)을 다시 확인한다.
+      for(const p of next){
+        const base=Math.max(1,Math.min(p.l,p.w));
+        if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next.filter(q=>q!==p),c,true))<2)return null;
+      }
+      return{...raw,placed:next,rebalanced:true};
+    };
+    // 앞뒤 반전안이 측면 지지 검사에 걸리면 반전 없이 순서만 바꾼 안을 쓴다.
+    return build(order,mirror)||(mirror.size?build(ordered,new Set()):null);
   }
   function packOneContainer(ctx,units,deadline,stats){
     let best=null,bestKey=null;
