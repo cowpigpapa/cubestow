@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-25T17:15:07.976Z",
-  "engine": "ep-lex-portfolio-2026.10.15",
+  "generatedAt": "2026-09-25T17:54:29.397Z",
+  "engine": "ep-lex-portfolio-2026.10.16",
   "rows": [
     {
       "case": "uniform-36",
@@ -637,7 +637,7 @@
       "volumeRate": 64.7,
       "cogRisk": 8.3,
       "runs": 12,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -650,7 +650,7 @@
       "volumeRate": 64.7,
       "cogRisk": 8,
       "runs": 12,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -663,7 +663,7 @@
       "volumeRate": 64.7,
       "cogRisk": 8,
       "runs": 12,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -676,7 +676,7 @@
       "volumeRate": 64.7,
       "cogRisk": 8,
       "runs": 12,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -689,7 +689,7 @@
       "volumeRate": 64.7,
       "cogRisk": 6.2,
       "runs": 9,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -702,7 +702,7 @@
       "volumeRate": 64.7,
       "cogRisk": 3.4,
       "runs": 7,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -715,7 +715,7 @@
       "volumeRate": 64.7,
       "cogRisk": 3.5,
       "runs": 7,
-      "truncated": false
+      "truncated": true
     },
     {
       "case": "mix-200",
@@ -728,7 +728,7 @@
       "volumeRate": 64.7,
       "cogRisk": 5.6,
       "runs": 7,
-      "truncated": false
+      "truncated": true
     }
   ]
 }

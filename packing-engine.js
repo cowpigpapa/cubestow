@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.15';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.16';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -952,22 +952,30 @@
     for(const p of next){const base=Math.max(1,Math.min(p.l,p.w));if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next,c,true,p))<2)return null}
     return{...raw,placed:next,mirrored:true};
   }
-  function packOneContainer(ctx,units,deadline,stats){
-    let best=null,bestKey=null;
+  // 배치안 1회 계산 비용(초)을 화물 수의 제곱으로 어림한다(기준 PC 측정값). 컨테이너 예산 안에 들어가는 배치안 수만큼 계산한다.
+  const RUN_COST={base:1.6e-5,secure:9e-5};
+  function runCap(ctx,count,budgetMs,total){
+    const perRun=(STRICT_BLOCK?RUN_COST.secure:RUN_COST.base)*count*count+.01;
+    // 최소 시도 횟수: 보통 4회, CTU 안전에서 1회가 예산의 절반을 넘게 무거우면 2회.
+    const floor=STRICT_BLOCK&&perRun>budgetMs/2000?2:4;
+    return Math.max(floor,Math.min(total,Math.floor(budgetMs/1000/perRun)));
+  }
+  function packOneContainer(ctx,units,budgetMs,stats,hardDeadline){
+    let best=null,bestKey=null,done=0;
     const variants=[false,true];
-    const runs=portfolioRuns(ctx.preference);
+    const runs=portfolioRuns(ctx.preference),cap=runCap(ctx,units.length,budgetMs,runs.length);
     // 투입 순서가 같은 실행은 결과도 같으므로 한 번만 계산한다.
     const index=new Map(units.map((u,i)=>[u,i])),sequences=[],seen=new Set();
     for(let i=0;i<runs.length;i++){
       // 시간이 지나도 아직 아무것도 싣지 못했으면 다음 배치안을 계속 시도한다(빈 컨테이너로 끝내면 남은 화물을 모두 포기하게 된다).
-      if(i>0&&now()>deadline&&best?.placed.length){stats.truncated=true;break}
+      if(i>0&&(done>=cap||now()>hardDeadline)&&best?.placed.length){stats.truncated=true;if(now()>hardDeadline)stats.timedOut=true;break}
       const {heuristic,order}=runs[i];
       sequences[order]=sequences[order]||sortUnits(units,order).map(u=>index.get(u)).join(',');
       const runKey=`${heuristic}|${sequences[order]}`;
       if(seen.has(runKey)){stats.skipped++;continue}
       seen.add(runKey);
       const raw=packContainer(ctx,units,heuristic,order);
-      stats.runs++;
+      stats.runs++;done++;
       // 부피가 현재 최선보다 작으면 비교 키 첫 항목에서 지므로 마무리 계산을 건너뛴다.
       if(best&&raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
       const shifted=rebalanceSlices(ctx,raw),sources=[raw,shifted,mirrorLoad(ctx,raw),shifted&&mirrorLoad(ctx,shifted)].filter(Boolean);
@@ -1046,10 +1054,11 @@
       loads.push(repaired);remaining=[];stats.repaired=true;
     }else{
       while(remaining.length&&loads.length<MAX_CONTAINERS){
-        const left=Math.max(1,lowerBound(c,remaining)),share=Math.max(0,deadline-now())/left;
+        // 컨테이너별 예산은 경과 시간이 아니라 남은 화물의 필요 대수 하한으로 나눈다(결과 고정).
+        const share=budget/Math.max(1,bound);
         // 폭 조합은 이 컨테이너에 남은 화물로만 계산한다. 앞 컨테이너에 모두 실린 규격의 폭은 쓸 수 없다.
         const widthGap=remaining===units?ctx.widthGap:createWidthOracle(remaining,c.w);
-        const load=packOneContainer({...ctx,widthGap},remaining,now()+share,stats);
+        const load=packOneContainer({...ctx,widthGap},remaining,share,stats,started+Math.max(budget*3,45000));
         if(!load.placed.length){if(!loads.length)loads.push(load);remaining=load.rejected;break}
         loads.push(load);
         remaining=load.rejected;
