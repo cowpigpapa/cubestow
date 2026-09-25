@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.3';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.4';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -31,7 +31,8 @@
     density:{floorFirst:false},
     width:{floorFirst:true},
     balance:{floorFirst:false},
-    column:{floorFirst:true,key:'dblf'}
+    column:{floorFirst:true,key:'dblf'},
+    columnBalance:{floorFirst:true,key:'dblf'}
   };
   const PREFERRED_HEURISTIC={auto:'column',density:'density',width:'width',balance:'balance'};
 
@@ -445,16 +446,34 @@
     if(Number.isFinite(item.maxTopLoadKg))k=Math.min(k,1+Math.floor(item.maxTopLoadKg/Math.max(1e-9,item.weight)));
     return Math.max(1,k);
   }
-  function placeColumns(run,state,units){
+  // 그룹마다 차지할 길이 ≈ 바닥 면적 합 ÷ 컨테이너 폭(기둥 높이만큼 나눈 수)으로 보고, 안쪽 벽부터 차례로 놓을 때
+  // 합성 무게중심이 컨테이너 길이 가운데에 가장 가까운 순서를 고른다. 그룹이 6개 이하면 모든 순서를, 넘으면 앞 6개만 바꿔 본다.
+  function balancedGroupOrder(c,lists){
+    const info=lists.map(list=>{const u=list[0],d=u.rotations.reduce((a,b)=>a[2]<=b[2]?a:b),k=Math.max(1,Math.min(list.length,Math.floor(c.h/d[2])));return{list,length:Math.ceil(list.length/k)*d[0]*d[1]/c.w,weight:list.reduce((s,p)=>s+p.weight,0)}});
+    const head=info.slice(0,6),tail=info.slice(6),target=c.l/2;
+    let best=null,bestScore=Infinity;
+    const permute=(done,left)=>{
+      if(!left.length){const order=[...done,...tail];let x=0,moment=0,total=0;for(const g of order){moment+=g.weight*(x+g.length/2);total+=g.weight;x+=g.length}
+        const score=Math.abs(moment/Math.max(1e-9,total)-target);if(score<bestScore-1e-6){bestScore=score;best=order}return}
+      left.forEach((g,i)=>permute([...done,g],[...left.slice(0,i),...left.slice(i+1)]));
+    };
+    permute([],head);
+    return best.map(g=>g.list);
+  }
+  function placeColumns(run,state,units,balanced){
     const c=run.c,groups=new Map(),rest=[];
     for(const u of units){if(!groups.has(u.typeKey))groups.set(u.typeKey,[]);groups.get(u.typeKey).push(u)}
     // 기둥을 많이 세울 수 있는 규격(총 부피가 큰 규격)부터 안쪽에 세운다.
-    const lists=[...groups.values()].sort((a,b)=>b.length*b[0].volume-a.length*a[0].volume);
+    let lists=[...groups.values()].sort((a,b)=>b.length*b[0].volume-a.length*a[0].volume);
+    if(balanced&&lists.length>1)lists=balancedGroupOrder(c,lists);
+    // 균형 변형: 모든 기둥을 최대 높이로 세웠을 때 바닥이 남으면, 남는 비율만큼 기둥을 낮춰 길이 방향으로 고르게 펼친다.
+    let spread=1;
+    if(balanced){let area=0;for(const list of lists){const u=list[0],d=u.rotations.reduce((a,b)=>a[2]<=b[2]?a:b),k=Math.max(1,Math.min(list.length,columnHeight(run,u,d)));area+=Math.ceil(list.length/k)*d[0]*d[1]}spread=Math.min(1,area/(c.l*c.w*.9))}
     for(const list of lists){
       const u=list[0];
       // 방향: 기둥이 높이를 가장 잘 채우고, 비슷하면 눕힌(높이가 바닥 최소 치수 이하) 방향, 폭 방향 잔여가 작은 방향 순.
       const scored=u.rotations.map(d=>{const k=Math.min(columnHeight(run,u,d),list.length);return{d,k,fill:Math.round(k*d[2]/c.h*20),slender:d[2]/Math.max(1,Math.min(d[0],d[1])),gap:c.w%d[1]}}).sort((a,b)=>b.fill-a.fill||(a.slender>1)-(b.slender>1)||a.gap-b.gap||a.d[0]*a.d[1]-b.d[0]*b.d[1]);
-      const {d,k}=scored[0];
+      const d=scored[0].d,k=balanced?Math.max(1,Math.ceil(scored[0].k*spread)):scored[0].k;
       if(k<2){rest.push(...list);continue}
       const queue=list.map(item=>({...item,rotations:[d]}));
       while(queue.length){
@@ -491,7 +510,7 @@
       return'ok';
     };
     let pending=sortUnits(units,order);
-    if(heuristic==='column')pending=placeColumns(run,state,pending);
+    if(heuristic==='column'||heuristic==='columnBalance')pending=placeColumns(run,state,pending,heuristic==='columnBalance');
     if(HEURISTICS[heuristic].floorFirst){
       let added=true;
       while(added&&pending.length){
@@ -604,7 +623,7 @@
 
   function portfolioRuns(preference){
     // 기둥 쌓기는 시간 예산 안에 반드시 실행되도록 우선 기준 규칙 바로 다음에 둔다.
-    const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...(first==='column'?[]:['column']),...Object.keys(HEURISTICS).filter(h=>h!==first&&h!=='column')],runs=[];
+    const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...(first==='column'?[]:['column']),'columnBalance',...Object.keys(HEURISTICS).filter(h=>h!==first&&h!=='column'&&h!=='columnBalance')],runs=[];
     for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)runs.push({heuristic,order});
     return runs;
   }
@@ -628,6 +647,8 @@
         const load=finalizeLoad(ctx.c,raw,centered),key=containerKey(load,ctx);
         if(!best||compareKeys(key,bestKey)<0){best=load;bestKey=key}
       }
+      // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
+      if(!best.rejected.length&&best.metrics.ctuLevel===0){stats.settled=(stats.settled||0)+1;break}
     }
     return best;
   }
