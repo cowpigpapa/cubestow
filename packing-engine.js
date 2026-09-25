@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.13';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.14';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -34,7 +34,8 @@
     width:{floorFirst:true},
     balance:{floorFirst:false},
     column:{floorFirst:true,key:'dblf'},
-    columnBalance:{floorFirst:true,key:'dblf'}
+    columnBalance:{floorFirst:true,key:'dblf'},
+    wall:{floorFirst:true,key:'dblf'}
   };
   const PREFERRED_HEURISTIC={auto:'column',density:'density',width:'width',balance:'balance'};
 
@@ -607,18 +608,58 @@
     }
     return{kept,removed};
   }
-  function packContainer(ctx,units,heuristic,order,seed=[]){
-    if(!ctx.deferSides||seed.length)return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
-    let raw=packContainerOnce(ctx,units,heuristic,order,seed);
-    // 최종 상태 검사 → 미달 화물(과 그 위 화물) 제거 → 남은 배치를 고정하고 배치 시점 규칙으로 다시 놓기를 반복한다.
-    // 다시 놓은 화물이 이웃의 벽 쪽 간극을 막을 수도 있으므로 매번 다시 검사하고, 마지막까지 미달인 화물은 싣지 않는다.
-    for(let round=0;;round++){
-      const settled=settleSides(ctx.c,raw.placed,new Set());
-      if(!settled.removed.length)return{...raw,heuristic,order};
-      const ids=new Set([...settled.removed,...raw.rejected].map(u=>u.uid)),retry=units.filter(u=>ids.has(u.uid));
-      if(round>=3)return{placed:settled.kept,rejected:retry.map(item=>({...item,reason:'공간 또는 지지 조건 부족'})),totalWeight:settled.kept.reduce((sum,p)=>sum+p.weight,0),heuristic,order};
-      raw=packContainerOnce({...ctx,deferSides:false},retry,'dblf',order,settled.kept);
+  const RESETTLE_ROUNDS=6;
+  // 층 후보 깊이: 남은 화물의 회전별 길이 방향 치수를 부피로 가중해 많이 쓰일 깊이부터 고른다. 투입 순서 첫 화물의 깊이는 항상 넣는다.
+  function wallDepths(units,room,limit){
+    const weight=new Map();
+    for(const u of units)for(const d of u.rotations)if(d[0]<=room)weight.set(d[0],(weight.get(d[0])||0)+u.volume);
+    const ranked=[...weight.entries()].sort((a,b)=>b[1]-a[1]||b[0]-a[0]).map(([d])=>d);
+    const first=units[0]?.rotations.map(d=>d[0]).filter(d=>d<=room).sort((a,b)=>b-a)[0];
+    return[...new Set([...(first?[first]:[]),...ranked])].slice(0,limit);
+  }
+  function packWalls(ctx,units,order){
+    const c=ctx.c,placed=[],rejected=[];
+    let pending=sortUnits(units,order),x=0,weight=0;
+    while(pending.length&&x<c.l){
+      let best=null;
+      for(const depth of wallDepths(pending,c.l-x,5)){
+        // 앞 층을 고정 화물로 두고 길이를 x+깊이로 제한한 컨테이너를 채운다. 측면 지지·받침은 실제 앞 층 화물로 판단하고, 앞 층의 빈틈도 채울 수 있다.
+        // 앞 층을 고정하고 이 층만 임시로 놓은 뒤 최종 규칙으로 검사해, 통과한 화물만 층으로 쓴다.
+        const sub={...ctx,c:{...c,l:x+depth}},once=packContainerOnce({...sub,deferSides:Boolean(ctx.deferSides)},pending,'dblf',order,placed);
+        const fixed=new Set(once.placed.slice(0,placed.length)),settled=ctx.deferSides?settleSides(sub.c,once.placed,fixed):{kept:once.placed,removed:[]};
+        if(!settled)continue;
+        const layer=settled.kept.filter(p=>!fixed.has(p)),raw={placed:settled.kept,rejected:[...once.rejected,...settled.removed]};
+        if(!layer.length)continue;
+        const volume=layer.reduce((sum,p)=>sum+p.l*p.w*p.h,0),used=Math.max(x,...layer.map(p=>p.x+p.l))-x,fill=used>0?volume/(used*c.w*c.h):Infinity;
+        if(!best||fill>best.fill+1e-9||Math.abs(fill-best.fill)<=1e-9&&volume>best.volume)best={layer,used,fill,volume,left:raw.rejected};
+      }
+      if(!best)break;
+      placed.push(...best.layer.map(p=>({...p})));weight+=best.layer.reduce((sum,p)=>sum+p.weight,0);x+=best.used;
+      const ids=new Set(best.left.map(u=>u.uid));pending=pending.filter(u=>ids.has(u.uid));
     }
+    for(const item of pending)rejected.push({...item,reason:weight+item.weight>c.maxWeight?'중량 초과':'공간 또는 지지 조건 부족'});
+    return{placed,rejected,totalWeight:weight,heuristic:'wall',order};
+  }
+  function packContainer(ctx,units,heuristic,order,seed=[]){
+    if(heuristic==='wall'&&!seed.length)return packWalls(ctx,units,order);
+    if(!ctx.deferSides||seed.length)return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
+    let raw=packContainerOnce(ctx,units,heuristic,order,seed),best=null;
+    const volume=list=>list.reduce((sum,p)=>sum+p.l*p.w*p.h,0);
+    // 최종 상태 검사 → 미달 화물(과 그 위 화물) 제거 → 뺀 화물을 다시 놓기를 반복하고, 검사를 통과한 안 중 부피가 가장 큰 안을 쓴다.
+    // 다시 놓을 때도 처음처럼 임시로 놓는다(옆 칸이 나중에 채워지면 막힌다). 마지막 두 번은 놓는 순간 규칙을 지키게 놓는다.
+    const rounds=STRICT_BLOCK?RESETTLE_ROUNDS:3;
+    for(let round=0;round<=rounds;round++){
+      const settled=settleSides(ctx.c,raw.placed,new Set());
+      const ids=new Set([...settled.removed,...raw.rejected].map(u=>u.uid)),retry=units.filter(u=>ids.has(u.uid));
+      // 원래 못 실은 화물은 그 사유(예: 중량 초과)를 유지하고, 최종 검사에서 뺀 화물만 공간·지지 사유로 둔다.
+      const reasons=new Map(raw.rejected.map(r=>[r.uid,r.reason]));
+      const candidate={placed:settled.kept,rejected:retry.map(item=>({...item,reason:reasons.get(item.uid)||'공간 또는 지지 조건 부족'})),totalWeight:settled.kept.reduce((sum,p)=>sum+p.weight,0),heuristic,order};
+      if(!best||volume(candidate.placed)>volume(best.placed)+1e-6)best=candidate;
+      if(!settled.removed.length||!retry.length||round===rounds)break;
+      raw=packContainerOnce({...ctx,deferSides:STRICT_BLOCK&&round<rounds-2},retry,'dblf',order,settled.kept);
+    }
+    if(!best.rejected.length)return{...best,rejected:[]};
+    return best;
   }
   function packContainerOnce(ctx,units,heuristic,order,seed=[]){
     const run={...ctx,heuristic:HEURISTICS[heuristic].key||heuristic},state=createState(ctx.c,seed),rejected=[];
@@ -751,7 +792,7 @@
   function portfolioRuns(preference){
     // 기둥 쌓기는 시간 예산 안에 반드시 실행되도록 우선 기준 규칙 바로 다음에 둔다.
     const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...(first==='column'?[]:['column']),'columnBalance',...Object.keys(HEURISTICS).filter(h=>h!==first&&h!=='column'&&h!=='columnBalance')],runs=[];
-    for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)runs.push({heuristic,order});
+    for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)if(heuristic!=='wall'||STRICT_BLOCK)runs.push({heuristic,order});
     return runs;
   }
 
@@ -830,7 +871,8 @@
     // 투입 순서가 같은 실행은 결과도 같으므로 한 번만 계산한다.
     const index=new Map(units.map((u,i)=>[u,i])),sequences=[],seen=new Set();
     for(let i=0;i<runs.length;i++){
-      if(i>0&&now()>deadline){stats.truncated=true;break}
+      // 시간이 지나도 아직 아무것도 싣지 못했으면 다음 배치안을 계속 시도한다(빈 컨테이너로 끝내면 남은 화물을 모두 포기하게 된다).
+      if(i>0&&now()>deadline&&best?.placed.length){stats.truncated=true;break}
       const {heuristic,order}=runs[i];
       sequences[order]=sequences[order]||sortUnits(units,order).map(u=>index.get(u)).join(',');
       const runKey=`${heuristic}|${sequences[order]}`;

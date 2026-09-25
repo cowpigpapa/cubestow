@@ -367,3 +367,13 @@ test('CTU safety without lashing places cargo so every tipping-prone face is blo
   assert.equal(validation.valid,true,validation.errors.slice(0,3).join('; '));
   assert.equal(result.remaining.length,0);
 });
+
+test('CTU safety builds full-width walls so the size-comparison sample keeps most cargo in the first container',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[3],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const result=engine.packShipment({container:C20,units:items,safety:'secure',transportMode:sample.mode,timeBudgetMs:60000});
+  // 3면 막힘 규칙 때문에 빠진 화물은 다시 임시로 놓고 최종 검사를 반복한다. 예전에는 첫 컨테이너에 13개만 남았다.
+  assert.ok(result.loads[0].placed.length>=30,`first container ${result.loads[0].placed.length}`);
+  assert.equal(result.remaining.length,0);
+  assertValidShipment(result,items);
+});
