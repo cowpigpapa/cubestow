@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.17';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.18';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -967,6 +967,23 @@
     const floor=STRICT_BLOCK&&perRun>budgetMs/2000?2:4;
     return Math.max(floor,Math.min(total,Math.floor(budgetMs/1000/perRun)));
   }
+  function topUp(ctx,load,units){
+    if(!load?.rejected.length||!load.placed.length)return load;
+    const c=ctx.c,seed=load.placed.map(p=>({...p,x:c.l-(p.x+p.l)})),ids=new Set(load.rejected.map(u=>u.uid)),extra=units.filter(u=>ids.has(u.uid));
+    let best=load;
+    for(let order=0;order<ORDER_COUNT;order++){
+      const once=packContainerOnce({...ctx,deferSides:true},extra,'dblf',order,seed),fixed=new Set(once.placed.slice(0,seed.length));
+      const settled=settleSides(c,once.placed,fixed);
+      if(!settled||settled.kept.length<=best.placed.length)continue;
+      const kept=new Set(settled.kept.map(p=>p.uid)),raw={placed:settled.kept,rejected:extra.filter(u=>!kept.has(u.uid)).map(item=>({...item,reason:'공간 또는 지지 조건 부족'})),totalWeight:settled.kept.reduce((sum,p)=>sum+p.weight,0),heuristic:load.heuristic,order:load.order};
+      const next=finalizeLoad(c,raw,false);
+      if(!sidesHold(next))continue;
+      next.metrics=loadMetrics(next,ctx.mode);best=next;
+      if(!best.rejected.length)break;
+    }
+    return best;
+  }
+  // (packOneContainer 앞)
   function packOneContainer(ctx,units,budgetMs,stats,hardDeadline){
     let best=null,bestKey=null,done=0;
     const variants=[false,true];
@@ -995,6 +1012,8 @@
       // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
       if(best&&!best.rejected.length&&best.metrics.ctuLevel===0){stats.settled=(stats.settled||0)+1;break}
     }
+    // 남은 화물이 있으면 기존 배치 사이에 한 번 더 넣어 본다.
+    if(STRICT_BLOCK&&best?.rejected.length&&best.rejected.length<=units.length*.25){const filled=topUp(ctx,best,units);if(filled!==best){stats.toppedUp=(stats.toppedUp||0)+1;best=filled}}
     // 완성안이 하나도 최종 검사를 통과하지 못하면 이 컨테이너에는 싣지 않는다(안전 우선).
     return best||finalizeLoad(ctx.c,{placed:[],rejected:units.map(item=>({...item,reason:'공간 또는 지지 조건 부족'})),totalWeight:0,heuristic:'none',order:0},false);
   }
