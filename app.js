@@ -175,7 +175,9 @@ async function simulate(){syncSelects();if(editingIndex>=0){showAppMessage('수�
 }
 // 에어백(더니지 백) 간극 기준: 제조사 권장 최대 간극은 백 폭의 약 1/3(대형 400~550mm, 최대 약 700mm).
 // 600mm를 넘는 벽 간극은 백을 키우지 않고 충전재(세운 빈 팔레트·골판지)로 줄인 뒤 백을 쓴다(CTU Code 부속서 7 §2.3.6·§2.3.8).
-const AIRBAG_MIN_GAP=50,AIRBAG_MAX_GAP=600,AIRBAG_FLOOR_CLEARANCE=100;
+const AIRBAG_MIN_GAP=50,AIRBAG_MAX_GAP=600,AIRBAG_FLOOR_CLEARANCE=100,AIRBAG_LIMIT=40;
+// 문쪽 틈이 150mm 이하면 문을 경계로 본다(CTU Code 부속서 7 §2.3.6). 펜스 각재 깊이 50mm. 30mm 미만 틈은 무시하고, 120mm 미만은 스페이서로 채운다.
+const DOOR_FREE_GAP=150,FENCE_DEPTH=50,SPACER_MIN_GAP=30,SPACER_MAX_GAP=120;
 const airbagSize=gap=>gap<=200?'600×1200':gap<=300?'900×1800':gap<=400?'1200×1800':'1500×2400';
 // 고정재 아이콘(SVG). 3D 토글과 권고 목록에서 같이 쓴다.
 const SECURING_ICONS={
@@ -185,15 +187,62 @@ const SECURING_ICONS={
   filler:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5" fill="#e8d3a8" stroke="#9c7a3c" stroke-width="1.4"/><path d="M7 8l2-1.2 2 1.2v2.4l-2 1.2-2-1.2zM13 8l2-1.2 2 1.2v2.4l-2 1.2-2-1.2zM10 13l2-1.2 2 1.2v2.4l-2 1.2-2-1.2z" fill="none" stroke="#9c7a3c" stroke-width="1"/></svg>'
 };
 const securingIcon=kind=>SECURING_ICONS[kind==='beam'||kind==='chock'?'timber':kind]||'';
+// 화물마다 네 옆면을 보고, 가장 가까운 화물·벽·고정재와의 틈을 크기별로 채운다.
+// 30mm 미만은 무시, 120mm 미만은 스페이서(골판지·목재), 120~600mm는 에어백(높은 곳이면 그 높이에), 안쪽 벽 쪽은 에어백 대신 충전재.
+// 높은 곳 화물의 틈이 600mm를 넘거나 문쪽이 비면 에어백·충전재를 세울 수 없으므로 화물 위로 넘기는 상단 래싱(측벽 고정점)을 권고한다.
+function fillRemainingVoids(load,airbags,dunnage){
+  const c=load.container,placed=load.placed,solid=[...placed,...airbags,...dunnage];
+  const hit=(a,b)=>Math.min(a.x+a.l,b.x+b.l)-Math.max(a.x,b.x)>1&&Math.min(a.y+a.w,b.y+b.w)-Math.max(a.y,b.y)>1&&Math.min(a.z+a.h,b.z+b.h)-Math.max(a.z,b.z)>1;
+  const ov=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0);
+  const dirs=[{key:'back',axis:'x',sign:1},{key:'front',axis:'x',sign:-1},{key:'left',axis:'y',sign:-1},{key:'right',axis:'y',sign:1}];
+  let bags=airbags.length;const lash=[];
+  for(const p of placed)for(const d of dirs){
+    const along=d.axis==='x'?['y','w']:['x','l'],[a,len]=along,edge=d.axis==='x'?(d.sign<0?p.x:p.x+p.l):(d.sign<0?p.y:p.y+p.w);
+    // 이 면 쪽의 가장 가까운 물체(화물·고정재)와 틈. 없으면 벽(문)까지.
+    let gap=d.axis==='x'?(d.sign<0?edge:c.l-edge):(d.sign<0?edge:c.w-edge),facing=null;
+    for(const q of solid){
+      if(q===p||ov(p.z,p.z+p.h,q.z,q.z+q.h)<=Math.min(p.h,q.h)*.3||ov(p[a],p[a]+p[len],q[a],q[a]+q[len])<=p[len]*.3)continue;
+      const g=d.axis==='x'?(d.sign<0?edge-(q.x+q.l):q.x-edge):(d.sign<0?edge-(q.y+q.w):q.y-edge);
+      if(g>=-2&&g<gap){gap=g;facing=q}
+    }
+    if(gap<SPACER_MIN_GAP)continue;
+    // 문쪽이 비면(바닥 화물은 문쪽 펜스가 맡는다) 또는 높은 곳에서 600mm를 넘으면 상단 래싱 대상.
+    if(d.key==='front'&&!facing||gap>AIRBAG_MAX_GAP){if(p.z>0)lash.push(p);continue}
+    const wall=!facing,toInner=d.key==='back'&&wall,overlapA=facing?[Math.max(p[a],facing[a]),Math.min(p[a]+p[len],facing[a]+facing[len])]:[p[a],p[a]+p[len]];
+    const z0=facing?Math.max(p.z,facing.z):p.z,z1=facing?Math.min(p.z+p.h,facing.z+facing.h):p.z+p.h;
+    if(overlapA[1]-overlapA[0]<150||z1-z0<150)continue;
+    const spacer=gap<SPACER_MAX_GAP||toInner,box={x:0,y:0,z:0,l:0,w:0,h:0};
+    box[a]=overlapA[0]+(spacer?0:(overlapA[1]-overlapA[0])*.15);box[len]=(overlapA[1]-overlapA[0])*(spacer?1:.7);
+    if(d.axis==='x'){box.x=edge;box.l=gap}else{box.y=d.sign<0?edge-gap:edge;box.w=gap}
+    box.z=spacer?z0:Math.max(z0+(z1-z0)*.12,z0===0?AIRBAG_FLOOR_CLEARANCE:z0+20);box.h=spacer?Math.min(z1-z0,1400):Math.min(1200,z1-box.z-(z1-z0)*.1);
+    if(box.h<120||solid.some(q=>hit(q,box)))continue;
+    const side={back:'안쪽',front:'문쪽',left:'좌측',right:'우측'}[d.key],level=box.z>200?` · ${(box.z/1000).toFixed(1)}m 높이`:'';
+    if(spacer){const item={type:'dunnage',kind:'spacer',axis:d.axis,side:d.sign<0?'min':'max',...box,product:p.name,location:`${esc(p.name)} ${side} 틈 ${Math.round(gap)}mm ${toInner?'충전재(안쪽 벽, 에어백 금지)':'스페이서(골판지·목재)'}${level}`};dunnage.push(item);solid.push(item)}
+    else if(bags<AIRBAG_LIMIT&&box.x>1&&box.x+box.l<c.l-1){const item={type:'airbag',zone:'gap',bag:airbagSize(gap),...box,product:p.name,location:`${esc(p.name)} ${side} 틈 ${Math.round(gap)}mm${level}`};airbags.push(item);solid.push(item);bags++}
+  }
+  // 상단 래싱: 화물 윗면 위로 폭 방향 스트랩을 넘겨 좌우 측벽 고정점에 묶는다. 스트랩 경로에 다른 화물이 없어야 하고, 300mm 안의 스트랩은 하나로 본다.
+  const straps=[];
+  for(const p of [...new Set(lash)].sort((m,n)=>(n.z+n.h)-(m.z+m.h))){
+    const x=p.x+p.l/2-25,z=p.z+p.h,band={x,y:0,z,l:50,w:c.w,h:12};
+    if(z+band.h>c.h||straps.some(s=>Math.abs(s.x-x)<300&&Math.abs(s.z-z)<300))continue;
+    if(solid.some(q=>q!==p&&hit(q,band)))continue;
+    const item={type:'dunnage',kind:'lashing',axis:'y',side:'min',...band,product:p.name,location:`${esc(p.name)} 상단 래싱 · 높이 ${(z/1000).toFixed(1)}m · 좌우 측벽 고정점(MSL의 50% 이하로 조임)`};
+    straps.push(item);dunnage.push(item);solid.push(item);
+  }
+}
 function buildSecuringPlan(load,transportMode=currentTransportMode()){
   const dunnage=[],airbags=[],reviews=[],floorItems=load.placed.filter(p=>p.z===0),c=load.container;
-  const doorGap=floorItems.length?Math.min(...floorItems.map(p=>p.x)):0;
-  if(floorItems.length&&doorGap>=60){
-    const overlap=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0)>40,front=floorItems.filter(p=>!floorItems.some(q=>q!==p&&q.x+q.l<=p.x+2&&overlap(p.y,p.y+p.w,q.y,q.y+q.w)));
-    const y0=Math.max(0,Math.min(...front.map(p=>p.y))),y1=Math.min(c.w,Math.max(...front.map(p=>p.y+p.w))),span=Math.max(300,y1-y0),beamL=Math.min(100,Math.max(65,doorGap-18)),beamX=Math.max(0,doorGap-beamL-8);
-    dunnage.push({type:'dunnage',kind:'beam',axis:'x',side:'min',x:beamX,y:y0,z:0,l:beamL,w:span,h:95,product:'문쪽 노출 화물 전체',location:'문쪽 전면 가로 각재'});
-    const count=Math.max(3,Math.min(6,Math.ceil(span/420))),chockL=Math.min(180,Math.max(75,beamX-8));
-    for(let i=0;i<count;i++){const center=y0+span*(i+.5)/count,w=Math.min(150,span/count*.55);dunnage.push({type:'dunnage',kind:'chock',axis:'x',side:'min',x:Math.max(0,beamX-chockL-5),y:Math.max(0,Math.min(c.w-w,center-w/2)),z:0,l:chockL,w,h:125,product:'문쪽 노출 화물 전체',location:`가로 각재 지지 부목 ${i+1}/${count}`})}
+  // 문쪽: 앞에 화물이 없는 문쪽 화물이 문에서 150mm 넘게 떨어져 있으면 뒤 기둥 사이에 가로 각재 펜스를 세우고, 펜스와 화물 사이를 충전재로 채운다.
+  // 150mm 이하의 틈은 문을 경계로 본다(CTU Code 부속서 7 §2.3.6 간극 합 15cm, §4.2.5). 컨테이너 바닥에는 보통 못을 박을 수 없어 바닥 부목은 쓰지 않는다.
+  const doorExposed=load.placed.filter(p=>!load.placed.some(q=>q!==p&&q.x+q.l<=p.x+2&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>40));
+  const recessed=doorExposed.filter(p=>p.x>DOOR_FREE_GAP);
+  if(recessed.length){
+    const nearDoor=Math.min(...doorExposed.map(p=>p.x)),depth=Math.min(FENCE_DEPTH,nearDoor-5);
+    // 펜스를 전체 폭으로 둘 수 없으면(문에 거의 붙은 화물이 있으면) 떨어진 화물 폭 구간에만 둔다.
+    const spans=depth>=20?[[0,c.w]]:recessed.map(p=>[p.y,p.y+p.w]).sort((m,n)=>m[0]-n[0]).reduce((out,[y0,y1])=>{const last=out[out.length-1];if(last&&y0<=last[1]+5)last[1]=Math.max(last[1],y1);else out.push([y0,y1]);return out},[]);
+    const fenceDepth=depth>=20?depth:FENCE_DEPTH,top=Math.min(c.h-80,Math.max(...recessed.map(p=>p.z+p.h))),levels=Math.max(2,Math.ceil((top-150)/550)+1);
+    spans.forEach(([y0,y1],k)=>{for(let i=0;i<levels;i++){const z=Math.round(150+(top-250)*i/Math.max(1,levels-1));dunnage.push({type:'dunnage',kind:'fence',axis:'y',side:'min',x:0,y:y0,z,l:fenceDepth,w:y1-y0,h:100,product:'문쪽 노출 화물',location:`문쪽 각재 펜스${spans.length>1?` ${k+1}구간`:''} · ${i+1}/${levels}단 · 높이 ${(z/1000).toFixed(1)}m · 뒤 기둥 고정`})}});
+    recessed.forEach(p=>{const gap=Math.round(p.x-fenceDepth);if(gap<30)return;const f={type:'dunnage',kind:'filler',axis:'x',side:'min',x:fenceDepth,y:p.y,z:p.z,l:gap-2,w:p.w,h:Math.min(p.h,1400),product:p.name,location:`문쪽 충전재 ${gap}mm · ${esc(p.name)} 앞(세운 팔레트·골판지)`};if(!load.placed.some(q=>f.x<q.x+q.l&&f.x+f.l>q.x&&f.y<q.y+q.w&&f.y+f.w>q.y&&f.z<q.z+q.h&&f.z+f.h>q.z))dunnage.push(f)});
   }
   {
     const candidates=[];
@@ -209,10 +258,11 @@ function buildSecuringPlan(load,transportMode=currentTransportMode()){
     const zoneName={left:'좌측 벽 간극',right:'우측 벽 간극',back:'안쪽 벽 간극',door:'문쪽 간극',center:'화물 열 사이 중앙 간극'};
     let combined=true;
     while(combined){combined=false;outer:for(let i=0;i<airbags.length;i++)for(let j=i+1;j<airbags.length;j++){const a=airbags[i],b=airbags[j];if(!a.zone||a.zone==='cargo'||a.zone!==b.zone)continue;const horizontal=overlapRatio(a.x,a.x+a.l,b.x,b.x+b.l)>.55&&overlapRatio(a.y,a.y+a.w,b.y,b.y+b.w)>.55,verticalGap=Math.max(0,Math.max(a.z,b.z)-Math.min(a.z+a.h,b.z+b.h));if(!horizontal||verticalGap>350)continue;const x=Math.max(a.x,b.x),y=Math.max(a.y,b.y),z=Math.min(a.z,b.z),l=Math.min(a.x+a.l,b.x+b.l)-x,w=Math.min(a.y+a.w,b.y+b.w)-y,h=Math.max(a.z+a.h,b.z+b.h)-z,merged={type:'airbag',zone:a.zone,x,y,z,l,w,h,location:`${zoneName[a.zone]} · 대형 수직 통합`,product:`${a.product} / ${b.product}`,combined:(a.combined||1)+(b.combined||1)};if(l>100&&w>100&&h<=c.h-z&&free(merged)&&!airbags.some((o,k)=>k!==i&&k!==j&&intersects(o,merged))&&!dunnage.some(d=>intersects(d,merged))){airbags.splice(j,1);airbags.splice(i,1,merged);combined=true;break outer}}}
-    airbags.sort((a,b)=>(b.combined||1)-(a.combined||1)||b.z-a.z);if(airbags.length>14)airbags.splice(14);
+    airbags.sort((a,b)=>(b.combined||1)-(a.combined||1)||b.z-a.z);if(airbags.length>AIRBAG_LIMIT)airbags.splice(AIRBAG_LIMIT);
     // 벽 간극이 에어백 한계를 넘으면 백과 벽 사이를 충전재로 채운다(화물·에어백·다른 고정재와 겹치지 않을 때만 표시).
     airbags.filter(a=>a.filler>0&&(a.zone==='left'||a.zone==='right')).forEach(a=>{const f={type:'dunnage',kind:'filler',axis:'y',side:a.zone==='left'?'min':'max',x:a.x,y:a.zone==='left'?a.y-a.filler:a.y+a.w,z:a.z,l:a.l,w:a.filler,h:a.h,product:a.product,location:`${a.zone==='left'?'좌측':'우측'} 벽 충전재 ${a.filler}mm(세운 빈 팔레트·골판지)`};if(f.y>=0&&f.y+f.w<=c.w+1&&free(f)&&!airbags.some(o=>intersects(o,f))&&!dunnage.some(d=>intersects(d,f)))dunnage.push(f)});
   }
+  fillRemainingVoids(load,airbags,dunnage);
   reviews.push(...LoadwiseEngine.transportReviews(load,transportMode));
   // 문쪽 줄에 윗단 화물이 있으면 문을 열 때 떨어지지 않게 상단을 도어 스트랩(웹 래싱)으로 측면·바닥 고정점에 묶는다.
   // 에어백은 문쪽에 쓰지 않는다(CTU Code 부속서 7 §2.3.8). 문은 충격하중이 없을 때만 경계로 본다(§4.2.5).
@@ -240,7 +290,7 @@ function renderRecommendation(){
   const el=$('recommendation'),outcome=shipment&&shipmentOutcome(shipment);if(!outcome||outcome.state==='complete'){el.hidden=true;el.innerHTML='';return}el.hidden=false;const c=result.container,count=shipment.containers.length,left=shipment.unallocated.length;
   el.innerHTML=outcome.state==='failed'?`<div><strong>현재 규격으로 적재할 수 없습니다.</strong><p>미배치 화물 ${left}개의 치수·중량·회전 조건을 확인하세요. 분할 대수는 제안하지 않습니다.</p></div>`:`<div><strong>${c.name} ${count}대에 ${outcome.loaded}개 적재 · ${left}개 미배치</strong><p>미배치 화물은 별도 검토가 필요합니다.</p></div>`;
 }
-function renderSecuringRecommendation(){const el=$('securingRecommendation'),panel=$('securingPanel'),plan=result.securing;if(!plan||(!plan.dunnage.length&&!plan.airbags.length&&!plan.reviews.length&&!plan.ctu?.needsRestraint)){panel.hidden=true;el.innerHTML='';return}panel.hidden=false;panel.open=false;const beam=plan.dunnage.find(d=>d.kind==='beam'),chocks=plan.dunnage.filter(d=>d.kind==='chock'),fillers=plan.dunnage.filter(d=>d.kind==='filler'),straps=plan.dunnage.filter(d=>d.kind==='strap'),icon=kind=>`<span class="securing-icon">${securingIcon(kind)}</span>`,profile=TRANSPORT_PROFILES[plan.transportMode]||TRANSPORT_PROFILES.combined,reviewUnits=plan.reviews.reduce((sum,w)=>sum+(w.count||1),0),items=[...(beam?[`<div class="has-icon">${icon('beam')}<strong>문쪽 전면 가로 각재</strong>노출 화물 폭 ${(beam.w/1000).toFixed(2)}m 전체 지지${beam.x>500?' · 간극이 크면 충전재(세운 팔레트) 추가':''}</div>`]:[]),...chocks.map((d,i)=>`<div class="has-icon">${icon('chock')}<strong>각재 지지 부목 ${i+1}/${chocks.length}</strong>Y ${(d.y/1000).toFixed(2)}m · 바닥 고정은 현장 확인</div>`),...straps.map(d=>`<div class="has-icon">${icon('strap')}<strong>${d.location}</strong>문을 열 때 윗단이 떨어지지 않게 고정 · 스트랩 사전장력은 MSL의 50% 이하</div>`),...plan.airbags.slice(0,8).map((a,i)=>`<div class="has-icon">${icon('airbag')}<strong>에어백 ${i+1}${a.bag?` · ${a.bag}`:''} · ${a.location}</strong>X ${(a.x/1000).toFixed(2)}m · Y ${(a.y/1000).toFixed(2)}m · Z ${(a.z/1000).toFixed(2)}m</div>`),...fillers.map(d=>`<div class="has-icon">${icon('filler')}<strong>${d.location}</strong>에어백과 벽 사이 · 에어백 한계(${AIRBAG_MAX_GAP}mm) 초과분</div>`),...plan.reviews.map(w=>`<div><strong>${w.severity==='rearrange'?'배치 재검토':'현장 고정 검토'} · ${esc(w.product)}${w.count>1?` × ${w.count}`:''}</strong>${w.location}${w.axes?` · 미지지 ${w.axes}`:''}</div>`)];$('securingCount').textContent=`${profile.label} · 부목 ${chocks.length} · 에어백 ${plan.airbags.length}${fillers.length?` · 충전재 ${fillers.length}`:''}${straps.length?` · 도어 스트랩 ${straps.length}`:''}${plan.reviews.length?` · 안정성 검토 ${plan.reviews.length}유형/${reviewUnits}개`:''}${ctuSecuringDirections(plan.ctu).length?` · CTU 고정 필요 ${ctuSecuringDirections(plan.ctu).length}방향`:''}`;el.innerHTML=`<h3>컨테이너 ${result.containerNumber} · ${profile.label} 운송 안정성</h3><p>자동 밴드 수량과 경로는 제시하지 않습니다. ${profile.label} 운송에서 피칭·롤링·히빙 또는 가감속에 불리한 높은 적층, 측면 간극, 문측 노출과 원통 구름 위험을 선별합니다.</p><div class="securing-items">${items.join('')}</div>${ctuSecuringHtml(plan.ctu)}`}
+function renderSecuringRecommendation(){const el=$('securingRecommendation'),panel=$('securingPanel'),plan=result.securing;if(!plan||(!plan.dunnage.length&&!plan.airbags.length&&!plan.reviews.length&&!plan.ctu?.needsRestraint)){panel.hidden=true;el.innerHTML='';return}panel.hidden=false;panel.open=false;const beam=plan.dunnage.find(d=>d.kind==='beam'),chocks=plan.dunnage.filter(d=>d.kind==='chock'),fillers=plan.dunnage.filter(d=>d.kind==='filler'),straps=plan.dunnage.filter(d=>d.kind==='strap'),fences=plan.dunnage.filter(d=>d.kind==='fence'),spacers=plan.dunnage.filter(d=>d.kind==='spacer'),lashings=plan.dunnage.filter(d=>d.kind==='lashing'),icon=kind=>`<span class="securing-icon">${securingIcon(kind)}</span>`,profile=TRANSPORT_PROFILES[plan.transportMode]||TRANSPORT_PROFILES.combined,reviewUnits=plan.reviews.reduce((sum,w)=>sum+(w.count||1),0),items=[...(fences.length?[`<div class="has-icon">${icon('beam')}<strong>문쪽 각재 펜스 ${fences.length}단 · 뒤 기둥 사이</strong>50×100mm 각재를 뒤 기둥(코너 포스트)에 고정 · 문에서 떨어진 화물 앞은 충전재로 채움</div>`]:[]),...lashings.map(d=>`<div class="has-icon">${icon('strap')}<strong>${d.location}</strong>에어백·충전재를 세울 수 없는 높은 곳의 큰 틈 · 스트랩이 화물 모서리에 닿는 곳은 코너 보호대</div>`),...(spacers.length?[`<div class="has-icon">${icon('filler')}<strong>틈 스페이서 ${spacers.length}곳</strong>${spacers.slice(0,4).map(d=>d.location).join(' · ')}${spacers.length>4?` 외 ${spacers.length-4}곳`:''}</div>`]:[]),...(beam?[`<div class="has-icon">${icon('beam')}<strong>문쪽 전면 가로 각재</strong>노출 화물 폭 ${(beam.w/1000).toFixed(2)}m 전체 지지${beam.x>500?' · 간극이 크면 충전재(세운 팔레트) 추가':''}</div>`]:[]),...chocks.map((d,i)=>`<div class="has-icon">${icon('chock')}<strong>각재 지지 부목 ${i+1}/${chocks.length}</strong>Y ${(d.y/1000).toFixed(2)}m · 바닥 고정은 현장 확인</div>`),...straps.map(d=>`<div class="has-icon">${icon('strap')}<strong>${d.location}</strong>문을 열 때 윗단이 떨어지지 않게 고정 · 스트랩 사전장력은 MSL의 50% 이하</div>`),...plan.airbags.slice(0,8).map((a,i)=>`<div class="has-icon">${icon('airbag')}<strong>에어백 ${i+1}${a.bag?` · ${a.bag}`:''} · ${a.location}</strong>X ${(a.x/1000).toFixed(2)}m · Y ${(a.y/1000).toFixed(2)}m · Z ${(a.z/1000).toFixed(2)}m</div>`),...fillers.map(d=>`<div class="has-icon">${icon('filler')}<strong>${d.location}</strong>에어백과 벽 사이 · 에어백 한계(${AIRBAG_MAX_GAP}mm) 초과분</div>`),...plan.reviews.map(w=>`<div><strong>${w.severity==='rearrange'?'배치 재검토':'현장 고정 검토'} · ${esc(w.product)}${w.count>1?` × ${w.count}`:''}</strong>${w.location}${w.axes?` · 미지지 ${w.axes}`:''}</div>`)];$('securingCount').textContent=`${profile.label} · 부목 ${chocks.length} · 에어백 ${plan.airbags.length}${fillers.length?` · 충전재 ${fillers.length}`:''}${fences.length?` · 각재 펜스 ${fences.length}단`:''}${spacers.length?` · 스페이서 ${spacers.length}`:''}${lashings.length?` · 상단 래싱 ${lashings.length}`:''}${straps.length?` · 도어 스트랩 ${straps.length}`:''}${plan.reviews.length?` · 안정성 검토 ${plan.reviews.length}유형/${reviewUnits}개`:''}${ctuSecuringDirections(plan.ctu).length?` · CTU 고정 필요 ${ctuSecuringDirections(plan.ctu).length}방향`:''}`;el.innerHTML=`<h3>컨테이너 ${result.containerNumber} · ${profile.label} 운송 안정성</h3><p>자동 밴드 수량과 경로는 제시하지 않습니다. ${profile.label} 운송에서 피칭·롤링·히빙 또는 가감속에 불리한 높은 적층, 측면 간극, 문측 노출과 원통 구름 위험을 선별합니다.</p><div class="securing-items">${items.join('')}</div>${ctuSecuringHtml(plan.ctu)}`}
 function ctuSecuringDirections(ctu){return ctu?.needsRestraint?ctu.directions.filter(d=>d.forceKN>0||d.tipping):[]}
 function ctuSecuringDetail(d){const w=d.worst;return`막히지 않은 화물 ${d.unblocked}개${w?` · 가장 불리한 화물 ${esc(w.product)}: 높이 비율 ${w.ratio.toFixed(2)} &gt; 한계 ${w.limit.toFixed(2)}${w.rows>1?` (${w.rows}열이 함께 기울 때)`:''} · ${w.profile}`:''}`}
 function ctuSecuringSummary(ctu){const list=ctuSecuringDirections(ctu);if(!list.length)return'';return`<p><strong>CTU Code 참고 계산(${ctu.profiles.join('·')}, 마찰계수 ${ctu.friction}):</strong> ${list.map(d=>`${d.label} ${d.forceKN>0?`억제력 ${d.forceKN.toFixed(1)} kN`:''}${d.forceKN>0&&d.tipping?' · ':''}${d.tipping?`전도 위험 ${d.tipping}개`:''}`).join(', ')}. 래싱 수량과 벽·앵커 강도는 계산하지 않았습니다.</p>`}
@@ -279,7 +329,8 @@ function drawThree(){
   if(visibleStep===result.placed.length&&result.securing){
     const woodMaterial=new THREE.MeshStandardMaterial({color:0xa56a32,roughness:.88}),nailMaterial=new THREE.MeshStandardMaterial({color:0x383d42,metalness:.65,roughness:.38});
     if(showDunnage)result.securing.dunnage.forEach(d=>{
-      if(d.kind==='filler'||d.kind==='strap'){const geometry=new THREE.BoxGeometry(d.l,d.h,d.w),mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:d.kind==='filler'?0xe8d3a8:0xf29b38,roughness:.9,transparent:d.kind==='filler',opacity:d.kind==='filler'?.85:1}));mesh.position.set(d.x+d.l/2,d.z+d.h/2,d.y+d.w/2);group.add(mesh);const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:d.kind==='filler'?0x9c7a3c:0xb7651a,transparent:true,opacity:.8}));edges.position.copy(mesh.position);group.add(edges);return}
+      if(d.kind==='fence'||d.kind==='spacer'){const geometry=new THREE.BoxGeometry(d.l,d.h,d.w),mesh=new THREE.Mesh(geometry,d.kind==='fence'?woodMaterial:new THREE.MeshStandardMaterial({color:0xd9c08a,roughness:.95}));mesh.position.set(d.x+d.l/2,d.z+d.h/2,d.y+d.w/2);group.add(mesh);const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:d.kind==='fence'?0x62401f:0x9c7a3c,transparent:true,opacity:.75}));edges.position.copy(mesh.position);group.add(edges);return}
+      if(d.kind==='filler'||d.kind==='strap'||d.kind==='lashing'){const geometry=new THREE.BoxGeometry(d.l,d.h,d.w),mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:d.kind==='filler'?0xe8d3a8:0xf29b38,roughness:.9,transparent:d.kind==='filler',opacity:d.kind==='filler'?.85:1}));mesh.position.set(d.x+d.l/2,d.z+d.h/2,d.y+d.w/2);group.add(mesh);const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:d.kind==='filler'?0x9c7a3c:0xb7651a,transparent:true,opacity:.8}));edges.position.copy(mesh.position);group.add(edges);return}
       if(d.kind==='beam'){const geometry=new THREE.BoxGeometry(d.l,d.h,d.w),mesh=new THREE.Mesh(geometry,woodMaterial);mesh.position.set(d.x+d.l/2,d.h/2,d.y+d.w/2);group.add(mesh);const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:0x62401f,transparent:true,opacity:.7}));edges.position.copy(mesh.position);group.add(edges);return}
       const dx=d.l,dz=d.w,h=d.h,isX=d.axis==='x',highAtMax=d.side==='min',positions=isX
         ?[0,0,0, dx,0,0, dx,0,dz, 0,0,dz, highAtMax?dx:0,h,0, highAtMax?dx:0,h,dz]

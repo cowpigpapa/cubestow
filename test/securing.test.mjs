@@ -29,7 +29,7 @@ test('airbags never overlap each other, cargo or dunnage, and never sit at a con
   assert.ok(checked>50,`only ${checked} airbags checked`);
 });
 
-test('airbags fill at most a 600 mm gap off the floor, and fillers and door straps never overlap cargo or airbags',()=>{
+test('airbags fill at most a 600 mm gap off the floor, and other securing items never overlap cargo or airbags',()=>{
   let fillers=0;
   for(const [id,sample] of Object.entries(context.__samples)){
     const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
@@ -43,7 +43,9 @@ test('airbags fill at most a 600 mm gap off the floor, and fillers and door stra
         if(a.zone==='cargo')assert.ok(a.l<=600+1,`sample ${id}: cargo airbag spans ${a.l} mm`);
         assert.match(a.bag||'',/^\d+×\d+$/,`sample ${id}: airbag size missing`);
       }
-      for(const d of plan.dunnage.filter(d=>d.kind==='filler'||d.kind==='strap')){
+      // 충전재·도어 스트랩·문쪽 각재 펜스·틈 스페이서·상단 래싱은 화물·에어백과 겹치지 않고 컨테이너 안에 있다.
+      for(const d of plan.dunnage.filter(d=>['filler','strap','fence','spacer','lashing'].includes(d.kind))){
+        assert.ok(d.x>=-1&&d.y>=-1&&d.z>=-1&&d.x+d.l<=load.container.l+1&&d.y+d.w<=load.container.w+1&&d.z+d.h<=load.container.h+1,`sample ${id}: ${d.kind} outside the container`);
         fillers++;
         load.placed.forEach(p=>assert.ok(!overlap(d,p),`sample ${id}: ${d.kind} inside cargo ${p.name}`));
         plan.airbags.forEach(a=>assert.ok(!overlap(d,a),`sample ${id}: ${d.kind} overlaps an airbag`));
