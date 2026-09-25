@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.14';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.15';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -35,7 +35,8 @@
     balance:{floorFirst:false},
     column:{floorFirst:true,key:'dblf'},
     columnBalance:{floorFirst:true,key:'dblf'},
-    wall:{floorFirst:true,key:'dblf'}
+    wall:{floorFirst:true,key:'dblf'},
+    strip:{floorFirst:true,key:'dblf'}
   };
   const PREFERRED_HEURISTIC={auto:'column',density:'density',width:'width',balance:'balance'};
 
@@ -131,10 +132,27 @@
     for(const [a,b] of spans){const from=Math.max(a,end),to=Math.min(b,z1);if(to>from){sum+=to-from;end=to}}
     return sum;
   }
-  function lateralSupportDirections(s,d,placed,c,packing=false){
+  // 바닥 격자 색인. 목록(배열)마다 한 번 만들고 뒤에 추가된 화물만 덧붙인다(적재 중 목록은 뒤에만 늘어난다).
+  // 이웃 검사는 질의 사각형과 겹치는 칸의 화물만 본다. 화물이 적으면 목록을 그대로 쓴다.
+  const GRID_CELL=400,gridCache=new WeakMap();
+  function gridOf(list){
+    let g=gridCache.get(list);
+    if(!g||g.count>list.length){g={cells:new Map(),count:0};gridCache.set(list,g)}
+    for(;g.count<list.length;g.count++){const p=list[g.count];for(let ix=Math.floor(p.x/GRID_CELL),ex=Math.floor((p.x+p.l)/GRID_CELL);ix<=ex;ix++)for(let iy=Math.floor(p.y/GRID_CELL),ey=Math.floor((p.y+p.w)/GRID_CELL);iy<=ey;iy++){const k=ix*4096+iy;let cell=g.cells.get(k);if(!cell)g.cells.set(k,cell=[]);cell.push(p)}}
+    return g;
+  }
+  // 사각형 여러 개([x0,x1,y0,y1])와 겹칠 수 있는 화물(중복 없음).
+  function nearby(list,rects){
+    if(list.length<32)return list;
+    const g=gridOf(list),seen=new Set(),out=[];
+    for(const [x0,x1,y0,y1] of rects)for(let ix=Math.floor(x0/GRID_CELL),ex=Math.floor(x1/GRID_CELL);ix<=ex;ix++)for(let iy=Math.floor(y0/GRID_CELL),ey=Math.floor(y1/GRID_CELL);iy<=ey;iy++){const cell=g.cells.get(ix*4096+iy);if(cell)for(const p of cell)if(!seen.has(p)){seen.add(p);out.push(p)}}
+    return out;
+  }
+  function lateralSupportDirections(s,d,placed,c,packing=false,self=null){
     const [l,w,h]=d,x0=s.x,x1=s.x+l,y0=s.y,y1=s.y+w,z0=s.z,z1=s.z+h,need=h*.5;
     let low=false,high=false,left=y0<=TOL,right=y1>=c.w-TOL,lowSpans=null,highSpans=null,leftSpans=null,rightSpans=null;
-    for(const p of placed){
+    for(const p of nearby(placed,[[x0-TOL-1,x1+TOL+1,y0-TOL-1,y1+TOL+1]])){
+      if(p===self)continue;
       if(low&&high&&left&&right)break;
       // 면 폭의 절반 이상 맞닿은 화물이 면 높이의 절반 이상을 덮으면 그 방향은 지지된다.
       // 한 화물로 덮지 못해도 같은 면에 맞닿은 화물들(예: 박스를 쌓은 기둥)의 높이 구간을 합쳐 판단한다.
@@ -174,10 +192,13 @@
   let BLOCK_GAP=500,FLOOR_FILL=true;
   // packing=true: 적재 좌표(안쪽 벽 x=0), false: 화면 좌표(안쪽 벽 x=l). 안쪽·좌·우 면이 각각 막혔는지 돌려준다.
   // 벽까지 비어 있으면 바닥 화물은 충전재(세운 팔레트·골판지)와 에어백으로, 높은 곳 화물은 에어백 한계(600mm) 안에서만 막을 수 있다.
-  function blockedSides(s,d,placed,c,packing){
+  function blockedSides(s,d,placed,c,packing,self=null){
     const [l,w,h]=d,x0=s.x,x1=s.x+l,y0=s.y,y1=s.y+w,z0=s.z,z1=s.z+h;
     const back=[],front=[],left=[],right=[];let leftClear=true,rightClear=true,doorClear=true;
-    for(const p of placed){
+    // 좌우는 벽까지의 통로, 앞뒤는 문까지의 통로와 안쪽 간극 범위만 보면 된다.
+    const rects=[[x0-1,x1+1,0,c.w],packing?[x0-BLOCK_GAP-TOL,c.l,y0-1,y1+1]:[0,x1+BLOCK_GAP+TOL,y0-1,y1+1]];
+    for(const p of nearby(placed,rects)){
+      if(p===self)continue;
       const pz0=p.z,pz1=p.z+p.h;
       if(doorClear&&p.y+p.w>y0+TOL&&p.y<y1-TOL&&(packing?p.x>=x1-TOL:p.x+p.l<=x0+TOL))doorClear=false;
       if(pz1<=z0+TOL||pz0>=z1-TOL)continue;
@@ -207,11 +228,11 @@
   let TOWER_CHECK=false,TIP={side:3,forward:3,backward:3},TIP_STACKED_ONLY=true;
   function tipLimits(mode){const profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'],lim=k=>Math.min(...profiles.map(p=>TIP_ACC[p][k][1]/TIP_ACC[p][k][0]));return{side:lim('side'),forward:lim('forward'),backward:lim('backward')}}
   // 적재 좌표에서 back=안쪽 벽 쪽(전방 가속도), front=문쪽(후방 가속도).
-  function towerOk(s,d,placed,c,packing){
+  function towerOk(s,d,placed,c,packing,self=null){
     const [l,w,h]=d;if(TIP_STACKED_ONLY&&s.z<=0)return true;
     const H=s.z+h,rx=H/Math.max(1,l),ry=H/Math.max(1,w),needBack=rx>TIP.forward,needFront=rx>TIP.backward,needSide=ry>TIP.side;
     if(!needBack&&!needFront&&!needSide)return true;
-    const b=blockedSides(s,d,placed,c,packing);
+    const b=blockedSides(s,d,placed,c,packing,self);
     return(!needBack||b.back)&&(!needFront||b.front)&&(!needSide||b.left&&b.right);
   }
   const blockedOk=b=>b.back&&b.left&&b.right;
@@ -587,15 +608,15 @@
   function settleSides(c,placed,fixed){
     let kept=placed,removed=[];
     for(let round=0;round<placed.length;round++){
-      const failing=kept.filter(p=>{if(fixed.has(p))return false;const others=kept.filter(q=>q!==p);return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,c,true))<2||STRICT_BLOCK&&!blockedOk(blockedSides(p,[p.l,p.w,p.h],others,c,true))||TOWER_CHECK&&!towerOk(p,[p.l,p.w,p.h],others,c,true)});
+      const failing=kept.filter(p=>{if(fixed.has(p))return false;const d=[p.l,p.w,p.h];return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,kept,c,true,p))<2||STRICT_BLOCK&&!blockedOk(blockedSides(p,d,kept,c,true,p))||TOWER_CHECK&&!towerOk(p,d,kept,c,true,p)});
       if(!failing.length)break;
       const drop=new Set();
       for(const p of failing){
         // 문쪽 면만 모자라서 걸렸으면(다른 조건은 통과) 앞에 닿은 화물들을 뺀다. 그러면 이 화물이 문쪽 첫 줄이 되거나, 다시 놓인 화물이 제대로 막는다.
-        const others=kept.filter(q=>q!==p),d=[p.l,p.w,p.h];
+        const others=kept,d=[p.l,p.w,p.h];
         let onlyFront=false;
-        if(TOWER_CHECK&&!((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,others,c,true))<2)&&!(STRICT_BLOCK&&!blockedOk(blockedSides(p,d,others,c,true)))){
-          const b=blockedSides(p,d,others,c,true),H=p.z+p.h,rx=H/Math.max(1,p.l),ry=H/Math.max(1,p.w);
+        if(TOWER_CHECK&&!((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,others,c,true,p))<2)&&!(STRICT_BLOCK&&!blockedOk(blockedSides(p,d,others,c,true,p)))){
+          const b=blockedSides(p,d,others,c,true,p),H=p.z+p.h,rx=H/Math.max(1,p.l),ry=H/Math.max(1,p.w);
           onlyFront=!b.front&&(rx<=TIP.forward||b.back)&&(ry<=TIP.side||b.left&&b.right);
         }
         const ahead=onlyFront?others.filter(q=>!fixed.has(q)&&q.x>=p.x+p.l-TOL&&q.x-(p.x+p.l)<=BLOCK_GAP&&q.y+q.w>p.y&&q.y<p.y+p.w&&q.z+q.h>p.z+TOL&&q.z<p.z+p.h-TOL):[];
@@ -616,6 +637,72 @@
     const ranked=[...weight.entries()].sort((a,b)=>b[1]-a[1]||b[0]-a[0]).map(([d])=>d);
     const first=units[0]?.rotations.map(d=>d[0]).filter(d=>d<=room).sort((a,b)=>b-a)[0];
     return[...new Set([...(first?[first]:[]),...ranked])].slice(0,limit);
+  }
+  // 전폭 벽(스트립) 빌더. 벽 = 깊이 D 안에 같은 규격을 같은 방향으로 수직으로 쌓은 기둥들을 폭 방향으로 빈틈없이 붙인 것.
+  // 기둥 후보(규격·회전·단수)의 폭 조합을 동적계획법으로 골라 벽 부피를 최대로 하고(양 끝 잔여 폭은 500mm 이하를 우선),
+  // 벽 채움률이 가장 높은 깊이를 골라 안쪽 벽부터 차례로 확정한다. 기둥은 벽의 안쪽 면에 맞추고, 짧은 기둥의 문쪽 틈은 500mm 이하다.
+  const STRIP_STEP=10;
+  function stripColumns(run,units){
+    const groups=new Map();
+    for(const u of units){if(!groups.has(u.typeKey))groups.set(u.typeKey,[]);groups.get(u.typeKey).push(u)}
+    const cols=[];
+    for(const list of groups.values()){
+      const u=list[0];
+      for(const d of u.rotations){
+        // 기둥 높이는 전도 한계 안에서만 쌓는다(바닥부터 높이 ÷ 깊이·폭). 한계를 넘는 기둥은 앞뒤 벽 높이가 맞지 않으면 최종 검사에서 무너진다.
+        const cap=TOWER_CHECK?Math.min(Math.min(TIP.forward,TIP.backward)*d[0],TIP.side*d[1]):Infinity;
+        let most=Math.min(list.length,columnHeight(run,u,d));while(most>1&&most*d[2]>cap)most--;
+        for(let k=1;k<=most;k++)cols.push({key:u.typeKey,list,d,k,width:d[1],height:d[2]*k,volume:d[0]*d[1]*d[2]*k,weight:u.weight*k});
+      }
+    }
+    return cols;
+  }
+  function bestStrip(run,pending,room,weightLeft){
+    const c=run.c,W=Math.floor(c.w/STRIP_STEP),cols=stripColumns(run,pending);
+    let best=null;
+    // 이웃 기둥이 서로 옆면을 절반 이상 덮으려면 높이가 비슷해야 한다: 목표 높이 H와의 차이가 그 기둥 한 단 높이의 절반 이하.
+    const heights=[...new Set(cols.map(col=>col.height))];
+    for(const D of [...new Set(cols.map(col=>col.d[0]))].filter(D=>D<=room))for(const H of heights){
+      const usable=cols.filter(col=>col.d[0]<=D&&D-col.d[0]<=BLOCK_GAP&&Math.abs(col.height-H)<=col.d[2]*.5&&col.height<=H+1);
+      if(!usable.length)continue;
+      // dp[w]: 폭 w칸을 정확히 쓴 조합 중 부피가 가장 큰 것(사용 수량을 함께 들고 다닌다).
+      const dp=new Array(W+1).fill(null);dp[0]={volume:0,weight:0,used:new Map(),picks:[]};
+      for(let w=0;w<=W;w++){
+        const state=dp[w];if(!state)continue;
+        for(const col of usable){
+          const cw=Math.ceil(col.width/STRIP_STEP),to=w+cw;if(to>W)continue;
+          const used=(state.used.get(col.key)||0)+col.k;if(used>col.list.length||state.weight+col.weight>weightLeft)continue;
+          const volume=state.volume+col.volume,cur=dp[to];
+          if(!cur||volume>cur.volume+1e-6){const next=new Map(state.used);next.set(col.key,used);dp[to]={volume,weight:state.weight+col.weight,used:next,picks:[...state.picks,col]}}
+        }
+      }
+      // 잔여 폭 500mm 이하인 조합을 우선하고, 없으면 가장 큰 조합(마지막 벽 등).
+      const tight=Math.floor((c.w-BLOCK_GAP)/STRIP_STEP);
+      let pick=null;for(let w=W;w>=0;w--){const st=dp[w];if(!st||!st.picks.length)continue;const ok=w>=tight;if(!pick||ok&&!pick.ok||ok===pick.ok&&st.volume>pick.st.volume)pick={st,w,ok}}
+      if(!pick)continue;
+      const fill=pick.st.volume/(D*c.w*c.h),score=[pick.ok?0:1,-fill,-pick.st.volume];
+      if(!best||compareKeys(score,best.score)<0)best={D,H,picks:pick.st.picks,score};
+    }
+    return best;
+  }
+  function packStrips(ctx,units,order){
+    const c=ctx.c,run={...ctx,heuristic:'dblf'},placed=[];let pending=sortUnits(units,order),x=0,weight=0;
+    while(pending.length&&x<c.l){
+      const strip=bestStrip(run,pending,c.l-x,c.maxWeight-weight);if(!strip)break;
+      // 기둥을 폭 방향으로 붙여 놓는다. 무거운 기둥을 가운데에 두어 좌우 무게를 맞춘다.
+      const picks=[...strip.picks].sort((a,b)=>b.weight-a.weight),line=[];picks.forEach((col,i)=>i%2?line.push(col):line.unshift(col));
+      const taken=new Set();let y=0;
+      for(const col of line){
+        const items=col.list.filter(u=>!taken.has(u.uid)&&pending.includes(u)).slice(0,col.k);
+        items.forEach((u,j)=>{taken.add(u.uid);placed.push({...u,x,y,z:j*col.d[2],l:col.d[0],w:col.d[1],h:col.d[2]});weight+=u.weight});
+        y+=col.d[1];
+      }
+      // 남는 폭은 양쪽으로 나눈다(가운데 정렬).
+      const slack=c.w-y;if(slack>TOL){const shift=Math.floor(slack/2),start=placed.length-[...taken].length;for(let i=start;i<placed.length;i++)placed[i].y+=shift}
+      pending=pending.filter(u=>!taken.has(u.uid));
+      x+=strip.D;
+    }
+    return{placed,rejected:pending.map(item=>({...item,reason:weight+item.weight>c.maxWeight?'중량 초과':'공간 또는 지지 조건 부족'})),totalWeight:weight,heuristic:'strip',order};
   }
   function packWalls(ctx,units,order){
     const c=ctx.c,placed=[],rejected=[];
@@ -643,7 +730,7 @@
   function packContainer(ctx,units,heuristic,order,seed=[]){
     if(heuristic==='wall'&&!seed.length)return packWalls(ctx,units,order);
     if(!ctx.deferSides||seed.length)return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
-    let raw=packContainerOnce(ctx,units,heuristic,order,seed),best=null;
+    let raw=heuristic==='strip'&&!seed.length?packStrips(ctx,units,order):packContainerOnce(ctx,units,heuristic,order,seed),best=null;
     const volume=list=>list.reduce((sum,p)=>sum+p.l*p.w*p.h,0);
     // 최종 상태 검사 → 미달 화물(과 그 위 화물) 제거 → 뺀 화물을 다시 놓기를 반복하고, 검사를 통과한 안 중 부피가 가장 큰 안을 쓴다.
     // 다시 놓을 때도 처음처럼 임시로 놓는다(옆 칸이 나중에 채워지면 막힌다). 마지막 두 번은 놓는 순간 규칙을 지키게 놓는다.
@@ -733,7 +820,7 @@
   function transportStabilityAssessment(p,placed,c,mode){
     const profile=TRANSPORT_PROFILES[mode]||TRANSPORT_PROFILES.combined,base=Math.max(1,Math.min(p.l,p.w));
     const itemSlender=p.h/base,columnSlender=(p.z+p.h)/base;
-    const lateral=lateralSupportDirections(p,[p.l,p.w,p.h],placed.filter(q=>q!==p),c),supported=countSides(lateral);
+    const lateral=lateralSupportDirections(p,[p.l,p.w,p.h],placed,c,false,p),supported=countSides(lateral);
     const missing=Object.entries(lateral).filter(([,ok])=>!ok).map(([dir])=>({front:'전',back:'후',left:'좌',right:'우'}[dir]));
     const reasons=[];
     if(itemSlender>profile.slender&&supported<profile.minSides)reasons.push(`높이 비율 ${itemSlender.toFixed(1)} · 측면 지지 ${supported}/4`);
@@ -792,7 +879,7 @@
   function portfolioRuns(preference){
     // 기둥 쌓기는 시간 예산 안에 반드시 실행되도록 우선 기준 규칙 바로 다음에 둔다.
     const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...(first==='column'?[]:['column']),'columnBalance',...Object.keys(HEURISTICS).filter(h=>h!==first&&h!=='column'&&h!=='columnBalance')],runs=[];
-    for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)if(heuristic!=='wall'||STRICT_BLOCK)runs.push({heuristic,order});
+    for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)if(heuristic!=='wall'&&heuristic!=='strip'||STRICT_BLOCK)runs.push({heuristic,order});
     return runs;
   }
 
@@ -843,7 +930,7 @@
       // 앞뒤 이웃과 안쪽 벽 접촉이 바뀌므로 높이 비율이 큰 화물의 측면 지지 규칙(2면 이상)을 다시 확인한다.
       for(const p of next){
         const base=Math.max(1,Math.min(p.l,p.w));
-        if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next.filter(q=>q!==p),c,true))<2)return null;
+        if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next,c,true,p))<2)return null;
       }
       return{...raw,placed:next,rebalanced:true};
     };
@@ -853,7 +940,8 @@
   // 완성된 배치안에서 높은 화물(누적 높이/바닥 최소 치수 > 1.5)이 모두 2면 이상 측면 지지되는지 확인한다(화면 좌표).
   // 좌우 무게중심 맞춤으로 적재 전체를 옮기면 옆벽에 기대던 화물이 벽에서 떨어질 수 있다.
   function sidesHold(load){
-    return load.placed.every(p=>{const others=load.placed.filter(q=>q!==p);return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,load.container))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,[p.l,p.w,p.h],others,load.container,false)))&&(!TOWER_CHECK||towerOk(p,[p.l,p.w,p.h],others,load.container,false))});
+    const all=load.placed;
+    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p)))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
   }
   // 적재 전체를 사용 길이 안에서 앞뒤로 뒤집는다. 받침·상부하중·적층 무게중심은 그대로이고, 안쪽 벽 접촉이 바뀌므로 첫 화물 밀착과 측면 지지를 다시 확인한다.
   function mirrorLoad(ctx,raw){
@@ -861,7 +949,7 @@
     const span=Math.max(...placed.map(p=>p.x+p.l)),next=placed.map(p=>({...p,x:span-(p.x+p.l)}));
     let first=null;for(const p of next)if(p.z===0&&(!first||p.x+p.l<first.x+first.l||p.x+p.l===first.x+first.l&&p.y<first.y))first=p;
     if(!first||first.x>0)return null;
-    for(const p of next){const base=Math.max(1,Math.min(p.l,p.w));if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next.filter(q=>q!==p),c,true))<2)return null}
+    for(const p of next){const base=Math.max(1,Math.min(p.l,p.w));if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next,c,true,p))<2)return null}
     return{...raw,placed:next,mirrored:true};
   }
   function packOneContainer(ctx,units,deadline,stats){

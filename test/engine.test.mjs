@@ -373,6 +373,8 @@ test('CTU safety builds full-width walls so the size-comparison sample keeps mos
   const sample=context.__samples[3],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
   const result=engine.packShipment({container:C20,units:items,safety:'secure',transportMode:sample.mode,timeBudgetMs:60000});
   // 3면 막힘 규칙 때문에 빠진 화물은 다시 임시로 놓고 최종 검사를 반복한다. 예전에는 첫 컨테이너에 13개만 남았다.
+  // 같은 규격을 같은 높이로 쌓은 기둥들로 폭 전체를 채운 벽(스트립)을 안쪽부터 쌓으면 한 대에 모두 들어간다.
+  assert.equal(result.loads.length,1,`containers ${result.loads.length}`);
   assert.ok(result.loads[0].placed.length>=30,`first container ${result.loads[0].placed.length}`);
   assert.equal(result.remaining.length,0);
   assertValidShipment(result,items);

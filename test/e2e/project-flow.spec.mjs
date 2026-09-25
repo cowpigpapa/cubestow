@@ -265,3 +265,16 @@ test('loading another sample while calculating recalculates for the new sample',
   await loadSample(page,2).catch(()=>{});
   await expect(page.locator('#loadedCount')).toHaveText('42개',{timeout:60000});await expect(page.locator('#currentProjectName')).toHaveText('샘플 2 · 단일 규격 반복');
 });
+
+test('result summary shows the safety verdict and field results compare with the plan',async({page})=>{
+  await page.goto('/');await loadSample(page,1);
+  // 결과 요약: 안전 판정·꼭 필요한 고정재·확인할 항목이 지표 아래에 먼저 보인다.
+  const summary=page.locator('#resultSummary');
+  await expect(summary).toBeVisible();await expect(summary).toContainText('안전 판정');await expect(summary).toContainText('꼭 필요한 고정재');
+  // 현장 결과를 기록하면 계획과의 차이를 보여 주고 프로젝트가 저장되지 않음 상태가 된다.
+  await page.locator('#fieldPanel').evaluate(panel=>panel.open=true);
+  await page.locator('#fieldLoaded').fill('30');await page.locator('#fieldContainers').fill('2');await page.locator('#fieldNotes').fill('문쪽 1열 재배치');
+  await page.locator('#saveField').click();
+  await expect(page.locator('#fieldCompare')).toContainText('실제 30개');await expect(page.locator('#fieldCompare')).toContainText('2대(계획 1대, +1)');
+  await expect(page.locator('#fieldSummary')).toContainText('기록됨');
+});

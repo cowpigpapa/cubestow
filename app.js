@@ -107,6 +107,7 @@ function bindEvents(){
   document.querySelectorAll('#securingOptions input[type=checkbox]').forEach(box=>box.onchange=()=>{securingOptions={...securingOptions,[box.value]:box.checked};renderSecuringOptions();markSimulationChanged()});
   document.addEventListener('click',event=>{const menu=$('securingOptions');if(menu?.open&&!menu.contains(event.target))menu.open=false});
   renderSecuringOptions();
+  $('saveField').onclick=saveFieldResult;
   $('toggleDunnage').onclick=()=>toggleSecuringVisibility('dunnage');
   $('toggleAirbags').onclick=()=>toggleSecuringVisibility('airbags');
   $('resetView').onclick=()=>{camera={yaw:-2.51,pitch:0.42,zoom:1};setView('iso')};
@@ -161,7 +162,7 @@ function updateContainerSpec(){syncSelects();const c=CONTAINERS[$('containerType
 
 function runPackingEngine(input,onProgress=()=>{}){
   const local=()=>new Promise((resolve,reject)=>setTimeout(()=>{try{resolve(LoadwiseEngine.packShipment({...input,onProgress}))}catch(error){reject(error)}},0));
-  if(!engineWorker&&typeof Worker!=='undefined'&&location.protocol!=='file:')try{engineWorker=new Worker('engine-worker.js?v=20260926-1')}catch{engineWorker=null}
+  if(!engineWorker&&typeof Worker!=='undefined'&&location.protocol!=='file:')try{engineWorker=new Worker('engine-worker.js?v=20260926-2')}catch{engineWorker=null}
   if(!engineWorker)return local();
   const id=++engineJob,worker=engineWorker;
   return new Promise((resolve,reject)=>{
@@ -311,12 +312,49 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
   return{dunnage,airbags,reviews,transportMode,options:{...options},ctu:LoadwiseInsights.securing(load,{mode:transportMode})};
 }
 function updateResults(){
-  const r=result,total=shipment?shipment.totalUnits:products.reduce((s,p)=>s+p.qty,0);$('emptyState').style.display='none';renderContainerTabs();
+  const r=result,total=shipment?shipment.totalUnits:products.reduce((s,p)=>s+p.qty,0);$('emptyState').style.display='none';renderContainerTabs();renderResultSummary();renderFieldResult();
   $('volumeRate').textContent=`${r.volumeRate.toFixed(1)}%`;$('weightRate').textContent=`${r.weightRate.toFixed(1)}%`;$('volumeBar').style.width=`${Math.min(100,r.volumeRate)}%`;$('weightBar').style.width=`${Math.min(100,r.weightRate)}%`;
   $('loadedCount').textContent=`${r.placed.length}개`;$('loadedDetail').textContent=`전체 ${total}개`;$('totalWeight').textContent=`${r.totalWeight.toLocaleString()} kg`;$('containerCount').textContent=`${shipment?shipment.containers.length:1}대`;$('containerDetail').textContent=r.container.name;$('weightDetail').textContent=`허용 ${(r.container.maxWeight/1000).toFixed(1)} t`;
   const groups=[];r.placed.forEach(p=>{let g=groups.find(x=>x.name===p.name&&x.z===p.z&&x.x===p.x);if(g)g.count++;else groups.push({...p,count:1})});
   $('sequenceEmpty').style.display=r.placed.length?'none':'block';$('sequenceEmpty').textContent=r.placed.length?'':'적재 가능한 화물이 없습니다.';$('sequenceList').innerHTML=groups.map((p,i)=>`<li><span class="num">${String(i+1).padStart(2,'0')}</span><span class="dot" style="background:${p.color};border-radius:${p.shape==='cylinder'?'50%':'2px'}"></span><div><strong>${esc(p.name)} × ${p.count} · ${p.shape==='cylinder'?'원통형':'박스형'}</strong><br><small>문에서 ${(p.x/1000).toFixed(2)}m 안쪽 · 바닥에서 ${(p.z/1000).toFixed(2)}m 높이</small></div><small>${p.l}×${p.w}×${p.h}</small></li>`).join('');const blocked=shipment?.unallocated.length>0;$('exportPlan').disabled=blocked||resultStale;$('exportPlan').title=blocked?`미배치 화물 ${shipment.unallocated.length}개를 해결한 후 내보낼 수 있습니다.`:'';
   $('playback').style.display='flex';$('stepRange').max=r.placed.length;$('totalSteps').textContent=r.placed.length;$('exportPdf').disabled=blocked||resultStale;$('exportPdf').title=blocked?`미배치 화물 ${shipment.unallocated.length}개를 해결한 후 만들 수 있습니다.`:'';setStep(r.placed.length);renderBalance();renderRecommendation();renderSecuringRecommendation();requestAnimationFrame(syncSequenceHeight);
+}
+// 현장 결과 기록과 계획 비교. 기록은 프로젝트 저장에 포함된다.
+function renderFieldResult(){
+  const panel=$('fieldPanel');if(!panel)return;
+  if(!shipment){panel.hidden=true;return}
+  panel.hidden=false;
+  const planned={loaded:shipmentOutcome(shipment).loaded,containers:shipment.containers.length};
+  if(document.activeElement?.closest?.('#fieldPanel')==null){$('fieldLoaded').value=fieldResult?.loaded||'';$('fieldContainers').value=fieldResult?.containers||'';$('fieldNotes').value=fieldResult?.notes||''}
+  if(!fieldResult||(!fieldResult.loaded&&!fieldResult.containers)){$('fieldSummary').textContent='실제 적재 결과를 남기면 계획과 비교합니다';$('fieldCompare').textContent=`계획: ${planned.loaded}개 · ${planned.containers}대`;return}
+  const diff=(actual,plan,unit)=>actual?`${actual}${unit}(계획 ${plan}${unit}, ${actual===plan?'일치':actual>plan?`+${actual-plan}`:`−${plan-actual}`})`:'—';
+  $('fieldSummary').textContent=`기록됨 · ${fieldResult.recordedAt?new Date(fieldResult.recordedAt).toLocaleDateString('ko-KR'):''}`;
+  $('fieldCompare').textContent=`실제 ${diff(fieldResult.loaded,planned.loaded,'개')} · ${diff(fieldResult.containers,planned.containers,'대')}${fieldResult.notes?` · 메모: ${fieldResult.notes}`:''}`;
+}
+function saveFieldResult(){
+  fieldResult={loaded:Math.max(0,Math.floor(Number($('fieldLoaded').value)||0)),containers:Math.max(0,Math.floor(Number($('fieldContainers').value)||0)),notes:String($('fieldNotes').value||'').slice(0,240),recordedAt:new Date().toISOString()};
+  window.loadwiseStorage?.markDirty();renderFieldResult();
+}
+// 결과 요약: 이 컨테이너의 안전 판정, 꼭 필요한 고정재 3가지, 현장에서 확인할 항목. 자세한 내용은 아래 카드에 있다.
+function renderResultSummary(){
+  const el=$('resultSummary');if(!el)return;
+  if(!result||!result.placed.length){el.hidden=true;el.innerHTML='';return}
+  const ctu=LoadwiseInsights.ctu(result),plan=result.securing||{dunnage:[],airbags:[],reviews:[]},safety=LoadwiseEngine.SAFETY_LEVELS[shipment?.safety||$('safetyLevel').value]?.label||'엄격';
+  const level=ctu?.level||'safe',levelText={safe:'양호',caution:'주의',danger:'위험'}[level];
+  const count=kind=>plan.dunnage.filter(d=>d.kind===kind).length,nails=plan.dunnage.filter(d=>d.kind==='beam').reduce((sum,d)=>sum+(d.nails||0),0);
+  const needs=[
+    count('beam')?{icon:'beam',text:`문쪽 바닥 각재 ${count('beam')}곳 · 못 ${nails}개`}:null,
+    count('fence')?{icon:'beam',text:`문쪽 각재 펜스 ${count('fence')}단`}:null,
+    plan.airbags.length?{icon:'airbag',text:`에어백 ${plan.airbags.length}개`}:null,
+    count('lashing')+count('strap')?{icon:'strap',text:`래싱·스트랩 ${count('lashing')+count('strap')}개`}:null,
+    count('filler')+count('spacer')?{icon:'filler',text:`충전재·스페이서 ${count('filler')+count('spacer')}곳`}:null
+  ].filter(Boolean).slice(0,3);
+  const rearrange=plan.reviews.filter(r=>r.severity==='rearrange').length,review=plan.reviews.length-rearrange,restraint=ctuSecuringDirections(plan.ctu).length;
+  const checks=[rearrange?`배치 재검토 ${rearrange}건`:'',review?`현장 고정 검토 ${review}건`:'',restraint?`CTU 고정 필요 ${restraint}방향`:''].filter(Boolean);
+  el.hidden=false;el.dataset.level=level;
+  el.innerHTML=`<div class="summary-verdict"><span>안전 판정</span><strong>${esc(safety)} 기준 · 사전검사 ${levelText}</strong></div>`+
+    `<div class="summary-needs"><span>꼭 필요한 고정재</span><strong>${needs.length?needs.map(n=>`<em><i class="securing-icon">${securingIcon(n.icon)}</i>${n.text}</em>`).join(''):'추가 고정재 없음'}</strong></div>`+
+    `<div class="summary-checks"><span>확인할 항목</span><strong>${checks.length?checks.join(' · '):'없음'}</strong></div>`;
 }
 function renderBalance(){const value=LoadwiseInsights.ctu(result),card=$('balanceCard');if(!value){card.hidden=true;return}const validation=LoadwiseValidator.validateLoad(result,{minSupport:shipmentMinSupport()}),m=validation.metrics;card.hidden=false;card.dataset.level=value.level;$('balanceStatus').textContent=value.level==='safe'?'사전검사 양호':value.level==='caution'?'사전검사 주의':'사전검사 위험';$('frontRearBalance').textContent=`${value.door.toFixed(1)}% / ${value.rear.toFixed(1)}%`;$('leftRightBalance').textContent=`${value.left.toFixed(1)}% / ${value.right.toFixed(1)}%`;$('cogPosition').textContent=`X ${(value.cog.x/1000).toFixed(2)} · Y ${(value.cog.y/1000).toFixed(2)} · Z ${(value.cog.z/1000).toFixed(2)} m`;$('cogOffset').textContent=`전후 ${Math.abs(value.grossXOffset).toFixed(1)}% · 좌우 ${Math.abs(value.grossYOffset).toFixed(1)}%`;$('cogOffset').title=`총중량(화물 + 컨테이너 자체중량 ${value.tare.toLocaleString()} kg) 기준. 화물만: 전후 ${Math.abs(value.xOffset).toFixed(1)}% · 좌우 ${Math.abs(value.yOffset).toFixed(1)}%`;$('ctuConcentration').textContent=`${value.concentration.toFixed(1)}% · ${value.checks.concentration?'권고 이내':'60% 초과'}`;$('ctuVertical').textContent=`높이의 ${value.vertical.toFixed(1)}% · ${value.checks.vertical?'권고 이내':'50% 초과'}`;$('compressionStatus').textContent=m.compressionUnverified?`${m.compressionVerified}개 검증 · ${m.compressionUnverified}개 미입력`:`${m.compressionVerified}개 검증 완료`;// 칸마다 권고 범위 안(good)·주의(caution)·위험(danger)을 색으로 보여 준다. 미입력 압축하중은 나쁜 값이 아니라 판정하지 않는다.
 const offset=v=>Math.abs(v)<=5?'good':Math.abs(v)<=10?'caution':'danger',mark=(id,level)=>{const cell=$(id).parentElement;if(level)cell.dataset.level=level;else delete cell.dataset.level};mark('frontRearBalance',offset(value.grossXOffset));mark('leftRightBalance',offset(value.grossYOffset));mark('cogOffset',offset(value.maxOffset));mark('cogPosition','');mark('ctuConcentration',value.checks.concentration?'good':'caution');mark('ctuVertical',value.vertical<=50?'good':value.vertical<=60?'caution':'danger');mark('compressionStatus',m.compressionUnverified?'':'good')}

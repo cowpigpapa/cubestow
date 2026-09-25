@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260925-6">
+  <link rel="stylesheet" href="v3-projects.css?v=20260926-1">
 </head>
 <body>
   <header class="topbar">
@@ -130,6 +130,7 @@
           <div><span>총 적재 중량</span><strong id="totalWeight">—</strong><small id="weightDetail">허용 중량 —</small></div>
           <div><span>컨테이너</span><strong id="containerCount">—</strong><small id="containerDetail">시뮬레이션 전</small></div>
         </div>
+        <section class="result-summary" id="resultSummary" hidden aria-label="결과 요약"></section>
         <div class="recommendation" id="recommendation" hidden></div>
         <section class="balance-card" id="balanceCard" hidden><div class="balance-title"><h3>무게중심·중량배분·압축하중</h3><small class="cog-position">무게중심 위치 <b id="cogPosition">—</b></small></div><strong id="balanceStatus">—</strong><div class="balance-grid"><span>문쪽 / 안쪽<b id="frontRearBalance">—</b></span><span>좌측 / 우측<b id="leftRightBalance">—</b></span><span>중심 편차<b id="cogOffset">—</b></span><span>50% 길이 최대 질량<b id="ctuConcentration">—</b></span><span>수직 무게중심<b id="ctuVertical">—</b></span><span>압축하중 검증<b id="compressionStatus">—</b></span></div><p>CTU Code의 중량배분 권고를 이용한 사전검사입니다. 중심 편차와 50% 길이 질량은 스프레더·차량이 실제로 드는 총중량(화물 + 컨테이너 자체중량 표준값) 기준으로 판정합니다. 축하중·바닥 집중하중·마찰·운송 중 동하중과 래싱 용량은 별도 검증이 필요합니다.</p></section>
 
@@ -140,6 +141,14 @@
         </div>
 
         <details class="collapsible-card securing-card" id="securingPanel" hidden><summary><div><strong>고정재 권고</strong><span id="securingCount"></span></div><span class="collapse-state collapse-toggle"></span></summary><div class="securing-recommendation" id="securingRecommendation"></div></details>
+        <details class="collapsible-card field-card" id="fieldPanel" hidden><summary><div><strong>현장 결과 기록</strong><span id="fieldSummary">실제 적재 결과를 남기면 계획과 비교합니다</span></div><span class="collapse-state collapse-toggle"></span></summary>
+          <div class="field-form">
+            <label>실제 적재 수량<input id="fieldLoaded" type="number" min="0" inputmode="numeric" placeholder="개"></label>
+            <label>실제 컨테이너 수<input id="fieldContainers" type="number" min="0" inputmode="numeric" placeholder="대"></label>
+            <label class="field-notes">현장 메모<input id="fieldNotes" type="text" maxlength="240" placeholder="예: 문쪽 2열 재배치, 에어백 1개 추가"></label>
+            <button type="button" id="saveField" class="field-save">기록</button>
+          </div>
+          <p class="field-compare" id="fieldCompare"></p></details>
       </section>
     </section>
 
@@ -262,16 +271,16 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.33</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.34</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
-  <script src="project-model.js?v=20260926-1"></script>
-  <script src="packing-engine.js?v=20260926-1"></script>
+  <script src="project-model.js?v=20260926-2"></script>
+  <script src="packing-engine.js?v=20260926-2"></script>
   <script src="load-insights.js?v=20260925-1"></script>
   <script src="solution-validator.js?v=20260925-6"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260926-1"></script>
+  <script src="app.js?v=20260926-2"></script>
   <script src="project-store.js?v=20260925-2"></script>
 </body>
 </html>

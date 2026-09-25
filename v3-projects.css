@@ -227,6 +227,23 @@ details.menu>summary[aria-label]::after{content:""}
 .canvas-wrap .result-control-row .container-nav-slot{order:3}
 .securing-visibility .cog-toggle.active{border-color:#9fd3b2;color:#17693a}
 .securing-visibility .cog-toggle.active i{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.15)}
+.field-card{margin-top:12px}
+.field-form{display:grid;grid-template-columns:140px 140px minmax(0,1fr) auto;gap:10px;align-items:end;padding:4px 18px 8px}
+.field-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:rgb(67,80,71)}
+.field-form input{height:38px;border:1px solid var(--v3-line,#dde3e0);border-radius:10px;padding:0 10px;font-size:14px}
+.field-save{height:38px;padding:0 16px;border-radius:999px;border:0;background:#1d1d1f;color:#fff;font-weight:600;cursor:pointer}
+.field-compare{margin:4px 18px 16px;font-size:13px;color:#39413c}
+@media(max-width:760px){.field-form{grid-template-columns:1fr 1fr}.field-form .field-notes{grid-column:1/-1}}
+.result-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) minmax(0,1fr);gap:10px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--v3-line,#dde3e0);border-left:4px solid #1f9d55;border-radius:12px;background:#fff}
+.result-summary[hidden]{display:none}
+.result-summary[data-level="caution"]{border-left-color:#d38b00}.result-summary[data-level="danger"]{border-left-color:#b42318}
+.result-summary>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.result-summary span{font-size:12px;color:#667069;font-weight:600}
+.result-summary strong{font-size:14px;color:#1b1f1d;font-weight:600;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.result-summary em{font-style:normal;display:inline-flex;align-items:center;gap:4px}
+.result-summary em .securing-icon{margin:0;width:16px;height:16px;flex-basis:16px}
+.result-summary[data-level="caution"] .summary-verdict strong{color:#9a6200}.result-summary[data-level="danger"] .summary-verdict strong{color:#b42318}
+@media(max-width:900px){.result-summary{grid-template-columns:1fr}}
 .securing-options-field{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--v3-muted,#667);position:relative}
 .securing-options summary{list-style:none;cursor:pointer;border:1px solid var(--v3-line,#dde3e0);border-radius:10px;background:#fff;padding:10px 30px 10px 12px;font-size:14px;color:#1b1f1d;white-space:nowrap;position:relative;min-width:0;width:100%;overflow:hidden;text-overflow:ellipsis}
 .securing-options summary::-webkit-details-marker{display:none}
