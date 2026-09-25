@@ -74,6 +74,16 @@ test('balance preference keeps a uniform load against the inner wall without a d
   assert.equal(Math.max(...result.loads[0].placed.map(p=>p.x+p.l)),C20.l);
 });
 
+test('reordering independent slices centers heavy cargo without losing the inner wall',()=>{
+  const items=[...units(6,{name:'heavy',l:1200,w:1000,h:1000,weight:1200}),...units(12,{name:'light',l:1000,w:1000,h:1100,weight:40},6)].map((u,i)=>({...u,pi:i<6?0:1}));
+  const result=pack(items,{safety:'standard'}),load=result.loads[0],ctu=context.LoadwiseInsights.ctu(load);
+  assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
+  // 무거운 화물을 안쪽 벽에 몰아 두면 앞뒤 편차가 15%를 넘는다. 슬라이스 순서를 바꾸면 5% 안으로 들어온다.
+  assert.ok(Math.abs(ctu.xOffset)<=5&&Math.abs(ctu.yOffset)<=5,`x ${ctu.xOffset} y ${ctu.yOffset}`);
+  assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),C20.l);
+  assertValidShipment(result,items);
+});
+
 test('oversize and overweight cargo is reported as unallocated',()=>{
   const oversize=pack(units(4,{l:14000}));assert.equal(oversize.loads.length,1);assert.equal(oversize.loads[0].placed.length,0);assert.equal(oversize.remaining.length,4);
   const overweight=pack(units(1,{weight:30000}));assert.equal(overweight.loads[0].placed.length,0);assert.equal(overweight.remaining[0].reason,'중량 초과');

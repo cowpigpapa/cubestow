@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.4';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.5';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -628,6 +628,42 @@
     return runs;
   }
 
+  // 적재를 길이 방향 슬라이스로 나눈다. 절단면을 걸치는 화물이 없으므로 받침·상부하중·적층 무게중심은 모두 슬라이스 안에서만 생긴다.
+  // 슬라이스 순서를 바꾸고 좌우로 뒤집어도 부피와 수직 안전 조건은 그대로다. 첫 슬라이스는 항상 안쪽 벽(x=0)부터 놓는다.
+  function rebalanceSlices(ctx,raw){
+    const c=ctx.c,placed=raw.placed;if(placed.length<2)return null;
+    const sorted=[...placed].sort((a,b)=>a.x-b.x),slices=[];let cur=null;
+    for(const p of sorted){
+      if(!cur||p.x>=cur.end-TOL){cur={items:[],start:p.x,end:p.x+p.l};slices.push(cur)}
+      cur.items.push(p);cur.end=Math.max(cur.end,p.x+p.l);
+    }
+    let total=0;
+    for(const sl of slices){sl.len=sl.end-sl.start;sl.w=0;sl.mx=0;sl.my=0;for(const p of sl.items){sl.w+=p.weight;sl.mx+=p.weight*(p.x+p.l/2-sl.start);sl.my+=p.weight*(p.y+p.w/2-c.w/2)}total+=sl.w}
+    if(total<=0)return null;
+    const offset=order=>{let x=0,m=0;for(const sl of order){m+=sl.mx+sl.w*x;x+=sl.len}return Math.abs(m/total-c.l/2)};
+    let order=slices,score=offset(order);
+    if(slices.length>1&&slices.length<=7){
+      const permute=(done,left)=>{if(!left.length){const v=offset(done);if(v<score-1e-6){score=v;order=done}return}left.forEach((sl,i)=>permute([...done,sl],[...left.slice(0,i),...left.slice(i+1)]))};
+      permute([],slices);
+    }else if(slices.length>7){
+      let improved=true,guard=0;
+      while(improved&&guard++<50){improved=false;
+        for(let i=0;i<order.length;i++)for(let j=i+1;j<order.length;j++){const next=[...order];[next[i],next[j]]=[next[j],next[i]];const v=offset(next);if(v<score-1e-6){score=v;order=next;improved=true}}
+      }
+    }
+    // 좌우 반전: 좌우 모멘트가 큰 슬라이스부터 누적 모멘트를 줄이는 쪽으로 뒤집는다.
+    let sum=0;const flip=new Set();
+    for(const sl of [...slices].sort((a,b)=>Math.abs(b.my)-Math.abs(a.my))){if(Math.abs(sum-sl.my)<Math.abs(sum+sl.my)-1e-6){flip.add(sl);sum-=sl.my}else sum+=sl.my}
+    if(order===slices&&!flip.size&&slices.every((sl,i)=>i===0?sl.start===0:sl.start===slices[i-1].end))return null;
+    const next=[];let x=0;
+    for(const sl of order){for(const p of sl.items)next.push({...p,x:x+p.x-sl.start,y:flip.has(sl)?c.w-p.y-p.w:p.y});x+=sl.len}
+    // 앞뒤 이웃이 바뀌므로 높이 비율이 큰 화물의 측면 지지 규칙(2면 이상)을 다시 확인한다.
+    for(const p of next){
+      const base=Math.max(1,Math.min(p.l,p.w));
+      if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next.filter(q=>q!==p),c,true))<2)return null;
+    }
+    return{...raw,placed:next,rebalanced:true};
+  }
   function packOneContainer(ctx,units,deadline,stats){
     let best=null,bestKey=null;
     const variants=[false,true];
@@ -643,8 +679,11 @@
       seen.add(runKey);
       const raw=packContainer(ctx,units,heuristic,order);
       stats.runs++;
-      for(const centered of variants){
-        const load=finalizeLoad(ctx.c,raw,centered),key=containerKey(load,ctx);
+      // 부피가 현재 최선보다 작으면 비교 키 첫 항목에서 지므로 마무리 계산을 건너뛴다.
+      if(best&&raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
+      const shifted=rebalanceSlices(ctx,raw);
+      for(const source of shifted?[raw,shifted]:[raw])for(const centered of variants){
+        const load=finalizeLoad(ctx.c,source,centered),key=containerKey(load,ctx);
         if(!best||compareKeys(key,bestKey)<0){best=load;bestKey=key}
       }
       // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
