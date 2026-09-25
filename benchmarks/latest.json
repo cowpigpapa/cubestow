@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-25T18:53:23.887Z",
-  "engine": "ep-lex-portfolio-2026.10.18",
+  "generatedAt": "2026-09-25T19:10:43.942Z",
+  "engine": "ep-lex-portfolio-2026.10.19",
   "rows": [
     {
       "case": "uniform-36",
@@ -11,8 +11,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 60.7,
-      "cogRisk": 5.5,
-      "runs": 5,
+      "cogRisk": 1.8,
+      "runs": 3,
       "truncated": false
     },
     {
@@ -37,8 +37,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 60.7,
-      "cogRisk": 3.9,
-      "runs": 1,
+      "cogRisk": 1.8,
+      "runs": 4,
       "truncated": false
     },
     {
@@ -128,7 +128,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 11.1,
+      "cogRisk": 9.1,
       "runs": 24,
       "truncated": false
     },
@@ -428,7 +428,7 @@
       "unallocated": 0,
       "volumeRate": 56.3,
       "cogRisk": 5.1,
-      "runs": 4,
+      "runs": 6,
       "truncated": false
     },
     {
@@ -441,7 +441,7 @@
       "unallocated": 0,
       "volumeRate": 56.3,
       "cogRisk": 5.1,
-      "runs": 1,
+      "runs": 6,
       "truncated": false
     },
     {
@@ -453,8 +453,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 56.3,
-      "cogRisk": 4.1,
-      "runs": 1,
+      "cogRisk": 5.1,
+      "runs": 6,
       "truncated": false
     },
     {
@@ -467,7 +467,7 @@
       "unallocated": 0,
       "volumeRate": 56.3,
       "cogRisk": 5.1,
-      "runs": 5,
+      "runs": 6,
       "truncated": false
     },
     {
@@ -635,8 +635,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 8.3,
-      "runs": 12,
+      "cogRisk": 5.5,
+      "runs": 8,
       "truncated": true
     },
     {
@@ -648,8 +648,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 8,
-      "runs": 12,
+      "cogRisk": 5.5,
+      "runs": 9,
       "truncated": true
     },
     {
@@ -661,8 +661,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 8,
-      "runs": 12,
+      "cogRisk": 5.5,
+      "runs": 9,
       "truncated": true
     },
     {
@@ -674,8 +674,8 @@
       "lowerBound": 2,
       "unallocated": 0,
       "volumeRate": 64.7,
-      "cogRisk": 8,
-      "runs": 12,
+      "cogRisk": 5.5,
+      "runs": 9,
       "truncated": true
     },
     {

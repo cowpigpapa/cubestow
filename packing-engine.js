@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.18';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.19';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -222,6 +222,7 @@
   // 최고 안전 기준에서만 켠다.
   let STRICT_BLOCK=false;
   // 얹힘: 받치는 화물 중에 바닥면 크기가 다른 화물이 있는 쌓인 화물. 같은 규격 기둥의 윗단은 얹힘이 아니다.
+  let PERCH_PREFER=false;
   function perchOk(s,d,placed,c,packing,self=null){
     if(s.z<=0)return true;
     const [l,w]=d;let perched=false;
@@ -486,7 +487,7 @@
     if(TOWER_CHECK&&!ctx.deferSides&&!towerOk(pos,d,placed,c,true))return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     if(!stackSafe(item,x,y,z,d,state))return null;
-    const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,open=STRICT_BLOCK?(b=>(b.back?0:1)+(b.left?0:1)+(b.right?0:1))(blockedSides(pos,d,placed,c,true)):0,flag=(risk>0?1:0)+open,area=-(l*w);
+    const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,open=STRICT_BLOCK?(b=>(b.back?0:1)+(b.left?0:1)+(b.right?0:1))(blockedSides(pos,d,placed,c,true)):PERCH_PREFER&&z>0&&!perchOk(pos,d,placed,c,true)?1:0,flag=(risk>0?1:0)+open,area=-(l*w);
     switch(ctx.heuristic){
       case 'dblf':{
         const gap=transverseVoid(x,y,z,d,placed,c);
@@ -1067,7 +1068,7 @@
     const onProgress=typeof input.onProgress==='function'?input.onProgress:()=>{};
     const units=prepareUnits(input.units||[]);
     STRICT_BLOCK=Boolean(SAFETY_LEVELS[safetyKey].blockSides);
-    TOWER_CHECK=safetyKey!=='standard';
+    TOWER_CHECK=safetyKey!=='standard';PERCH_PREFER=safetyKey==='strict';
     const securing={airbag:true,filler:true,nails:true,lashing:true,...(input.securing||{})},ctuTip=Boolean(SAFETY_LEVELS[safetyKey].blockSides)&&securing.lashing===false;
     TIP=ctuTip?tipLimits(mode):{side:3,forward:3,backward:3};TIP_STACKED_ONLY=!ctuTip;
     BLOCK_GAP=securing.airbag||securing.filler?500:TOL;FLOOR_FILL=securing.filler!==false;
