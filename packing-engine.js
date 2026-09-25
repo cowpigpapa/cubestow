@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.6';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.7';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -120,22 +120,40 @@
   }
 
   // packing=true: 적재 좌표(안쪽 벽 x=0), false: 화면 좌표(문 x=0)
+  // 맞닿은 화물들이 덮는 높이 구간의 합집합 길이.
+  function coveredHeight(spans,z0,z1){
+    spans.sort((a,b)=>a[0]-b[0]);
+    let sum=0,end=z0;
+    for(const [a,b] of spans){const from=Math.max(a,end),to=Math.min(b,z1);if(to>from){sum+=to-from;end=to}}
+    return sum;
+  }
   function lateralSupportDirections(s,d,placed,c,packing=false){
-    const [l,w,h]=d,x0=s.x,x1=s.x+l,y0=s.y,y1=s.y+w,z0=s.z,z1=s.z+h;
-    let low=false,high=false,left=y0<=TOL,right=y1>=c.w-TOL;
+    const [l,w,h]=d,x0=s.x,x1=s.x+l,y0=s.y,y1=s.y+w,z0=s.z,z1=s.z+h,need=h*.5;
+    let low=false,high=false,left=y0<=TOL,right=y1>=c.w-TOL,lowSpans=null,highSpans=null,leftSpans=null,rightSpans=null;
     for(const p of placed){
       if(low&&high&&left&&right)break;
-      // 높이 방향으로 절반 이상 겹치는 화물만 측면 지지가 될 수 있다.
-      const oz=Math.min(z1,p.z+p.h)-Math.max(z0,p.z);
-      if(oz<h*.5)continue;
-      const px1=p.x+p.l,py1=p.y+p.w;
+      // 면 폭의 절반 이상 맞닿은 화물이 면 높이의 절반 이상을 덮으면 그 방향은 지지된다.
+      // 한 화물로 덮지 못해도 같은 면에 맞닿은 화물들(예: 박스를 쌓은 기둥)의 높이 구간을 합쳐 판단한다.
+      const from=Math.max(z0,p.z),to=Math.min(z1,p.z+p.h);
+      if(to-from<=TOL)continue;
+      const full=to-from>=need,px1=p.x+p.l,py1=p.y+p.w;
       if((!low&&Math.abs(px1-x0)<=TOL)||(!high&&Math.abs(x1-p.x)<=TOL)){
-        if(Math.min(y1,py1)-Math.max(y0,p.y)>=w*.5){if(Math.abs(px1-x0)<=TOL)low=true;else high=true}
+        if(Math.min(y1,py1)-Math.max(y0,p.y)>=w*.5){
+          if(Math.abs(px1-x0)<=TOL){if(full)low=true;else(lowSpans||(lowSpans=[])).push([from,to])}
+          else{if(full)high=true;else(highSpans||(highSpans=[])).push([from,to])}
+        }
       }
       if((!left&&Math.abs(py1-y0)<=TOL)||(!right&&Math.abs(y1-p.y)<=TOL)){
-        if(Math.min(x1,px1)-Math.max(x0,p.x)>=l*.5){if(Math.abs(py1-y0)<=TOL)left=true;else right=true}
+        if(Math.min(x1,px1)-Math.max(x0,p.x)>=l*.5){
+          if(Math.abs(py1-y0)<=TOL){if(full)left=true;else(leftSpans||(leftSpans=[])).push([from,to])}
+          else{if(full)right=true;else(rightSpans||(rightSpans=[])).push([from,to])}
+        }
       }
     }
+    if(!low&&lowSpans)low=coveredHeight(lowSpans,z0,z1)>=need;
+    if(!high&&highSpans)high=coveredHeight(highSpans,z0,z1)>=need;
+    if(!left&&leftSpans)left=coveredHeight(leftSpans,z0,z1)>=need;
+    if(!right&&rightSpans)right=coveredHeight(rightSpans,z0,z1)>=need;
     return packing
       ?{front:high,back:s.x<=TOL||low,left,right}
       :{front:low,back:s.x+l>=c.l-TOL||high,left,right};
@@ -474,7 +492,15 @@
       // 방향: 기둥이 높이를 가장 잘 채우고, 비슷하면 눕힌(높이가 바닥 최소 치수 이하) 방향, 폭 방향 잔여가 작은 방향 순.
       const scored=u.rotations.map(d=>{const k=Math.min(columnHeight(run,u,d),list.length);return{d,k,fill:Math.round(k*d[2]/c.h*20),slender:d[2]/Math.max(1,Math.min(d[0],d[1])),gap:c.w%d[1]}}).sort((a,b)=>b.fill-a.fill||(a.slender>1)-(b.slender>1)||a.gap-b.gap||a.d[0]*a.d[1]-b.d[0]*b.d[1]);
       const d=scored[0].d,k=balanced?Math.max(1,Math.ceil(scored[0].k*spread)):scored[0].k;
-      if(k<2){rest.push(...list);continue}
+      if(k<2){
+        // 균형 변형은 기둥으로 못 세우는 규격도 정한 그룹 순서대로 바닥에 먼저 놓아, 무거운 기둥이 안쪽 벽에 몰리지 않게 한다.
+        if(!balanced){rest.push(...list);continue}
+        for(const item of list){
+          const spot=state.weight+item.weight<=c.maxWeight&&findPlacement(run,state,item,true);
+          if(spot)commitPlacement(state,c,{...item,x:spot.pos.x,y:spot.pos.y,z:spot.pos.z,l:spot.d[0],w:spot.d[1],h:spot.d[2]});else rest.push(item);
+        }
+        continue;
+      }
       const queue=list.map(item=>({...item,rotations:[d]}));
       while(queue.length){
         if(state.weight+queue[0].weight>c.maxWeight)break;

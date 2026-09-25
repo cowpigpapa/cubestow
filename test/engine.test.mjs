@@ -118,6 +118,14 @@ test('50 percent rear contact counts as lateral support',()=>{
   assert.equal(engine.lateralSupportDirections({x:1000,y:1000,z:0},[800,800,2200],[{x:1800,y:1000,z:0,l:1000,w:400,h:1100}],C20).back,true);
 });
 
+test('a column of stacked boxes supports a tall neighbor only when together they cover half its height',()=>{
+  const box=z=>({x:1800,y:1000,z,l:600,w:800,h:300});
+  // 300mm 박스 한 개로는 2200mm 화물의 절반을 덮지 못하지만, 4단 기둥(1200mm)은 벽처럼 지지한다.
+  assert.equal(engine.lateralSupportDirections({x:1000,y:1000,z:0},[800,800,2200],[box(0)],C20).back,false);
+  assert.equal(engine.lateralSupportDirections({x:1000,y:1000,z:0},[800,800,2200],[box(0),box(300),box(600)],C20).back,false);
+  assert.equal(engine.lateralSupportDirections({x:1000,y:1000,z:0},[800,800,2200],[box(0),box(300),box(600),box(900)],C20).back,true);
+});
+
 test('sea transport adds a larger placement risk than road transport',()=>{
   const sides={front:false,back:false,left:false,right:false},risk=mode=>engine._internal.transportPlacementRisk({...base,h:1600},{x:1000,y:500,z:700},[800,800,1600],sides,C20,mode);
   assert.ok(risk('sea')>risk('road'));

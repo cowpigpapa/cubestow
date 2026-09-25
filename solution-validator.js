@@ -14,7 +14,8 @@
         if(area+1e-6<p.l*p.w*(options.minSupport??1))errors.push(`${i+1}번 화물 지지면 부족`);
         const cx=p.x+p.l/2,cy=p.y+p.w/2;
         if(!supports.some(q=>cx>=q.x-2&&cx<=q.x+q.l+2&&cy>=q.y-2&&cy<=q.y+q.w+2))errors.push(`${i+1}번 화물 중심이 지지면 밖에 있음`);
-        if(supports.some(q=>q.fragile))errors.push(`${i+1}번 화물이 상부적재금지 화물 위에 배치됨`);
+        // 같은 높이의 화물 중 실제로 바닥면이 겹치는 화물만 받침이다(멀리 떨어진 같은 높이의 상부적재금지 화물은 무관).
+        if(supports.some(q=>q.fragile&&footprintOverlap(p,q)>0))errors.push(`${i+1}번 화물이 상부적재금지 화물 위에 배치됨`);
       }
     });
     for(let i=0;i<placed.length;i++)for(let j=i+1;j<placed.length;j++)if(overlap(placed[i],placed[j]))errors.push(`${i+1}번과 ${j+1}번 화물 충돌`);
