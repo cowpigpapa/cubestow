@@ -7,12 +7,22 @@
     const xOffset=(cog.x/c.l-.5)*100,yOffset=(cog.y/c.w-.5)*100,max=Math.max(Math.abs(xOffset),Math.abs(yOffset)),level=max<=5?'safe':max<=10?'caution':'danger';
     return{total,cog,xOffset,yOffset,level,door:(1-cog.x/c.l)*100,rear:cog.x/c.l*100,left:(1-cog.y/c.w)*100,right:cog.y/c.w*100};
   }
+  // 컨테이너 자체중량(kg). 명시값이 없으면 ISO 건화물 컨테이너의 대표값으로 추정한다(20ft 2,230 · 40ft 3,750 · 40ft HC 3,940 · 45ft HC 4,800).
+  // 최대 적재중량이 없는 가상 공간(테스트용 등)은 자체중량 0으로 보고 화물만으로 판정한다.
+  function tareOf(c){
+    if(Number.isFinite(c?.tare))return c.tare;
+    if(!Number.isFinite(c?.maxWeight))return 0;
+    return c.l<=6100?2230:c.l<=12200?(c.h>2500?3940:3750):4800;
+  }
+  // 편심 판정은 스프레더·차량이 실제로 드는 총중량(화물 + 컨테이너 자체중량) 기준이다. 자체중량은 컨테이너 가운데에 있다.
+  // 무거운 적재는 화물 기준과 거의 같고, 가벼운 부분 적재는 자체중량이 무게중심을 가운데로 끌어 준다. 화물만의 값도 함께 돌려준다.
   function ctu(load){
     const b=balance(load),placed=load?.placed||[],c=load?.container;if(!b||!c)return null;
+    const tare=tareOf(c),gross=b.total+tare,factor=b.total/gross,grossXOffset=b.xOffset*factor,grossYOffset=b.yOffset*factor;
     const half=c.l/2,starts=new Set([0,half]);placed.forEach(p=>{starts.add(Math.max(0,Math.min(half,p.x)));starts.add(Math.max(0,Math.min(half,p.x+p.l-half)))});
-    const halfMass=Math.max(...[...starts].map(start=>placed.reduce((sum,p)=>sum+p.weight*Math.max(0,Math.min(start+half,p.x+p.l)-Math.max(start,p.x))/p.l,0))),concentration=halfMass/b.total*100,vertical=b.cog.z/c.h*100,maxOffset=Math.max(Math.abs(b.xOffset),Math.abs(b.yOffset));
+    const halfMass=Math.max(...[...starts].map(start=>placed.reduce((sum,p)=>sum+p.weight*Math.max(0,Math.min(start+half,p.x+p.l)-Math.max(start,p.x))/p.l,0))),cargoConcentration=halfMass/b.total*100,concentration=(halfMass+tare/2)/gross*100,vertical=b.cog.z/c.h*100,maxOffset=Math.max(Math.abs(grossXOffset),Math.abs(grossYOffset)),cargoMaxOffset=Math.max(Math.abs(b.xOffset),Math.abs(b.yOffset));
     const level=maxOffset>10||vertical>60?'danger':maxOffset>5||vertical>50||concentration>60?'caution':'safe';
-    return{...b,concentration,vertical,maxOffset,level,checks:{center:maxOffset<=5,centerLimit:maxOffset<=10,vertical:vertical<=50,concentration:concentration<=60}};
+    return{...b,tare,grossXOffset,grossYOffset,cargoConcentration,cargoMaxOffset,concentration,vertical,maxOffset,level,checks:{center:maxOffset<=5,centerLimit:maxOffset<=10,vertical:vertical<=50,concentration:concentration<=60}};
   }
   // CTU Code 참고 계산. 가속도 계수는 IMO MSC.1/Circ.1498 Informative Material 5, Quick Lashing Guide A·B·C 10.1.1/11.1.1/12.1.1.
   // c: 수평 가속도, v: 함께 쓰는 수직 가속도(1g 단위). 전후는 컨테이너 길이 방향, 차량 진행 방향은 안쪽 벽 쪽이다.
@@ -84,5 +94,5 @@
     }));
     return{friction,profiles:profiles.map(p=>p.label),doorBlocking:Boolean(options.doorBlocking),directions,needsRestraint:directions.some(d=>d.forceKN>0||d.tipping>0)};
   }
-  root.LoadwiseInsights={balance,ctu,securing,CTU_ACCELERATIONS};
+  root.LoadwiseInsights={balance,ctu,tareOf,securing,CTU_ACCELERATIONS};
 })(globalThis);

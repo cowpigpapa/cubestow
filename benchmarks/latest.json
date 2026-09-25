@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-25T01:23:52.640Z",
-  "engine": "ep-lex-portfolio-2026.10.5",
+  "generatedAt": "2026-09-25T05:47:25.446Z",
+  "engine": "ep-lex-portfolio-2026.10.6",
   "rows": [
     {
       "case": "uniform-36",
@@ -37,7 +37,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 60.7,
-      "cogRisk": 9.3,
+      "cogRisk": 7,
       "runs": 6,
       "truncated": false
     },
@@ -51,7 +51,7 @@
       "unallocated": 0,
       "volumeRate": 60.7,
       "cogRisk": 7,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -102,8 +102,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 60.7,
-      "cogRisk": 4.1,
-      "runs": 6,
+      "cogRisk": 7,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -115,8 +115,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 1.2,
-      "runs": 5,
+      "cogRisk": 2.6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -154,8 +154,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 1.2,
-      "runs": 6,
+      "cogRisk": 2.6,
+      "runs": 2,
       "truncated": false
     },
     {
@@ -167,8 +167,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 1.2,
-      "runs": 5,
+      "cogRisk": 2.6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -206,8 +206,8 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 1.2,
-      "runs": 6,
+      "cogRisk": 2.6,
+      "runs": 2,
       "truncated": false
     },
     {
@@ -220,7 +220,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -233,7 +233,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -246,7 +246,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -259,7 +259,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -272,7 +272,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -285,7 +285,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -298,7 +298,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -311,7 +311,7 @@
       "unallocated": 0,
       "volumeRate": 41.6,
       "cogRisk": 9.3,
-      "runs": 6,
+      "runs": 1,
       "truncated": false
     },
     {
@@ -349,7 +349,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 30.7,
-      "cogRisk": 27.1,
+      "cogRisk": 11.9,
       "runs": 6,
       "truncated": false
     },
@@ -401,7 +401,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 30.7,
-      "cogRisk": 27.1,
+      "cogRisk": 11.9,
       "runs": 6,
       "truncated": false
     },
@@ -714,7 +714,7 @@
       "unallocated": 0,
       "volumeRate": 64.7,
       "cogRisk": 5.4,
-      "runs": 12,
+      "runs": 10,
       "truncated": false
     },
     {

@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.5';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.6';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;

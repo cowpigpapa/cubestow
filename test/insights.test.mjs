@@ -88,3 +88,14 @@ test('CTU tipping tightens with the number of rows leaning on each other',()=>{
   const worst=securing({container:C,placed:pair(600)},{mode:'road'}).directions.find(d=>d.key==='right').worst;
   assert.equal(worst.rows,2);assert.equal(worst.limit,1);
 });
+
+test('CTU offset is judged on gross mass so light partial loads are not flagged like heavy ones',()=>{
+  const c={name:'20ft Dry',l:5898,w:2352,h:2393,maxWeight:28200},box=(weight)=>({x:0,y:0,z:0,l:1000,w:2352,h:1000,weight});
+  const light=ctu({container:c,placed:[box(300)]}),heavy=ctu({container:c,placed:[box(20000)]});
+  // 같은 위치(안쪽 끝)라도 화물 기준 편차는 같고, 총중량 기준 편차는 자체중량 2,230 kg만큼 줄어든다.
+  assert.equal(Math.round(light.xOffset),Math.round(heavy.xOffset));assert.equal(light.tare,2230);
+  assert.ok(Math.abs(light.grossXOffset)<5&&light.level!=='danger',`light ${light.grossXOffset}`);
+  assert.ok(Math.abs(heavy.grossXOffset)>35&&heavy.level==='danger',`heavy ${heavy.grossXOffset}`);
+  // 최대 적재중량이 없는 가상 공간은 자체중량 없이 화물만으로 판정한다.
+  assert.equal(ctu({container:{l:5898,w:2352,h:2393},placed:[box(300)]}).level,'danger');
+});
