@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.11';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.12';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -174,14 +174,17 @@
   // 벽까지 비어 있으면 바닥 화물은 충전재(세운 팔레트·골판지)와 에어백으로, 높은 곳 화물은 에어백 한계(600mm) 안에서만 막을 수 있다.
   function blockedSides(s,d,placed,c,packing){
     const [l,w,h]=d,x0=s.x,x1=s.x+l,y0=s.y,y1=s.y+w,z0=s.z,z1=s.z+h;
-    const back=[],left=[],right=[];let leftClear=true,rightClear=true;
+    const back=[],front=[],left=[],right=[];let leftClear=true,rightClear=true,doorClear=true;
     for(const p of placed){
       const pz0=p.z,pz1=p.z+p.h;
+      if(doorClear&&p.y+p.w>y0+TOL&&p.y<y1-TOL&&(packing?p.x>=x1-TOL:p.x+p.l<=x0+TOL))doorClear=false;
       if(pz1<=z0+TOL||pz0>=z1-TOL)continue;
       const px0=p.x,px1=p.x+p.l,py0=p.y,py1=p.y+p.w;
       // 안쪽 방향 간극
       const gapBack=packing?x0-px1:px0-x1;
       if(gapBack>=-TOL&&gapBack<=BLOCK_GAP&&py1>y0&&py0<y1)back.push([py0,py1,pz0,pz1]);
+      const gapFront=packing?px0-x1:x0-px1;
+      if(gapFront>=-TOL&&py1>y0&&py0<y1){if(gapFront<=BLOCK_GAP)front.push([py0,py1,pz0,pz1])}
       if(px1>x0+TOL&&px0<x1-TOL){
         const gapLeft=y0-py1,gapRight=py0-y1;
         if(gapLeft>=-TOL){leftClear=false;if(gapLeft<=BLOCK_GAP)left.push([px0,px1,pz0,pz1])}
@@ -191,10 +194,19 @@
     const half=(rects,a0,a1)=>coveredArea(rects,a0,a1,z0,z1)>=(a1-a0)*(z1-z0)*.5-1;
     const innerWall=packing?x0<=TOL:x1>=c.l-TOL;
     const wallOk=gap=>z0<=TOL||gap<=BLOCK_GAP;
-    return{back:innerWall||half(back,y0,y1),left:y0<=TOL||leftClear&&wallOk(y0)||half(left,x0,x1),right:y1>=c.w-TOL||rightClear&&wallOk(c.w-y1)||half(right,x0,x1)};
+    return{front:doorClear||half(front,y0,y1),back:innerWall||half(back,y0,y1),left:y0<=TOL||leftClear&&wallOk(y0)||half(left,x0,x1),right:y1>=c.w-TOL||rightClear&&wallOk(c.w-y1)||half(right,x0,x1)};
   }
   // 최고 안전 기준에서만 켠다.
   let STRICT_BLOCK=false;
+  // 엄격 이상에서 켠다. 높은 적층의 전도 방향 면 막힘 검사.
+  let TOWER_CHECK=false;const TOWER_LIMIT=3;
+  function towerOk(s,d,placed,c,packing){
+    const [l,w,h]=d;if(s.z<=0)return true;
+    const H=s.z+h,deep=H/Math.max(1,l)>TOWER_LIMIT,wide=H/Math.max(1,w)>TOWER_LIMIT;
+    if(!deep&&!wide)return true;
+    const b=blockedSides(s,d,placed,c,packing);
+    return(!deep||b.front&&b.back)&&(!wide||b.left&&b.right);
+  }
   const blockedOk=b=>b.back&&b.left&&b.right;
   const countSides=sides=>(sides.front?1:0)+(sides.back?1:0)+(sides.left?1:0)+(sides.right?1:0);
 
@@ -436,6 +448,7 @@
     const sides=needSides?lateralSupportDirections(pos,d,placed,c,true):null,supported=sides?countSides(sides):4;
     if((z+h)/base>1.5&&supported<(ctx.deferSides?1:2))return null;
     if(STRICT_BLOCK&&!ctx.deferSides&&!blockedOk(blockedSides(pos,d,placed,c,true)))return null;
+    if(TOWER_CHECK&&!ctx.deferSides&&!towerOk(pos,d,placed,c,true))return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     if(!stackSafe(item,x,y,z,d,state))return null;
     const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,open=STRICT_BLOCK?(b=>(b.back?0:1)+(b.left?0:1)+(b.right?0:1))(blockedSides(pos,d,placed,c,true)):0,flag=(risk>0?1:0)+open,area=-(l*w);
@@ -567,7 +580,7 @@
   function settleSides(c,placed,fixed){
     let kept=placed,removed=[];
     for(let round=0;round<placed.length;round++){
-      const failing=kept.filter(p=>{if(fixed.has(p))return false;const others=kept.filter(q=>q!==p);return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,c,true))<2||STRICT_BLOCK&&!blockedOk(blockedSides(p,[p.l,p.w,p.h],others,c,true))});
+      const failing=kept.filter(p=>{if(fixed.has(p))return false;const others=kept.filter(q=>q!==p);return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,c,true))<2||STRICT_BLOCK&&!blockedOk(blockedSides(p,[p.l,p.w,p.h],others,c,true))||TOWER_CHECK&&!towerOk(p,[p.l,p.w,p.h],others,c,true)});
       if(!failing.length)break;
       const drop=new Set(failing);
       let grew=true;
@@ -696,6 +709,8 @@
       // 앞뒤 편차는 2.5% 단위로 비교한다(같은 등급 안에서도 쏠림이 작은 배치를 고른다).
       longitudinal:ctu?Math.round(Math.abs(ctu.xOffset)/2.5):0,
       reviews:transportReviews(load,mode).length,
+      // 큰 화물이 문쪽에 있는 정도(0 = 모두 안쪽 벽, 1 = 모두 문). 부피의 제곱으로 가중해 큰 화물을 우선하고 0.02 단위로 비교한다.
+      bigDoor:(()=>{let num=0,den=0;for(const p of load.placed){const v=(p.l*p.w*p.h)**2;num+=v*(1-(p.x+p.l/2)/load.container.l);den+=v}return den?Math.round(num/den*50)/50:0})(),
       span
     };
   }
@@ -706,7 +721,7 @@
       case 'density':return[m.span,m.ctuLevel,m.lateralLevel,m.reviews,m.maxOffset];
       case 'width':return[m.reviews,m.ctuLevel,m.lateralLevel,m.span,m.maxOffset];
       case 'balance':return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.maxOffset,m.reviews,m.span];
-      default:return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.maxOffset,m.span];
+      default:return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.bigDoor,m.maxOffset,m.span];
     }
   }
 
@@ -780,7 +795,16 @@
   // 완성된 배치안에서 높은 화물(누적 높이/바닥 최소 치수 > 1.5)이 모두 2면 이상 측면 지지되는지 확인한다(화면 좌표).
   // 좌우 무게중심 맞춤으로 적재 전체를 옮기면 옆벽에 기대던 화물이 벽에서 떨어질 수 있다.
   function sidesHold(load){
-    return load.placed.every(p=>{const others=load.placed.filter(q=>q!==p);return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,load.container))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,[p.l,p.w,p.h],others,load.container,false)))});
+    return load.placed.every(p=>{const others=load.placed.filter(q=>q!==p);return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,[p.l,p.w,p.h],others,load.container))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,[p.l,p.w,p.h],others,load.container,false)))&&(!TOWER_CHECK||towerOk(p,[p.l,p.w,p.h],others,load.container,false))});
+  }
+  // 적재 전체를 사용 길이 안에서 앞뒤로 뒤집는다. 받침·상부하중·적층 무게중심은 그대로이고, 안쪽 벽 접촉이 바뀌므로 첫 화물 밀착과 측면 지지를 다시 확인한다.
+  function mirrorLoad(ctx,raw){
+    const c=ctx.c,placed=raw.placed;if(placed.length<2)return null;
+    const span=Math.max(...placed.map(p=>p.x+p.l)),next=placed.map(p=>({...p,x:span-(p.x+p.l)}));
+    let first=null;for(const p of next)if(p.z===0&&(!first||p.x+p.l<first.x+first.l||p.x+p.l===first.x+first.l&&p.y<first.y))first=p;
+    if(!first||first.x>0)return null;
+    for(const p of next){const base=Math.max(1,Math.min(p.l,p.w));if((p.z+p.h)/base>1.5&&countSides(lateralSupportDirections(p,[p.l,p.w,p.h],next.filter(q=>q!==p),c,true))<2)return null}
+    return{...raw,placed:next,mirrored:true};
   }
   function packOneContainer(ctx,units,deadline,stats){
     let best=null,bestKey=null;
@@ -799,8 +823,8 @@
       stats.runs++;
       // 부피가 현재 최선보다 작으면 비교 키 첫 항목에서 지므로 마무리 계산을 건너뛴다.
       if(best&&raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
-      const shifted=rebalanceSlices(ctx,raw);
-      for(const source of shifted?[raw,shifted]:[raw])for(const centered of variants){
+      const shifted=rebalanceSlices(ctx,raw),sources=[raw,shifted,mirrorLoad(ctx,raw),shifted&&mirrorLoad(ctx,shifted)].filter(Boolean);
+      for(const source of sources)for(const centered of variants){
         const load=finalizeLoad(ctx.c,source,centered);
         if(!sidesHold(load))continue;
         const key=containerKey(load,ctx);
@@ -862,6 +886,7 @@
     const onProgress=typeof input.onProgress==='function'?input.onProgress:()=>{};
     const units=prepareUnits(input.units||[]);
     STRICT_BLOCK=Boolean(SAFETY_LEVELS[safetyKey].blockSides);
+    TOWER_CHECK=safetyKey!=='standard';
     const ctx={c,safetyKey,safety:SAFETY_LEVELS[safetyKey],preference,mode,widthGap:createWidthOracle(units,c.w),deferSides:true,hasTopLoadLimits:units.some(u=>Number.isFinite(u.maxTopLoadKg))};
     const bound=lowerBound(c,units),stats={runs:0,skipped:0,truncated:false,repaired:false,lowerBound:bound};
     const deadline=started+budget,loads=[];

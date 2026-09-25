@@ -345,3 +345,14 @@ test('highest safety blocks the inner, left and right faces of every item in eve
     assert.equal(result.remaining.length,0,`sample ${id}`);
   }
 });
+
+test('strict safety keeps large crates toward the inner wall and never builds tall open towers of small boxes',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[3],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const result=engine.packShipment({container:C20,units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:60000}),load=result.loads[0];
+  // 안전 조건이 같으면 큰 화물이 안쪽(먼저 싣는 쪽)에 있는 배치를 고른다. 화면 좌표에서 안쪽 벽은 x=l이다.
+  const crates=load.placed.filter(p=>p.name==='대형 설비박스');
+  assert.ok(crates.filter(p=>p.x+p.l/2>C20.l/2).length>=2,crates.map(p=>p.x).join(','));
+  // 검증기(엄격)가 높은 적층의 열린 면을 전도 위험으로 검사한다.
+  assertValidShipment(result,items);
+});

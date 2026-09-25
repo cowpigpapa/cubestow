@@ -56,3 +56,13 @@ test('highest safety requires inner, left and right faces blocked; the door face
   // 안쪽 벽에서 떨어져 있고 600mm 안에 받쳐 줄 화물도 없으면 안쪽 면이 막히지 않는다.
   assert.match(check([{x:100,y:0,z:0,l:200,w:200,h:200,weight:5}]).errors.join(' / '),/안쪽 면이 막히지 않음/);
 });
+test('strict validation rejects a tall narrow stack whose open face would let it tip',()=>{
+  const c={l:1000,w:1000,h:2000,maxWeight:1000},box=z=>({x:800,y:0,z,l:200,w:200,h:200,weight:5});
+  // 안쪽 벽·좌측 벽 모서리에 200mm 박스 4단(800mm, 높이/폭 4). 문쪽 앞은 1단 박스뿐이라 윗단 앞면이 비어 있다.
+  const tower=[0,200,400,600].map(box),front={x:600,y:0,z:0,l:200,w:200,h:200,weight:5},right=[0,200,400,600].map(z=>({x:800,y:200,z,l:200,w:200,h:200,weight:5}));
+  const open=validate({container:c,placed:[...tower,front,...right]},{towerLimit:3});
+  assert.match(open.errors.join(' / '),/높은 적층의 문쪽 면이 막히지 않음/);
+  // 앞에 같은 높이의 화물 기둥이 있으면 막힌다.
+  const frontColumn=[0,200,400,600].map(z=>({x:600,y:0,z,l:200,w:200,h:200,weight:5})),frontRight=[0,200,400,600].map(z=>({x:600,y:200,z,l:200,w:200,h:200,weight:5}));
+  assert.doesNotMatch(validate({container:c,placed:[...tower,...right,...frontColumn,...frontRight]},{towerLimit:3}).errors.join(' / '),/전도 위험/);
+});
