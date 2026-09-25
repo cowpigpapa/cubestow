@@ -321,3 +321,14 @@ test('standing TVs fit one container when side support is judged on the finished
   assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
   assertValidShipment(result,items);
 });
+
+test('strict safety never stands a cylinder on top of a box',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[1],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const result=engine.packShipment({container:C20,units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:60000});
+  // 케이블 드럼(원통)을 펌프 상자 위에 2단으로 올리면 높은 모서리에서 두 면만 기대게 된다.
+  for(const load of result.loads)for(const p of load.placed.filter(p=>p.shape==='cylinder'&&p.z>0))
+    assert.ok(load.placed.filter(q=>Math.abs(q.z+q.h-p.z)<2&&overlapArea(p,q)>0).every(q=>q.shape==='cylinder'),`drum ${p.unit} rests on a box`);
+  assert.equal(result.remaining.length,0);
+  assertValidShipment(result,items);
+});

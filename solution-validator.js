@@ -16,6 +16,8 @@
         if(!supports.some(q=>cx>=q.x-2&&cx<=q.x+q.l+2&&cy>=q.y-2&&cy<=q.y+q.w+2))errors.push(`${i+1}번 화물 중심이 지지면 밖에 있음`);
         // 같은 높이의 화물 중 실제로 바닥면이 겹치는 화물만 받침이다(멀리 떨어진 같은 높이의 상부적재금지 화물은 무관).
         if(supports.some(q=>q.fragile&&footprintOverlap(p,q)>0))errors.push(`${i+1}번 화물이 상부적재금지 화물 위에 배치됨`);
+        // 엄격 기준: 원통은 바닥이나 원통 위에만 둔다.
+        if(options.cylinderOnFloor&&p.shape==='cylinder'&&supports.some(q=>q.shape!=='cylinder'&&footprintOverlap(p,q)>0))errors.push(`${i+1}번 원통 화물이 상자 위에 배치됨`);
       }
     });
     for(let i=0;i<placed.length;i++)for(let j=i+1;j<placed.length;j++)if(overlap(placed[i],placed[j]))errors.push(`${i+1}번과 ${j+1}번 화물 충돌`);
@@ -45,7 +47,7 @@
     return{valid:!errors.length,errors:[...new Set(errors)],metrics:{placed:placed.length,weight,compressionVerified:compression.filter(v=>v.limit!=null).length,compressionUnverified:compression.filter(v=>v.limit==null).length,maxTopLoad:compression.reduce((m,v)=>Math.max(m,v.topLoad),0)}};
   }
   function validateShipment(shipment){
-    const loads=shipment?.containers||[],options={minSupport:shipment?.safety==='standard'||shipment?.priority==='volume'?.7:1},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
+    const loads=shipment?.containers||[],strict=!(shipment?.safety==='standard'||shipment?.priority==='volume'),options={minSupport:strict?1:.7,cylinderOnFloor:strict},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
     if(Number.isFinite(shipment?.totalUnits)&&loaded+unallocated!==shipment.totalUnits)errors.push(`수량 불일치: 적재 ${loaded} + 미배치 ${unallocated} ≠ 입력 ${shipment.totalUnits}`);
     return{valid:!errors.length,errors,metrics:{loaded,unallocated,containers:loads.length}};
   }

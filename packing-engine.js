@@ -3,14 +3,14 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.9';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.10';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
 
   // 하드 조건(안전 기준). 모든 후보는 선택된 안전 기준을 통과해야만 배치된다.
   const SAFETY_LEVELS={
-    strict:{label:'엄격',description:'상부 지지 100%',minSupport:1,maxTopSlender:1.15},
+    strict:{label:'엄격',description:'상부 지지 100%',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true},
     standard:{label:'표준',description:'상부 지지 70% 이상',minSupport:.7,maxTopSlender:Infinity}
   };
   // 소프트 목표(우선 기준). 미배치 수량과 컨테이너 대수가 같을 때만 순위를 가른다.
@@ -101,7 +101,7 @@
   function supportInfo(item,x,y,z,l,w,placed){
     if(z===0)return{ratio:1,count:0,center:true,fragile:false,blocked:false};
     const cx=x+l/2,cy=y+w/2;
-    let area=0,count=0,center=false,fragile=false,blocked=false;
+    let area=0,count=0,center=false,fragile=false,blocked=false,onBox=false;
     for(const p of placed){
       if(Math.abs(p.z+p.h-z)>=TOL)continue;
       const x0=Math.max(x,p.x),x1=Math.min(x+l,p.x+p.l),y0=Math.max(y,p.y),y1=Math.min(y+w,p.y+p.w);
@@ -111,12 +111,13 @@
         const offset=Math.hypot(p.x+p.l/2-cx,p.y+p.w/2-cy),diameterDiff=Math.abs(p.l-l)+Math.abs(p.w-w);
         if(item.shape!=='cylinder'||offset>15||diameterDiff>30){blocked=true;continue}
       }
+      if(item.shape==='cylinder'&&p.shape!=='cylinder')onBox=true;
       count++;
       area+=(x1-x0)*(y1-y0);
       if(p.fragile)fragile=true;
       if(cx>=x0-TOL&&cx<=x1+TOL&&cy>=y0-TOL&&cy<=y1+TOL)center=true;
     }
-    return{ratio:Math.min(1,area/Math.max(1,l*w)),count,center,fragile,blocked};
+    return{ratio:Math.min(1,area/Math.max(1,l*w)),count,center,fragile,blocked,onBox};
   }
 
   // packing=true: 적재 좌표(안쪽 벽 x=0), false: 화면 좌표(문 x=0)
@@ -389,6 +390,8 @@
       const support=supportInfo(item,x,y,z,l,w,placed);
       if(support.blocked||!support.count||support.fragile||!support.center)return null;
       if(support.ratio<safety.minSupport-1e-6)return null;
+      // 엄격 기준: 원통은 바닥이나 같은 규격 원통 위에만 세운다(상자 위에 올린 원통은 높은 곳에서 기울거나 구를 위험이 크다).
+      if(safety.cylinderOnFloor&&support.onBox)return null;
       ratio=support.ratio;
     }
     // 측면 지지는 결과에 영향을 줄 때만 계산한다.

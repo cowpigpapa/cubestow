@@ -37,3 +37,10 @@ test('validator requires two side supports for tall cargo in the final layout, c
   const result=validate({container:c,placed:[{...tall,x:600},...backed]});
   assert.equal(result.valid,true,result.errors.join(' / '));
 });
+test('strict validation keeps cylinders on the floor or on cylinders',()=>{
+  const drum={x:50,y:0,z:50,l:50,w:50,h:30,weight:5,shape:'cylinder'},crate={x:50,y:0,z:0,l:50,w:50,h:50,weight:5,shape:'box'};
+  const load={container:{l:100,w:100,h:200,maxWeight:1000},placed:[crate,drum]};
+  assert.match(validate(load,{cylinderOnFloor:true}).errors.join('\n'),/원통 화물이 상자 위/);
+  assert.doesNotMatch(validate(load,{}).errors.join('\n'),/원통 화물이 상자 위/);
+  assert.doesNotMatch(validate({...load,placed:[{...crate,shape:'cylinder'},drum]},{cylinderOnFloor:true}).errors.join('\n'),/원통 화물이 상자 위/);
+});
