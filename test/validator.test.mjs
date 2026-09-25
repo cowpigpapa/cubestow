@@ -75,3 +75,11 @@ test('CTU safety without lashing checks every item against the transport-mode ti
   // 같은 배치라도 래싱을 쓰면(기본) 쌓이지 않은 화물에는 전도 한계를 적용하지 않는다.
   assert.doesNotMatch(context.LoadwiseValidator.validateShipment({safety:'secure',transportMode:'combined',containers:[{container:c,placed:[{...crate,x:1400},front]}],unallocated:[],totalUnits:2}).errors.join(' / '),/전도 위험/);
 });
+test('highest safety rejects a small box perched on a larger item with an open door-side face',()=>{
+  const c={l:2000,w:1000,h:2000,maxWeight:5000},crate={x:1000,y:0,z:0,l:1000,w:1000,h:600,weight:100},front={x:0,y:0,z:0,l:1000,w:1000,h:300,weight:50};
+  // 큰 화물 위에 작은 박스를 안쪽 벽·좌우 벽에 붙여 올렸지만 앞(문쪽)은 낮은 화물뿐이라 열려 있다.
+  const box={x:1600,y:0,z:600,l:400,w:1000,h:300,weight:10};
+  assert.match(validate({container:c,placed:[crate,front,box]},{blockSides:true}).errors.join(' / '),/얹혀 문쪽 면이 막히지 않음/);
+  // 문쪽 첫 줄이면(앞에 아무것도 없으면) 도어 펜스가 막으므로 괜찮다.
+  assert.doesNotMatch(validate({container:c,placed:[crate,box]},{blockSides:true}).errors.join(' / '),/얹혀/);
+});

@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.16';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.17';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -221,6 +221,13 @@
   }
   // 최고 안전 기준에서만 켠다.
   let STRICT_BLOCK=false;
+  // 얹힘: 받치는 화물 중에 바닥면 크기가 다른 화물이 있는 쌓인 화물. 같은 규격 기둥의 윗단은 얹힘이 아니다.
+  function perchOk(s,d,placed,c,packing,self=null){
+    if(s.z<=0)return true;
+    const [l,w]=d;let perched=false;
+    for(const q of nearby(placed,[[s.x,s.x+l,s.y,s.y+w]])){if(q===self||Math.abs(q.z+q.h-s.z)>TOL||Math.min(s.x+l,q.x+q.l)-Math.max(s.x,q.x)<=TOL||Math.min(s.y+w,q.y+q.w)-Math.max(s.y,q.y)<=TOL)continue;if(Math.abs(q.l-l)>TOL||Math.abs(q.w-w)>TOL){perched=true;break}}
+    return!perched||blockedSides(s,d,placed,c,packing,self).front;
+  }
   // 전도 방지: 화물(바닥부터 높이 H, 그 방향 폭 B)의 H/B가 한계를 넘는 방향은 막혀 있어야 한다.
   // 엄격·CTU 안전(래싱 사용): 쌓인 화물에 한계 3(Cubestow 설정, 전도 위험 방향은 래싱으로 고정).
   // CTU 안전(래싱 끔): CTU 정보자료 5 가속도의 v/c를 운송모드별로(복합은 도로·해상 C 중 불리한 값) 모든 화물에 적용한다.
@@ -475,7 +482,7 @@
     const needSides=ctx.heuristic==='width'||z>0||item.shape==='cylinder'||h/base>profile.slender||(z+h)/base>Math.min(1.5,profile.column);
     const sides=needSides?lateralSupportDirections(pos,d,placed,c,true):null,supported=sides?countSides(sides):4;
     if((z+h)/base>1.5&&supported<(ctx.deferSides?1:2))return null;
-    if(STRICT_BLOCK&&!ctx.deferSides&&!blockedOk(blockedSides(pos,d,placed,c,true)))return null;
+    if(STRICT_BLOCK&&!ctx.deferSides&&(!blockedOk(blockedSides(pos,d,placed,c,true))||!perchOk(pos,d,placed,c,true)))return null;
     if(TOWER_CHECK&&!ctx.deferSides&&!towerOk(pos,d,placed,c,true))return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     if(!stackSafe(item,x,y,z,d,state))return null;
@@ -608,7 +615,7 @@
   function settleSides(c,placed,fixed){
     let kept=placed,removed=[];
     for(let round=0;round<placed.length;round++){
-      const failing=kept.filter(p=>{if(fixed.has(p))return false;const d=[p.l,p.w,p.h];return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,kept,c,true,p))<2||STRICT_BLOCK&&!blockedOk(blockedSides(p,d,kept,c,true,p))||TOWER_CHECK&&!towerOk(p,d,kept,c,true,p)});
+      const failing=kept.filter(p=>{if(fixed.has(p))return false;const d=[p.l,p.w,p.h];return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,kept,c,true,p))<2||STRICT_BLOCK&&(!blockedOk(blockedSides(p,d,kept,c,true,p))||!perchOk(p,d,kept,c,true,p))||TOWER_CHECK&&!towerOk(p,d,kept,c,true,p)});
       if(!failing.length)break;
       const drop=new Set();
       for(const p of failing){
@@ -941,7 +948,7 @@
   // 좌우 무게중심 맞춤으로 적재 전체를 옮기면 옆벽에 기대던 화물이 벽에서 떨어질 수 있다.
   function sidesHold(load){
     const all=load.placed;
-    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p)))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
+    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p))&&perchOk(p,d,all,load.container,false,p))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
   }
   // 적재 전체를 사용 길이 안에서 앞뒤로 뒤집는다. 받침·상부하중·적층 무게중심은 그대로이고, 안쪽 벽 접촉이 바뀌므로 첫 화물 밀착과 측면 지지를 다시 확인한다.
   function mirrorLoad(ctx,raw){

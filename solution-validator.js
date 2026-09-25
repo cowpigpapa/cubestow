@@ -72,6 +72,8 @@
       if(count<2)errors.push(`${i+1}번 화물 측면 지지 부족(${count}/2면)`);
     });
     const fill=options.fill||{gap:BLOCK_GAP,floor:true};
+    // CTU 안전: 다른 크기 화물 위에 따로 올린 화물(얹힘)은 문쪽 면이 막혀 있어야 한다(앞에 같은 높이 화물 또는 문쪽 첫 줄).
+    if(options.blockSides)placed.forEach((p,i)=>{if(p.z<=0)return;const perched=placed.some(q=>q!==p&&Math.abs(q.z+q.h-p.z)<2&&footprintOverlap(p,q)>0&&(Math.abs(q.l-p.l)>2||Math.abs(q.w-p.w)>2));if(perched&&openSides(p,placed,c,fill).includes('문쪽'))errors.push(`${i+1}번 화물이 다른 화물 위에 얹혀 문쪽 면이 막히지 않음(최고 안전)`)});
     if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c,fill).filter(s=>s!=='문쪽');if(open.length)errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(최고 안전)`)});
     // 높은 적층 전도: 쌓인 화물의 (바닥부터 높이 ÷ 그 방향 폭)이 3을 넘으면 그 방향 양쪽 면이 막혀 있어야 한다(엄격 이상).
     // 전도 한계: 숫자면 쌓인 화물에 모든 방향 같은 한계, 객체({side,forward,backward})면 CTU 운송모드 한계를 모든 화물에 적용한다.
