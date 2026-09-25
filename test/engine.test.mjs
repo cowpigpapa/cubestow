@@ -152,14 +152,14 @@ test('200 mixed units finish within the time budget and stay valid',()=>{
 
 test('portfolio skips runs whose input order repeats an earlier run',()=>{
   const result=pack(units(36,{rotate:true}));
-  assert.equal(result.stats.runs,4);assert.equal(result.stats.skipped,12);
+  assert.equal(result.stats.runs,5);assert.equal(result.stats.skipped,15);
   assertValidShipment(result,units(36,{rotate:true}));
 });
 
 test('run de-duplication does not rely on unit ids',()=>{
   const items=mixed(),anonymous=items.map(({pi,unit,...p})=>p);
   const withIds=pack(items),withoutIds=pack(anonymous);
-  assert.equal(withoutIds.stats.runs,withIds.stats.runs);assert.equal(withIds.stats.runs,16);
+  assert.equal(withoutIds.stats.runs,withIds.stats.runs);assert.equal(withIds.stats.runs,20);
 });
 
 test('later containers ignore widths of cargo already loaded in earlier containers',()=>{

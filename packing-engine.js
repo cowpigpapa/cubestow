@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.2';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.3';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -30,9 +30,10 @@
     dblf:{floorFirst:true},
     density:{floorFirst:false},
     width:{floorFirst:true},
-    balance:{floorFirst:false}
+    balance:{floorFirst:false},
+    column:{floorFirst:true,key:'dblf'}
   };
-  const PREFERRED_HEURISTIC={auto:'dblf',density:'density',width:'width',balance:'balance'};
+  const PREFERRED_HEURISTIC={auto:'column',density:'density',width:'width',balance:'balance'};
 
   const now=()=>typeof performance!=='undefined'?performance.now():Date.now();
 
@@ -57,7 +58,6 @@
     const cache=new Map();
     return function projectedWidthGap(remaining){
       if(remaining<=0)return 0;
-      if(types<=1)return remaining;
       const usable=widths.filter(w=>w<=remaining);
       if(!usable.length)return remaining;
       const key=`${Math.round(remaining)}:${usable.length}`;
@@ -176,7 +176,7 @@
   // 새 화물(box)의 값이 받침 경로를 따라 나눠 내려간 몫(기존 화물 번호 → 값). box가 기존 화물을 받치지 않을 때만
   // 기존 분배가 그대로이므로 이 몫만 더하면 된다. 높은 화물부터 처리해야 한 화물로 모이는 몫을 모두 합친 뒤 넘길 수 있다.
   // visit(i,p,value)가 false를 돌려주면 중단하고 null을 돌려준다.
-  function spreadDown(box,value,placed,add,visit){
+  function spreadDown(box,value,placed,add,visit,geo){
     const self=placed.length,at=i=>i===self?box:placed[i],added=new Map([[self,value]]),queue=[self];
     while(queue.length){
       queue.sort((a,b)=>at(a).z-at(b).z);
@@ -184,7 +184,7 @@
       if(p.z<=0)continue;
       const part=added.get(i);
       if(visit&&!visit(i,p,part))return null;
-      const {supports,total}=supportsOf(p,placed,i);
+      const {supports,total}=i===self||!geo?supportsOf(p,placed,i):geo(i);
       for(const {j,area} of supports){
         if(!added.has(j))queue.push(j);
         added.set(j,add(added.get(j),part,area/total));
@@ -201,7 +201,7 @@
     const last=placed[n-1],before=placed.slice(0,n-1);
     if(state.topLoads?.length===n-1&&!supportsExisting(last,before)){
       const loads=[...state.topLoads,0];
-      for(const [j,load] of spreadDown(last,last.weight,before,addWeight))loads[j]+=load;
+      for(const [j,load] of spreadDown(last,last.weight,before,addWeight,null,i=>supportGeometry(state,i)))loads[j]+=load;
       state.topLoads=loads;
     }else state.topLoads=compressionLoads(placed);
     state.topLoadsOk=placed.every((p,i)=>withinTopLoad(p,state.topLoads[i]));
@@ -215,7 +215,7 @@
       const all=[...placed,box],loads=compressionLoads(all);
       return all.every((p,i)=>withinTopLoad(p,loads[i]));
     }
-    for(const [j,load] of spreadDown(box,item.weight,placed,addWeight))if(!withinTopLoad(placed[j],state.topLoads[j]+load))return false;
+    for(const [j,load] of spreadDown(box,item.weight,placed,addWeight,null,i=>supportGeometry(state,i)))if(!withinTopLoad(placed[j],state.topLoads[j]+load))return false;
     return true;
   }
 
@@ -235,7 +235,8 @@
     return true;
   }
   // 받침면 안에 합성 무게중심이 있는지 본다. 받침이 없으면 검사할 면이 없으므로 통과한다(validator와 같다).
-  function balancedOnSupports(load,p,placed,self){
+  function balancedOnSupports(load,p,placed,self,cachedHull){
+    if(cachedHull!==undefined)return!cachedHull||insidePolygon({x:load.mx/load.w,y:load.my/load.w},cachedHull);
     const points=[];
     placed.forEach((q,j)=>{
       if(j===self||Math.abs(q.z+q.h-p.z)>=TOL)return;
@@ -243,6 +244,16 @@
       if(x1>x0&&y1>y0)points.push({x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1});
     });
     return!points.length||insidePolygon({x:load.mx/load.w,y:load.my/load.w},hull(points));
+  }
+  // 확정된 화물의 받침 목록과 받침면 볼록 껍질. 새 화물이 기존 화물을 받치게 되면 commitPlacement에서 비운다.
+  function supportGeometry(state,i){
+    const cache=state.geo||(state.geo=[]);
+    if(!cache[i]){
+      const placed=state.placed,p=placed[i],{supports,total}=supportsOf(p,placed,i),points=[];
+      for(const {j} of supports){const q=placed[j],x0=Math.max(p.x,q.x),x1=Math.min(p.x+p.l,q.x+q.l),y0=Math.max(p.y,q.y),y1=Math.min(p.y+p.w,q.y+q.w);points.push({x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1})}
+      cache[i]={supports,total,hull:points.length?hull(points):null};
+    }
+    return cache[i];
   }
   const ownMoment=p=>({w:p.weight,mx:(p.x+p.l/2)*p.weight,my:(p.y+p.w/2)*p.weight});
   function stackMoments(placed){
@@ -262,9 +273,9 @@
     if(state.stack?.loads.length===n)return;
     const last=placed[n-1],before=placed.slice(0,n-1);
     if(state.stack?.loads.length===n-1&&state.stack.ok&&!supportsExisting(last,before)){
-      const loads=[...state.stack.loads,ownMoment(last)],added=spreadDown(last,ownMoment(last),before,addMoment);
+      const loads=[...state.stack.loads,ownMoment(last)],added=spreadDown(last,ownMoment(last),before,addMoment,null,i=>supportGeometry(state,i));
       for(const [j,part] of added)loads[j]=addMoment(loads[j],part,1);
-      state.stack={loads,ok:[n-1,...added.keys()].every(i=>placed[i].z<=0||balancedOnSupports(loads[i],placed[i],placed,i))};
+      state.stack={loads,ok:[n-1,...added.keys()].every(i=>placed[i].z<=0||balancedOnSupports(loads[i],placed[i],placed,i,supportGeometry(state,i).hull))};
     }else state.stack=stackMoments(placed);
   }
   // compressionSafe와 같은 방식: 새 화물이 기존 화물을 받치지 않으면 새 화물의 중량·모멘트가 아래로 전달되는 몫만 더해 본다.
@@ -272,7 +283,7 @@
     const placed=state.placed,box={...item,x,y,z,l:d[0],w:d[1],h:d[2]},self=placed.length;
     syncStack(state);
     if(!state.stack.ok||supportsExisting(box,placed))return stackMoments([...placed,box]).ok;
-    return spreadDown(box,ownMoment(box),placed,addMoment,(i,p,part)=>balancedOnSupports(i===self?part:addMoment(state.stack.loads[i],part,1),p,placed,i))!==null;
+    return spreadDown(box,ownMoment(box),placed,addMoment,(i,p,part)=>i===self?balancedOnSupports(part,p,placed,i):balancedOnSupports(addMoment(state.stack.loads[i],part,1),p,placed,i,supportGeometry(state,i).hull),i=>supportGeometry(state,i))!==null;
   }
 
   function transverseVoid(x,y,z,d,placed,c){
@@ -313,6 +324,7 @@
   }
 
   function commitPlacement(state,c,box){
+    if(state.geo?.length&&supportsExisting(box,state.placed))state.geo=[];
     state.placed.push(box);
     state.weight+=box.weight;
     state.depth=Math.max(state.depth,box.x+box.l);
@@ -424,8 +436,48 @@
     return[...units].sort((a,b)=>compare(a,b)||stabilityRisk(b)-stabilityRisk(a)||String(a.name).localeCompare(String(b.name))||(a.pi||0)-(b.pi||0)||(a.unit||0)-(b.unit||0));
   }
 
+  // 같은 규격 화물을 같은 방향으로 수직 기둥처럼 쌓아 안쪽 벽부터 바닥에 세운다. 기둥의 각 층은 아래 층을 100% 덮으므로
+  // 윗면이 평평하고 지지율이 좋다. 모든 화물은 evaluate의 하드 조건을 한 개씩 통과해야 놓이며, 남은 화물을 돌려준다.
+  function columnHeight(ctx,item,d){
+    if(item.fragile)return 1;
+    let k=Math.floor(ctx.c.h/d[2]);
+    if(d[2]/Math.max(1,Math.min(d[0],d[1]))>ctx.safety.maxTopSlender)k=1;
+    if(Number.isFinite(item.maxTopLoadKg))k=Math.min(k,1+Math.floor(item.maxTopLoadKg/Math.max(1e-9,item.weight)));
+    return Math.max(1,k);
+  }
+  function placeColumns(run,state,units){
+    const c=run.c,groups=new Map(),rest=[];
+    for(const u of units){if(!groups.has(u.typeKey))groups.set(u.typeKey,[]);groups.get(u.typeKey).push(u)}
+    // 기둥을 많이 세울 수 있는 규격(총 부피가 큰 규격)부터 안쪽에 세운다.
+    const lists=[...groups.values()].sort((a,b)=>b.length*b[0].volume-a.length*a[0].volume);
+    for(const list of lists){
+      const u=list[0];
+      // 방향: 기둥이 높이를 가장 잘 채우고, 비슷하면 눕힌(높이가 바닥 최소 치수 이하) 방향, 폭 방향 잔여가 작은 방향 순.
+      const scored=u.rotations.map(d=>{const k=Math.min(columnHeight(run,u,d),list.length);return{d,k,fill:Math.round(k*d[2]/c.h*20),slender:d[2]/Math.max(1,Math.min(d[0],d[1])),gap:c.w%d[1]}}).sort((a,b)=>b.fill-a.fill||(a.slender>1)-(b.slender>1)||a.gap-b.gap||a.d[0]*a.d[1]-b.d[0]*b.d[1]);
+      const {d,k}=scored[0];
+      if(k<2){rest.push(...list);continue}
+      const queue=list.map(item=>({...item,rotations:[d]}));
+      while(queue.length){
+        if(state.weight+queue[0].weight>c.maxWeight)break;
+        const base=findPlacement(run,state,queue[0],true);
+        if(!base)break;
+        let z=0,stacked=0;
+        while(queue.length&&stacked<k){
+          const item=queue[0],pos={x:base.pos.x,y:base.pos.y,z};
+          if(z+d[2]>c.h||state.weight+item.weight>c.maxWeight)break;
+          if(stacked>0&&!evaluate(run,state,item,pos,d,cheapKey(run,state,pos,d)))break;
+          commitPlacement(state,c,{...item,x:pos.x,y:pos.y,z,l:d[0],w:d[1],h:d[2]});
+          queue.shift();stacked++;z+=d[2];
+        }
+        if(stacked<2&&queue.length&&stacked===0)break;
+      }
+      // 기둥으로 못 세운 화물은 원래 회전 후보를 되살려 나머지 배치로 넘긴다.
+      rest.push(...queue.map(item=>({...item,rotations:u.rotations})));
+    }
+    return rest;
+  }
   function packContainer(ctx,units,heuristic,order,seed=[]){
-    const run={...ctx,heuristic},state=createState(ctx.c,seed),rejected=[];
+    const run={...ctx,heuristic:HEURISTICS[heuristic].key||heuristic},state=createState(ctx.c,seed),rejected=[];
     // 같은 조건의 화물이 실패하면 새 배치가 생기기 전까지 다시 계산하지 않는다.
     let failed=new Set();
     const place=(item,floorOnly)=>{
@@ -439,6 +491,7 @@
       return'ok';
     };
     let pending=sortUnits(units,order);
+    if(heuristic==='column')pending=placeColumns(run,state,pending);
     if(HEURISTICS[heuristic].floorFirst){
       let added=true;
       while(added&&pending.length){
@@ -524,6 +577,10 @@
       ctuLevel:ctu?.level==='danger'?2:ctu?.level==='caution'?1:0,
       ctuExcess:ctu?Math.max(0,(ctu.concentration||0)-60,(ctu.vertical||0)-50):0,
       maxOffset:ctu?Math.max(Math.abs(ctu.xOffset),Math.abs(ctu.yOffset)):0,
+      // 좌우 편차 등급은 따로 본다. 앞뒤 쏠림으로 전체 등급이 이미 위험이어도 좌우는 가운데로 맞출 수 있다.
+      lateralLevel:ctu?(Math.abs(ctu.yOffset)<=5?0:Math.abs(ctu.yOffset)<=10?1:2):0,
+      // 앞뒤 편차는 2.5% 단위로 비교한다(같은 등급 안에서도 쏠림이 작은 배치를 고른다).
+      longitudinal:ctu?Math.round(Math.abs(ctu.xOffset)/2.5):0,
       reviews:transportReviews(load,mode).length,
       span
     };
@@ -532,10 +589,10 @@
   function preferenceKey(metrics,preference){
     const m=metrics;
     switch(preference){
-      case 'density':return[m.span,m.ctuLevel,m.reviews,m.maxOffset];
-      case 'width':return[m.reviews,m.ctuLevel,m.span,m.maxOffset];
-      case 'balance':return[m.ctuLevel,m.maxOffset,m.reviews,m.span];
-      default:return[m.ctuLevel,m.reviews,m.ctuExcess,m.maxOffset,m.span];
+      case 'density':return[m.span,m.ctuLevel,m.lateralLevel,m.reviews,m.maxOffset];
+      case 'width':return[m.reviews,m.ctuLevel,m.lateralLevel,m.span,m.maxOffset];
+      case 'balance':return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.maxOffset,m.reviews,m.span];
+      default:return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.maxOffset,m.span];
     }
   }
 
@@ -546,7 +603,8 @@
   }
 
   function portfolioRuns(preference){
-    const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...Object.keys(HEURISTICS).filter(h=>h!==first)],runs=[];
+    // 기둥 쌓기는 시간 예산 안에 반드시 실행되도록 우선 기준 규칙 바로 다음에 둔다.
+    const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...(first==='column'?[]:['column']),...Object.keys(HEURISTICS).filter(h=>h!==first&&h!=='column')],runs=[];
     for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)runs.push({heuristic,order});
     return runs;
   }
