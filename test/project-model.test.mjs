@@ -15,7 +15,7 @@ test('legacy snapshots migrate and current metadata is preserved',()=>{
   const legacy=model.normalizeSnapshot({schemaVersion:1,products:[],containerType:'40ft',optimization:'sequence'});
   assert.equal(legacy.schemaVersion,5);assert.equal(legacy.safety,'strict');assert.equal(legacy.preference,'auto');assert.equal(legacy.algorithmVersion,'legacy');assert.equal(legacy.transportMode,'combined');assert.equal(legacy.resultSummary,null);assert.equal(legacy.fieldResult,null);
   const current=model.createSnapshot([],'20ft',{},{algorithmVersion:model.CURRENT_ALGORITHM_VERSION,resultSummary:{state:'complete',loaded:36,total:36,containerCount:1,totalWeight:6692,calculatedAt:'2026-08-11T00:00:00.000Z'}});
-  assert.equal(current.algorithmVersion,'ep-lex-portfolio-2026.10.10');assert.equal(current.resultSummary.loaded,36);assert.equal(current.resultSummary.totalWeight,6692);
+  assert.equal(current.algorithmVersion,'ep-lex-portfolio-2026.10.11');assert.equal(current.resultSummary.loaded,36);assert.equal(current.resultSummary.totalWeight,6692);
 });
 
 test('legacy strategies migrate to safety level and preference',()=>{
@@ -49,4 +49,8 @@ test('transport mode is preserved and invalid values fall back to combined',()=>
 test('invalid project values fall back safely',()=>{
   const snapshot=model.normalizeSnapshot({products:[{name:'',qty:0}],containerType:'x',optimization:'x',safety:'x',preference:'x'});
   assert.equal(snapshot.products.length,0);assert.equal(snapshot.containerType,'20ft');assert.equal(snapshot.safety,'strict');assert.equal(snapshot.preference,'auto');
+});
+
+test('highest safety level survives snapshot normalization',()=>{
+  assert.equal(model.createSnapshot([],'20ft',{safety:'secure',preference:'auto'}).safety,'secure');
 });

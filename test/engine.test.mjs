@@ -332,3 +332,16 @@ test('strict safety never stands a cylinder on top of a box',async()=>{
   assert.equal(result.remaining.length,0);
   assertValidShipment(result,items);
 });
+
+test('highest safety blocks the inner, left and right faces of every item in every sample',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const containers={'20ft':C20,'40ft':CONTAINERS[1],'40hc':CONTAINERS[2]};
+  for(const id of ['1','3','9','18']){
+    const sample=context.__samples[id],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+    const result=engine.packShipment({container:containers[sample.container],units:items,safety:'secure',transportMode:sample.mode,timeBudgetMs:60000});
+    // 검증기가 최고 안전 기준(3면 막힘)으로 독립 검사한다. 문쪽 면만 각재·부목으로 막는 예외다.
+    assert.equal(result.safety,'secure');
+    assertValidShipment(result,items);
+    assert.equal(result.remaining.length,0,`sample ${id}`);
+  }
+});

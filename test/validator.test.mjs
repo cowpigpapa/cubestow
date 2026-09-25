@@ -44,3 +44,15 @@ test('strict validation keeps cylinders on the floor or on cylinders',()=>{
   assert.doesNotMatch(validate(load,{}).errors.join('\n'),/원통 화물이 상자 위/);
   assert.doesNotMatch(validate({...load,placed:[{...crate,shape:'cylinder'},drum]},{cylinderOnFloor:true}).errors.join('\n'),/원통 화물이 상자 위/);
 });
+test('highest safety requires inner, left and right faces blocked; the door face is exempt',()=>{
+  const c={l:1000,w:1000,h:1000,maxWeight:1000},check=placed=>validate({container:c,placed},{blockSides:true});
+  const slab={x:800,y:0,z:0,l:200,w:1000,h:200,weight:20},top=y=>({x:800,y,z:200,l:200,w:200,h:100,weight:5});
+  // 바닥 화물은 벽까지 비어도 충전재·에어백으로 막을 수 있고, 문쪽(x=0 방향)은 비어도 된다.
+  assert.equal(check([{x:800,y:400,z:0,l:200,w:200,h:200,weight:5}]).valid,true);
+  // 높은 곳 화물은 양옆 간극이 에어백 한계(600mm) 안이면 막힌다.
+  const centered=check([slab,top(400)]);assert.equal(centered.valid,true,centered.errors.join(' / '));
+  // 높은 곳 화물이 옆벽까지 600mm를 넘게 비면 그 면은 막히지 않는다.
+  assert.match(check([slab,top(0)]).errors.join(' / '),/우 면이 막히지 않음/);
+  // 안쪽 벽에서 떨어져 있고 600mm 안에 받쳐 줄 화물도 없으면 안쪽 면이 막히지 않는다.
+  assert.match(check([{x:100,y:0,z:0,l:200,w:200,h:200,weight:5}]).errors.join(' / '),/안쪽 면이 막히지 않음/);
+});
