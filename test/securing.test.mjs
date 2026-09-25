@@ -28,3 +28,27 @@ test('airbags never overlap each other, cargo or dunnage, and never sit at a con
   }
   assert.ok(checked>50,`only ${checked} airbags checked`);
 });
+
+test('airbags fill at most a 600 mm gap off the floor, and fillers and door straps never overlap cargo or airbags',()=>{
+  let fillers=0;
+  for(const [id,sample] of Object.entries(context.__samples)){
+    const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+    const result=context.LoadwiseEngine.packShipment({container:context.__containers[sample.container],units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:60000});
+    for(const load of result.loads){
+      const plan=context.__plan(load,sample.mode);
+      // 제조사 권장: 백은 컨테이너 바닥에 닿지 않고, 간극은 백 한계(600mm) 이하. 넘는 벽 간극은 충전재로 줄인다.
+      for(const a of plan.airbags){
+        assert.ok(a.z>=100,`sample ${id}: airbag touches the floor (${a.location})`);
+        if(a.zone==='left'||a.zone==='right')assert.ok(a.w<=600+1,`sample ${id}: wall airbag spans ${a.w} mm`);
+        if(a.zone==='cargo')assert.ok(a.l<=600+1,`sample ${id}: cargo airbag spans ${a.l} mm`);
+        assert.match(a.bag||'',/^\d+×\d+$/,`sample ${id}: airbag size missing`);
+      }
+      for(const d of plan.dunnage.filter(d=>d.kind==='filler'||d.kind==='strap')){
+        fillers++;
+        load.placed.forEach(p=>assert.ok(!overlap(d,p),`sample ${id}: ${d.kind} inside cargo ${p.name}`));
+        plan.airbags.forEach(a=>assert.ok(!overlap(d,a),`sample ${id}: ${d.kind} overlaps an airbag`));
+      }
+    }
+  }
+  assert.ok(fillers>0,'no filler or strap was recommended in any sample');
+});
