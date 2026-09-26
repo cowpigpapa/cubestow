@@ -450,3 +450,13 @@ test('a light last container is re-split with the one before it so neither is we
   for(const load of result.loads)assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger',`${load.placed.length} items`);
   assertValidShipment(result,items);
 });
+
+test('200L drums stack two high on same-size drums so fifty fit one 20ft container under basic safety',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[15],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  // 드럼(지름 590 · 높이 880)은 세장비 1.49라 1.15 제한에 걸려 1단씩 2대였다. 같은 규격 원통 위에는 1.6까지 허용한다(사용자 결정 2026-09-27).
+  const result=engine.packShipment({container:C20,units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:8000});
+  assert.equal(result.loads.length,1);
+  assert.ok(result.loads[0].placed.some(p=>p.z>0),'some drums sit on drums');
+  assertValidShipment(result,items);
+});

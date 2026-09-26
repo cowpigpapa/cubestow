@@ -250,7 +250,9 @@ function fillRemainingVoids(load,airbags,dunnage){
     if(gap<SPACER_MIN_GAP)continue;
     // 문쪽이 비면(바닥 화물은 문쪽 고정이 맡는다) 또는 높은 곳에서 에어백 한계를 넘으면 상단 래싱 대상.
     if(d.key==='front'&&!facing||gap>AIRBAG_MAX_GAP){if(p.z>0)lash.push({p,dir:d.key});continue}
-    const wall=!facing,toInner=d.key==='back'&&wall,overlapA=facing?[Math.max(p[a],facing[a]),Math.min(p[a]+p[len],facing[a]+facing[len])]:[p[a],p[a]+p[len]];
+    // 안쪽 벽 쪽 틈은 채우지 않는다(현장은 안쪽부터 화물로 꽉 채운다, 사용자 결정 2026-09-27). 엔진이 화물을 안쪽 벽으로 밀어 두므로 거의 생기지 않는다.
+    if(d.key==='back'&&!facing)continue;
+    const wall=!facing,toInner=false,overlapA=facing?[Math.max(p[a],facing[a]),Math.min(p[a]+p[len],facing[a]+facing[len])]:[p[a],p[a]+p[len]];
     const z0=facing?Math.max(p.z,facing.z):p.z,z1=facing?Math.min(p.z+p.h,facing.z+facing.h):p.z+p.h;
     if(overlapA[1]-overlapA[0]<150||z1-z0<150)continue;
     const spacer=gap<SPACER_MAX_GAP||toInner,box={x:0,y:0,z:0,l:0,w:0,h:0};
@@ -314,7 +316,9 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
     });
     // 윗단(바닥에서 뜬) 노출 화물: 뒤 기둥 사이 각재 펜스와 충전재.
     // 바닥 못을 쓰지 않으면 바닥 화물도 펜스와 충전재로 막는다.
-    const upper=recessed.filter(p=>p.z>0||!options.nails);
+    // 못과 래싱을 모두 쓰면 바닥 화물은 각재, 윗단은 되잡기 래싱(fillRemainingVoids)이 막으므로 문쪽 펜스·충전재 덩어리를 두지 않는다(사용자 결정 2026-09-27).
+    // 못이나 래싱을 끈 경우에만 대신 펜스와 충전재로 막는다.
+    const upper=options.nails&&options.lashing?[]:recessed.filter(p=>p.z>0||!options.nails);
     if(upper.length){
       const nearDoor=Math.min(...doorExposed.map(p=>p.x)),depth=Math.min(FENCE_DEPTH,nearDoor-5);
       const spans=depth>=20?[[0,c.w]]:upper.map(p=>[p.y,p.y+p.w]).sort((m,n)=>m[0]-n[0]).reduce((out,[y0,y1])=>{const last=out[out.length-1];if(last&&y0<=last[1]+5)last[1]=Math.max(last[1],y1);else out.push([y0,y1]);return out},[]);
@@ -325,7 +329,23 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
   }
   {
     const candidates=[];
-    load.placed.forEach(p=>{const left=p.y,right=c.w-(p.y+p.w),length=Math.min(700,p.l*.6),width=Math.min(700,p.w*.6),x=p.x+(p.l-length)/2,y=p.y+(p.w-width)/2,height=Math.min(1200,p.h*.72),z=p.z+Math.max(20,p.h*.14),level=p.z>0?`${Math.round(p.z/1000*10)/10}m 높이`:'',addWall=(zone,gap,make)=>{if(gap<AIRBAG_MIN_GAP)return;const bag=Math.min(gap,AIRBAG_MAX_GAP),filler=Math.round(gap-bag);candidates.push({...make(bag),type:'airbag',zone,z,h:height,bag:airbagSize(bag),filler,location:`${zone==='left'?'좌측':'우측'} 벽 간극 ${Math.round(gap)}mm${filler>0?` · 충전재 ${filler}mm + 에어백`:''} ${level}`.trim(),product:p.name})};addWall('left',left,bag=>({x,y:p.y-bag,l:length,w:bag}));addWall('right',right,bag=>({x,y:p.y+p.w,l:length,w:bag}));/* 실무상 컨테이너 끝(안쪽 벽·문)에는 에어백을 두지 않는다. 화물은 안쪽 벽에 밀착하고 문 쪽은 각재·부목으로 막는다. */});
+    load.placed.forEach(p=>{const left=p.y,right=c.w-(p.y+p.w),length=Math.min(700,p.l*.6),width=Math.min(700,p.w*.6),x=p.x+(p.l-length)/2,y=p.y+(p.w-width)/2,height=Math.min(1200,p.h*.72),z=p.z+Math.max(20,p.h*.14),level=p.z>0?`${Math.round(p.z/1000*10)/10}m 높이`:'',addWall=(zone,gap,make)=>{if(gap<AIRBAG_MIN_GAP)return;const bag=Math.min(gap,AIRBAG_MAX_GAP),filler=Math.round(gap-bag);candidates.push({...make(bag),type:'airbag',zone,z,h:height,bag:airbagSize(bag),filler,p,gap,location:`${zone==='left'?'좌측':'우측'} 벽 간극 ${Math.round(gap)}mm${filler>0?` · 충전재 ${filler}mm + 에어백`:''} ${level}`.trim(),product:p.name})};addWall('left',left,bag=>({x,y:p.y-bag,l:length,w:bag}));addWall('right',right,bag=>({x,y:p.y+p.w,l:length,w:bag}));/* 실무상 컨테이너 끝(안쪽 벽·문)에는 에어백을 두지 않는다. 화물은 안쪽 벽에 밀착하고 문 쪽은 각재·부목으로 막는다. */});
+    // 같은 벽 쪽에서 틈이 비슷하고(±30mm) 길이 방향으로 붙어 있는(50mm 이내) 화물 줄은 이음매마다 에어백 하나를 걸쳐 두 화물을 함께 누른다.
+    // 화물마다 하나씩 넣던 것보다 개수가 약 절반이고, 모든 화물이 에어백에 닿는다(사용자 결정 2026-09-27: 개수보다 고정과 벽 밀착이 중요).
+    for(const zone of ['left','right']){
+      const wallBags=candidates.filter(q=>q.type==='airbag'&&q.zone===zone&&q.p).sort((a,b)=>a.p.z-b.p.z||a.x-b.x),keep=new Set(),runs=[];
+      for(const q of wallBags){const last=runs[runs.length-1],prev=last&&last[last.length-1];if(prev&&prev.p.z===q.p.z&&Math.abs(prev.gap-q.gap)<=30&&q.p.x-(prev.p.x+prev.p.l)<=50&&q.p.x>=prev.p.x)last.push(q);else runs.push([q])}
+      for(const run of runs){
+        for(let i=0;i<run.length;i+=2){
+          const a=run[i],b=run[i+1];if(!b){keep.add(a);continue}
+          const joint=a.p.x+a.p.l,length=Math.min(1200,Math.min(a.p.l,b.p.l)*1.2),y=zone==='left'?Math.max(a.y,b.y):Math.min(a.y,b.y),w=Math.min(a.w,b.w);
+          keep.add({...a,x:Math.max(a.p.x,joint-length/2),l:Math.min(length,b.p.x+b.p.l-Math.max(a.p.x,joint-length/2)),y,w,filler:Math.max(a.filler,b.filler),product:a.product===b.product?a.product:`${a.product} / ${b.product}`,location:`${a.location} · 두 화물 이음매`});
+        }
+      }
+      for(let i=candidates.length-1;i>=0;i--)if(candidates[i].zone===zone&&candidates[i].p)candidates.splice(i,1);
+      candidates.push(...keep);
+    }
+    for(const q of candidates){delete q.p;delete q.gap}
     const sorted=[...load.placed].sort((a,b)=>a.x-b.x);sorted.forEach((p,i)=>{let nearest=null;for(let j=i+1;j<sorted.length;j++){const q=sorted[j],gap=q.x-(p.x+p.l),overlap=Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y),vertical=Math.min(p.z+p.h,q.z+q.h)-Math.max(p.z,q.z);if(gap>0&&overlap>150&&vertical>150&&(!nearest||gap<nearest.gap))nearest={q,gap,overlap,vertical}}if(nearest&&nearest.gap>=120&&nearest.gap<=AIRBAG_MAX_GAP){const baseZ=Math.max(p.z,nearest.q.z),z=baseZ+Math.max(20,nearest.vertical*.14);candidates.push({type:'airbag',zone:'cargo',bag:airbagSize(nearest.gap),x:p.x+p.l,y:Math.max(p.y,nearest.q.y),z,l:nearest.gap,w:nearest.overlap,h:Math.min(1200,nearest.vertical*.72),location:`화물 사이 간극${baseZ>0?` · ${(baseZ/1000).toFixed(1)}m 높이`:''}`,product:`${p.name} / ${nearest.q.name}`})}});
     const byY=[...load.placed].sort((a,b)=>a.y-b.y);byY.forEach((p,i)=>{let nearest=null;for(let j=i+1;j<byY.length;j++){const q=byY[j],gap=q.y-(p.y+p.w),overlap=Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x),vertical=Math.min(p.z+p.h,q.z+q.h)-Math.max(p.z,q.z);if(gap>0&&overlap>180&&vertical>150&&(!nearest||gap<nearest.gap))nearest={q,gap,overlap,vertical}}if(nearest&&nearest.gap>=120&&nearest.gap<=AIRBAG_MAX_GAP){const baseZ=Math.max(p.z,nearest.q.z),z=baseZ+Math.max(20,nearest.vertical*.12);candidates.push({type:'airbag',zone:'center',bag:airbagSize(nearest.gap),x:Math.max(p.x,nearest.q.x),y:p.y+p.w,z,l:nearest.overlap,w:nearest.gap,h:Math.min(1400,nearest.vertical*.76),location:`화물 열 사이 중앙 간극${baseZ>0?` · ${(baseZ/1000).toFixed(1)}m 높이`:''}`,product:`${p.name} / ${nearest.q.name}`})}});
     const free=q=>!load.placed.some(p=>q.x<p.x+p.l&&q.x+q.l>p.x&&q.y<p.y+p.w&&q.y+q.w>p.y&&q.z<p.z+p.h&&q.z+q.h>p.z);

@@ -114,3 +114,18 @@ test('identical boxes fill every lane up to the inner wall and leave the short l
   const plan=context.__plan(load,sample.mode);
   assert.equal(plan.airbags.filter(a=>a.x+a.l>container.l-1500).length,0,'no airbag near the inner wall');
 });
+
+test('with nails and lashing on there is no filler at the inner wall and no door fence or filler block',()=>{
+  // 사용자 결정(2026-09-27): 안쪽과 화물 사이에는 충전재를 쓰지 않고, 문쪽 빈 공간은 충전재 덩어리 대신 못 박은 각재와 윗단 되잡기 래싱으로 막는다.
+  for(const id of ['2','11','18']){
+    const sample=context.__samples[id],container=context.__containers[sample.container];
+    const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+    const result=context.LoadwiseEngine.packShipment({container,units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:8000});
+    for(const load of result.loads){
+      const plan=context.__plan(load,sample.mode);
+      assert.equal(plan.dunnage.filter(d=>d.kind==='fence').length,0,`sample ${id}: door fence`);
+      assert.equal(plan.dunnage.filter(d=>d.kind==='filler'&&/문쪽 충전재/.test(d.location)).length,0,`sample ${id}: door filler`);
+      assert.equal(plan.dunnage.filter(d=>(d.kind==='filler'||d.kind==='spacer')&&/안쪽 벽/.test(d.location)).length,0,`sample ${id}: inner-wall filler`);
+    }
+  }
+});

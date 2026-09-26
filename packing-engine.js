@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.25';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.26';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -225,6 +225,8 @@
   let PERCH_PREFER=false;
   // CTU 기준의 고정재 보강안: 화물끼리 막힘은 요구하지 않지만 얹힘(문쪽이 열린 채 다른 규격 위에 올린 화물)은 금지한다.
   let PERCH_HARD=false;
+  // 적재량 우선: 넘어질 수 있는 높은 탑(쌓인 화물 높이 ÷ 폭 > 3) 자리를 금지하지 않고 뒤로 미룬다(최대한 싣되 최대한 덜 위험하게, 사용자 결정 2026-09-27).
+  let TOWER_PREFER=false;
   function perchOk(s,d,placed,c,packing,self=null){
     if(s.z<=0)return true;
     const [l,w]=d;let perched=false;
@@ -481,7 +483,7 @@
     const base=Math.max(1,Math.min(l,w)),profile=TRANSPORT_PROFILES[mode]||TRANSPORT_PROFILES.combined;
     let ratio=1;
     if(z>0){
-      if(h/base>safety.maxTopSlender)return null;
+      if(h/base>topSlender(item,safety))return null;
       const support=supportInfo(item,x,y,z,l,w,placed);
       if(support.blocked||!support.count||support.fragile||!support.center)return null;
       if(support.ratio<safety.minSupport-1e-6)return null;
@@ -498,7 +500,7 @@
     if(TOWER_CHECK&&!ctx.deferSides&&!towerOk(pos,d,placed,c,true))return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     if(!stackSafe(item,x,y,z,d,state))return null;
-    const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,open=STRICT_BLOCK?(b=>(b.back?0:1)+(b.left?0:1)+(b.right?0:1))(blockedSides(pos,d,placed,c,true)):PERCH_PREFER&&z>0&&!perchOk(pos,d,placed,c,true)?1:0,flag=(risk>0?1:0)+open,area=-(l*w);
+    const risk=sides?transportPlacementRisk(item,pos,d,sides,c,mode):0,open=STRICT_BLOCK?(b=>(b.back?0:1)+(b.left?0:1)+(b.right?0:1))(blockedSides(pos,d,placed,c,true)):(PERCH_PREFER&&z>0&&!perchOk(pos,d,placed,c,true)?1:0)+(TOWER_PREFER&&!towerOk(pos,d,placed,c,true)?1:0),flag=(risk>0?1:0)+open,area=-(l*w);
     switch(ctx.heuristic){
       case 'dblf':{
         const gap=transverseVoid(x,y,z,d,placed,c);
@@ -566,10 +568,14 @@
 
   // 같은 규격 화물을 같은 방향으로 수직 기둥처럼 쌓아 안쪽 벽부터 바닥에 세운다. 기둥의 각 층은 아래 층을 100% 덮으므로
   // 윗면이 평평하고 지지율이 좋다. 모든 화물은 evaluate의 하드 조건을 한 개씩 통과해야 놓이며, 남은 화물을 돌려준다.
+  // 위에 올리는 화물의 세장비 한계. 원통은 기본·CTU에서 바닥이나 같은 규격 원통 위에만 서므로(층 사이 합판을 대는 현장 관행) 1.6까지 올린다.
+  // 예: 200L 드럼(지름 590 · 높이 880, 1.49) 2단. 다른 화물은 그대로 1.15(사용자 결정 2026-09-27, Cubestow 설정).
+  const CYLINDER_STACK_SLENDER=1.6;
+  const topSlender=(item,safety)=>item.shape==='cylinder'&&safety.cylinderOnFloor?Math.max(safety.maxTopSlender,CYLINDER_STACK_SLENDER):safety.maxTopSlender;
   function columnHeight(ctx,item,d){
     if(item.fragile)return 1;
     let k=Math.floor(ctx.c.h/d[2]);
-    if(d[2]/Math.max(1,Math.min(d[0],d[1]))>ctx.safety.maxTopSlender)k=1;
+    if(d[2]/Math.max(1,Math.min(d[0],d[1]))>topSlender(item,ctx.safety))k=1;
     if(Number.isFinite(item.maxTopLoadKg))k=Math.min(k,1+Math.floor(item.maxTopLoadKg/Math.max(1e-9,item.weight)));
     return Math.max(1,k);
   }
@@ -882,6 +888,9 @@
       longitudinal:ctu?Math.round(Math.abs(ctu.xOffset)/2.5):0,
       reviews:transportReviews(load,mode).length,
       // 큰 화물이 문쪽에 있는 정도(0 = 모두 안쪽 벽, 1 = 모두 문). 부피의 제곱으로 가중해 큰 화물을 우선하고 0.02 단위로 비교한다.
+      // 바닥 화물 옆 틈에 필요한 고정재 양: 열린 옆면마다 에어백 1개 + 에어백 한계(500mm)를 넘는 틈 250mm마다 충전재 1단위.
+      // 같은 조건이면 고정재가 적게 드는 배치(보통 벽에 붙은 배치, 틈이 크면 가운데 배치)를 고른다(사용자 결정 2026-09-27).
+      sideGaps:(()=>{const c=load.container,floor=load.placed.filter(p=>p.z<=TOL);let need=0;for(const p of floor){let left=p.y,right=c.w-(p.y+p.w);for(const q of floor){if(q===p||Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)<=p.l*.3)continue;if(q.y+q.w<=p.y+TOL)left=Math.min(left,p.y-(q.y+q.w));else if(q.y>=p.y+p.w-TOL)right=Math.min(right,q.y-(p.y+p.w))}for(const g of [left,right])if(g>50)need+=1+Math.max(0,g-500)/250}return Math.round(need)})(),
       bigDoor:(()=>{let num=0,den=0;for(const p of load.placed){const v=(p.l*p.w*p.h)**2;num+=v*(1-(p.x+p.l/2)/load.container.l);den+=v}return den?Math.round(num/den*50)/50:0})(),
       span
     };
@@ -890,10 +899,10 @@
   function preferenceKey(metrics,preference){
     const m=metrics;
     switch(preference){
-      case 'density':return[m.span,m.ctuLevel,m.lateralLevel,m.reviews,m.maxOffset];
+      case 'density':return[m.span,m.ctuLevel,m.lateralLevel,m.reviews,m.sideGaps,m.maxOffset];
       case 'width':return[m.reviews,m.ctuLevel,m.lateralLevel,m.span,m.maxOffset];
-      case 'balance':return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.maxOffset,m.reviews,m.span];
-      default:return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.bigDoor,m.maxOffset,m.span];
+      case 'balance':return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.maxOffset,m.reviews,m.sideGaps,m.span];
+      default:return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.bigDoor,m.sideGaps,m.maxOffset,m.span];
     }
   }
 
@@ -1150,7 +1159,7 @@
     const onProgress=typeof input.onProgress==='function'?input.onProgress:()=>{};
     const units=prepareUnits(input.units||[]);
     STRICT_BLOCK=Boolean(SAFETY_LEVELS[safetyKey].blockSides);PERCH_HARD=false;
-    TOWER_CHECK=safetyKey!=='standard';PERCH_PREFER=safetyKey==='strict';
+    TOWER_CHECK=safetyKey!=='standard';PERCH_PREFER=safetyKey==='strict'||safetyKey==='standard';TOWER_PREFER=safetyKey==='standard';
     const securing={airbag:true,filler:true,nails:true,lashing:true,...(input.securing||{})},ctuTip=Boolean(SAFETY_LEVELS[safetyKey].blockSides)&&securing.lashing===false;
     TIP=ctuTip?tipLimits(mode):{side:3,forward:3,backward:3};TIP_STACKED_ONLY=!ctuTip;
     BLOCK_GAP=securing.airbag||securing.filler?500:TOL;FLOOR_FILL=securing.filler!==false;
