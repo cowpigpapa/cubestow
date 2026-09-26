@@ -73,10 +73,10 @@
     });
     const fill=options.fill||{gap:BLOCK_GAP,floor:true};
     // CTU 안전: 다른 크기 화물 위에 따로 올린 화물(얹힘)은 문쪽 면이 막혀 있어야 한다(앞에 같은 높이 화물 또는 문쪽 첫 줄).
-    if(options.blockSides)placed.forEach((p,i)=>{if(p.z<=0)return;const perched=placed.some(q=>q!==p&&Math.abs(q.z+q.h-p.z)<2&&footprintOverlap(p,q)>0&&(Math.abs(q.l-p.l)>2||Math.abs(q.w-p.w)>2));if(perched&&openSides(p,placed,c,fill).includes('문쪽'))errors.push(`${i+1}번 화물이 다른 화물 위에 얹혀 문쪽 면이 막히지 않음(최고 안전)`)});
+    if(options.blockSides)placed.forEach((p,i)=>{if(p.z<=0)return;const perched=placed.some(q=>q!==p&&Math.abs(q.z+q.h-p.z)<2&&footprintOverlap(p,q)>0&&(Math.abs(q.l-p.l)>2||Math.abs(q.w-p.w)>2));if(perched&&openSides(p,placed,c,fill).includes('문쪽'))errors.push(`${i+1}번 화물이 다른 화물 위에 얹혀 문쪽 면이 막히지 않음(CTU 기준)`)});
     // CTU 기준: 화물로 막히지 않은 옆면은 고정재(에어백·충전재·각재·래싱)를 하나라도 쓰면 고정재로 막을 곳으로 넘기고(CTU Code는 화물 외 고정재 막음도 인정), 모두 끄면 오류다.
     const securingRequired=[];
-    if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c,fill).filter(s=>s!=='문쪽');if(!open.length)return;if(options.secureOpenFaces)securingRequired.push({index:i,faces:open});else errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(최고 안전)`)});
+    if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c,fill).filter(s=>s!=='문쪽');if(!open.length)return;if(options.secureOpenFaces)securingRequired.push({index:i,faces:open});else errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(CTU 기준)`)});
     // 높은 적층 전도: 쌓인 화물의 (바닥부터 높이 ÷ 그 방향 폭)이 3을 넘으면 그 방향 양쪽 면이 막혀 있어야 한다(엄격 이상).
     // 전도 한계: 숫자면 쌓인 화물에 모든 방향 같은 한계, 객체({side,forward,backward})면 CTU 운송모드 한계를 모든 화물에 적용한다.
     if(options.towerLimit)placed.forEach((p,i)=>{const numeric=typeof options.towerLimit==='number',lim=numeric?{side:options.towerLimit,forward:options.towerLimit,backward:options.towerLimit}:options.towerLimit;if(numeric&&p.z<=0)return;const H=p.z+p.h,rx=H/Math.max(1,p.l),ry=H/Math.max(1,p.w);if(rx<=lim.forward&&rx<=lim.backward&&ry<=lim.side)return;const open=openSides(p,placed,c,fill),bad=[...(rx>lim.backward?['문쪽']:[]),...(rx>lim.forward?['안쪽']:[]),...(ry>lim.side?['좌','우']:[])].filter(s=>open.includes(s));if(bad.length)errors.push(`${i+1}번 화물 높은 적층의 ${bad.join('·')} 면이 막히지 않음(전도 위험)`)});

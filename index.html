@@ -171,9 +171,9 @@
     <p>제품 등록부터 3D 적재안 확인과 프로젝트 저장까지 한 화면에서 진행할 수 있습니다.</p>
     <div class="policy-summary">
       <article><b>STEP 01</b><strong>제품 등록</strong><span>직접 입력하거나 Excel·CSV 파일을 불러옵니다.</span></article>
-      <article><b>STEP 02</b><strong>조건 선택</strong><span>컨테이너 규격, 안전 기준과 우선 기준을 선택합니다.</span></article>
+      <article><b>STEP 02</b><strong>조건 선택</strong><span>안전 수준·배치 방식·운송 경로·고정재와 컨테이너를 고릅니다.</span></article>
       <article><b>STEP 03</b><strong>결과 확인</strong><span>3D 배치, 적재 순서와 고정재 권고를 검토합니다.</span></article>
-      <article><b>STEP 04</b><strong>저장·내보내기</strong><span>프로젝트를 저장하거나 Excel 계획을 내려받습니다.</span></article>
+      <article><b>STEP 04</b><strong>저장·내보내기</strong><span>프로젝트를 저장하거나 PDF 작업지시서·Excel 계획을 내려받습니다.</span></article>
     </div>
     <div class="policy-sections">
       <details open><summary>1. 제품 입력</summary><ul><li>직접 입력에서는 제품명, 형상, 수량, 길이·너비·높이와 개당 중량을 입력합니다.</li><li>여러 제품은 Excel 또는 CSV로 한 번에 등록할 수 있습니다.</li><li>눕힘 허용은 높이 축 변경을 허용하며, 상부 적재 금지는 해당 화물 위의 배치를 막습니다.</li></ul></details>
@@ -185,7 +185,7 @@
         <li>20ft, 40ft, 40ft High Cube, 45ft High Cube를 지원합니다.</li>
       </ul></details>
       <details><summary>3. 배치 방식(선적 방법)과 추천 방법</summary><ul>
-        <li>한 번 실행할 때 아래 배치 방식을 투입 순서 4가지(부피 큰 순·가장 긴 변 순·바닥면 큰 순·무거운 순)와 조합해 여러 배치안을 만들고, 컨테이너마다 가장 좋은 안을 고릅니다.</li>
+        <li>한 번 실행할 때 아래 배치 방식을 투입 순서 4가지(부피 큰 순·가장 긴 변 순·바닥면 큰 순·무거운 순)와 조합해 여러 배치안을 만들고, 컨테이너마다 가장 좋은 안을 고릅니다. 화물이 남거나 무게배분이 위험하면 제품 순서를 섞은 배치안을 더 계산합니다(순서는 고정이라 같은 입력이면 결과가 같습니다).</li>
         <li><em>같은 규격 기둥 쌓기</em>: 같은 제품을 같은 방향으로 수직으로 쌓아 안쪽부터 세웁니다. 반복 규격이 많을 때 유리합니다.</li>
         <li><em>균형 기둥 쌓기</em>: 기둥 쌓기와 같되, 무게중심이 가운데에 오도록 제품 그룹 순서를 정하고 기둥을 낮춰 길이 방향으로 펼칩니다.</li>
         <li><em>바닥 우선(DBLF)</em>: 바닥을 먼저 안쪽·왼쪽부터 채우고 그 위에 쌓습니다.</li>
@@ -193,11 +193,13 @@
         <li><em>폭 채움</em>: 한 줄의 폭을 꽉 채워 화물이 옆으로 서로 기대도록 합니다.</li>
         <li><em>무게중심 배치</em>: 놓을 때마다 무게중심이 가운데에 가까운 자리를 고릅니다.</li>
         <li><em>벽 쌓기 · 전폭 벽(스트립)</em>(CTU 기준 적용 전용): 폭 전체를 채우는 층을 안쪽부터 한 층씩 세웁니다. 스트립은 같은 높이의 기둥들로 벽을 만들어 3면이 서로 막히게 합니다.</li>
-        <li>배치 후에는 서로 걸치지 않는 구간의 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 맞추고, 큰 화물이 안쪽에 오도록 하며, CTU 기준 적용에서는 남은 화물을 한 번 더 채워 넣습니다.</li>
+        <li>배치 후에는 서로 걸치지 않는 구간의 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 맞추고, 큰 화물이 안쪽에 오도록 합니다. 마지막으로 화물 묶음을 안쪽 벽으로 밀어 빈틈을 문쪽에 모읍니다(문쪽 틈은 각재·펜스로 막음).</li>
+        <li>마지막 컨테이너에 화물이 조금만 남아 무게중심이 안쪽으로 쏠리면(무게배분 위험), 앞 컨테이너와 화물을 반씩 다시 나눕니다.</li>
+        <li>CTU 기준 적용에서는 남은 화물을 한 번 더 채워 넣고, 그래도 컨테이너가 늘면 기본 배치를 쓰되 화물로 막히지 않은 면을 고정재로 막도록 안내합니다.</li>
         <li><strong>추천</strong>: 컨테이너마다 ① 실린 부피 ② 실린 수량 ③ 우선 기준 순으로 가장 좋은 안을 씁니다. 같은 입력이면 어느 컴퓨터에서나 같은 결과가 나옵니다.</li>
       </ul></details>
-      <details><summary>4. 시뮬레이션 결과 확인</summary><ul><li>3D와 상면 보기로 배치를 확인하고 단계 재생으로 실제 적재 순서를 검토합니다.</li><li>여러 컨테이너가 필요하면 화살표로 각 컨테이너 결과를 이동합니다.</li><li>각재·부목과 에어백 표시는 화면에서 켜고 끌 수 있습니다.</li><li>운송모드별 높은 적층·측면 간극·문측 노출·원통 구름 위험은 구체적인 검토 사유로 표시합니다.</li></ul></details>
-      <details><summary>5. 프로젝트 저장</summary><ul><li>비로그인 상태에서는 현재 브라우저에, 로그인 상태에서는 계정별 클라우드에 저장됩니다.</li><li>저장 목록에서 프로젝트를 불러오면 저장된 조건으로 시뮬레이션이 자동 실행됩니다.</li><li>미배치 화물이 있으면 안전 검토를 위해 Excel 내보내기가 제한됩니다.</li></ul></details>
+      <details><summary>4. 시뮬레이션 결과 확인</summary><ul><li>3D와 상면 보기로 배치를 확인하고 단계 재생으로 실제 적재 순서를 검토합니다.</li><li>여러 컨테이너가 필요하면 화살표로 각 컨테이너 결과를 이동합니다.</li><li>각재·부목과 에어백 표시는 화면에서 켜고 끌 수 있습니다.</li><li>운송모드별 높은 적층·측면 간극·문측 노출·원통 구름 위험은 구체적인 검토 사유로 표시합니다.</li><li>CTU 기준 적용에서 화물로 막히지 않은 면은 고정재 권고의 "CTU 열린 면 보강"에 화물 번호·면·방법(래싱 또는 에어백·충전재)으로 나옵니다.</li><li>미배치 화물은 제품별 사유(공간·지지 부족, 중량 초과, 최대 50대 초과, 고정재 부족 등)와 함께 표시합니다.</li></ul></details>
+      <details><summary>5. 프로젝트 저장</summary><ul><li>비로그인 상태에서는 현재 브라우저에, 로그인 상태에서는 계정별 클라우드에 저장됩니다.</li><li>저장 목록에서 프로젝트를 불러오면 저장된 조건으로 시뮬레이션이 자동 실행됩니다.</li><li>미배치 화물이 있으면 안전 검토를 위해 PDF·Excel 내보내기가 제한됩니다.</li><li>PDF·Excel을 내보내기 전에 현장 확인이 필요한 검토용 문서라는 안내를 한 번 확인합니다.</li></ul></details>
     </div>
     <div class="policy-warning"><strong>현장 확인 필수</strong><span>결과는 작업 검토용 제안입니다. 실제 상차 전 화물 강도, 중량중심, 운송 조건과 고정재 지침을 확인하세요.</span></div>
   </dialog>
@@ -244,17 +246,18 @@
     <h2>알고리즘 정책과 한계</h2>
     <p>Cubestow의 결과는 작업 검토를 위한 휴리스틱 제안이며 전역 최적해나 안전 인증을 의미하지 않습니다.</p>
     <div class="policy-summary">
-      <article><b>안전 기준 · 엄격</b><strong>상부 지지 100%</strong><span>세장 화물 위 적재 금지·중심 지지</span></article>
-      <article><b>안전 기준 · 표준</b><strong>상부 지지 70% 이상</strong><span>중심 지지·상부 금지 조건은 동일</span></article>
+      <article><b>안전 수준 · 적재량 우선</b><strong>상부 지지 70% 이상</strong><span>충돌·중량·상부하중 같은 물리 조건</span></article>
+      <article><b>안전 수준 · 기본</b><strong>상부 지지 100%</strong><span>세장 화물 위 금지·원통 규칙·높은 적층 전도 방지</span></article>
+      <article><b>안전 수준 · CTU 기준 적용</b><strong>3면 막힘 · 얹힘 금지</strong><span>화물 또는 고정재로 막음, 기본보다 대수를 늘리지 않음</span></article>
       <article><b>비교 순서</b><strong>미배치 → 대수</strong><span>같은 안전 기준 안에서 먼저 최소화</span></article>
-      <article><b>우선 기준</b><strong>대수가 같을 때만</strong><span>추천·붙여 싣기·무게중심</span></article>
-      <article><b>계산 방식</b><strong>24개 후보 비교</strong><span>배치 규칙 6종 × 투입 순서 4종, 백그라운드 계산</span></article>
+      <article><b>배치 방식</b><strong>대수가 같을 때만</strong><span>추천·붙여 싣기·무게중심</span></article>
+      <article><b>계산 방식</b><strong>배치안 포트폴리오</strong><span>규칙 6종 × 순서 4종 + 필요하면 섞은 순서 24종, 같은 입력은 같은 결과</span></article>
     </div>
     <div class="policy-sections">
-      <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화하고 부피·중량으로 필요한 컨테이너 대수의 하한을 계산합니다.</li><li>허용 회전과 Extreme Point 후보를 만들고, 후보를 아래·안쪽·좌측으로 밀착시킵니다.</li><li>경계·충돌·중량·상부 금지·지지율·중심 지지·측면 지지·상부 허용하중·스택 합성 무게중심을 검사합니다. 하나라도 통과하지 못하면 배치하지 않습니다. 측면 지지는 적재를 마친 최종 상태에서 다시 확인합니다. CTU 안전 기준은 모든 화물의 안쪽·좌·우 3면이 벽·화물·에어백 간극으로 막혀야 하고(문쪽은 각재로 막음), 래싱을 쓰지 않으면 CTU 전도 기준을 모든 화물에 적용합니다. 많이 싣기는 적재량을 우선합니다.</li><li>배치 규칙 6종(같은 규격 기둥 쌓기, 균형 기둥 쌓기, 바닥 우선, 공간 집약, 폭 채움, 무게중심)과 투입 순서 4종을 계산합니다. 전부 싣고 무게배분이 양호한 안이 나오면 계산을 일찍 마칩니다.</li><li>컨테이너마다 적재 부피가 가장 큰 결과를 고르고, 같으면 우선 기준으로 고릅니다. 남은 화물은 다음 컨테이너에서 같은 방식으로 계산합니다. 첫 적재는 예외 없이 안쪽 벽에 붙입니다. 서로 걸치지 않는 구간(슬라이스)은 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 가운데로 맞추고, 남는 쏠림은 사전검사 경고로 알립니다.</li><li>후보 비교는 가중치 합산이 아니라 항목별 순서 비교로 하며, 결과는 생성 엔진과 분리된 validator로 다시 검사합니다.</li><li>이전 결과가 한 대로 완료됐고 조건이 같으면, 유효한 기존 배치를 유지하고 바뀐 화물만 다시 배치합니다.</li></ol></details>
-      <details><summary>절대 우회하지 않는 안전 조건</summary><ul><li>컨테이너 경계, 제품 충돌과 최대 중량 준수</li><li>상부 적재 금지 화물 위 배치 금지</li><li>상부 화물 중심이 실제 지지 영역 안에 존재</li><li>원통 위 박스 금지, 원통 적층 정렬 조건 적용</li><li>입력 수량 = 적재 수량 + 미배치 수량</li></ul></details>
-      <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>자동 밴드 경로와 수량은 생성하지 않고, 재배치 또는 현장 고정이 필요한 이유만 표시합니다.</li></ul></details>
-      <details><summary>CTU Code 반영 범위</summary><ul><li>CTU Code의 적입·고정 원칙을 정책과 향후 계산 구조의 기준으로 사용합니다.</li><li>운송모드별 가속도 계수(IMO Quick Lashing Guide)로 막히지 않은 방향의 미끄럼 억제력과 전도 위험을 참고 계산합니다. 마찰계수는 재질을 확인하지 못했을 때의 최대값 0.3을 쓰고, 문은 막힌 경계로 보지 않습니다.</li><li>본 결과는 CTU Code 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
+      <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화하고 부피·중량으로 필요한 컨테이너 대수의 하한을 계산합니다.</li><li>허용 회전과 Extreme Point 후보를 만들고, 후보를 아래·안쪽·좌측으로 밀착시킵니다.</li><li>경계·충돌·중량·상부 금지·지지율·중심 지지·측면 지지·상부 허용하중·스택 합성 무게중심을 검사합니다. 하나라도 통과하지 못하면 배치하지 않습니다. 측면 지지는 적재를 마친 최종 상태에서 다시 확인합니다. CTU 기준 적용은 모든 화물의 안쪽·좌·우 3면이 막혀야 하고(문쪽은 각재로 막음) 다른 크기 화물 위 얹힘을 금지합니다. 먼저 화물끼리 막히는 배치를 찾고, 그 때문에 컨테이너가 늘면 기본 배치를 쓰되 화물로 막히지 않은 면을 에어백·충전재·래싱으로 막도록 안내합니다. 래싱을 쓰지 않으면 CTU 전도 기준을 모든 화물에 적용합니다. 적재량 우선은 적재량을 우선합니다.</li><li>배치 규칙 6종(같은 규격 기둥 쌓기, 균형 기둥 쌓기, 바닥 우선, 공간 집약, 폭 채움, 무게중심)과 투입 순서 4종을 계산하고, CTU 기준은 벽 쌓기·전폭 벽을 더합니다. 화물이 남거나 무게배분이 위험하면 제품 순서를 고정 시드로 섞은 순서 24종을 예산 안에서 더 계산합니다. 전부 싣고 무게배분이 양호한 안이 나오면 계산을 일찍 마칩니다.</li><li>컨테이너마다 적재 부피가 가장 큰 결과를 고르고, 같으면 우선 기준으로 고릅니다. 남은 화물은 다음 컨테이너에서 같은 방식으로 계산합니다. 첫 적재는 예외 없이 안쪽 벽에 붙입니다. 서로 걸치지 않는 구간(슬라이스)은 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 가운데로 맞추고, 고른 안은 화물 묶음을 안쪽 벽으로 밀어 빈틈을 문쪽에 모읍니다. 가벼운 마지막 컨테이너가 무게배분 위험이면 앞 컨테이너와 화물을 반씩 다시 나눕니다. 남는 쏠림은 사전검사 경고로 알립니다.</li><li>후보 비교는 가중치 합산이 아니라 항목별 순서 비교로 하며, 결과는 생성 엔진과 분리된 validator로 다시 검사합니다.</li><li>이전 결과가 한 대로 완료됐고 조건이 같으면, 유효한 기존 배치를 유지하고 바뀐 화물만 다시 배치합니다.</li></ol></details>
+      <details><summary>절대 우회하지 않는 안전 조건</summary><ul><li>컨테이너 경계, 제품 충돌과 최대 중량 준수</li><li>상부 적재 금지 화물 위 배치 금지</li><li>상부 화물 중심이 실제 지지 영역 안에 존재</li><li>원통 위 박스 금지, 원통 적층 정렬 조건 적용</li><li>첫 화물은 예외 없이 컨테이너 안쪽 벽에 밀착</li><li>입력 수량 = 적재 수량 + 미배치 수량</li></ul></details>
+      <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>래싱은 위치와 대략 수량(스트랩 1줄 6.1t 기준)만 권고하고 3D 경로·각도·앵커 강도는 계산하지 않습니다. 재배치 또는 현장 고정이 필요한 이유를 함께 표시합니다.</li></ul></details>
+      <details><summary>CTU Code 반영 범위</summary><ul><li>모든 기준값은 CTU Code를 기본으로 하고, CTU가 정하지 않은 값은 제조사 값 또는 Cubestow 설정으로 구분해 표시합니다(알고리즘 정책 문서 5장).</li><li>안전 수준 "CTU 기준 적용"은 CTU Code의 배치 규칙(3면 막힘·얹힘 금지·전도 한계)을 적용한 검토용 결과입니다.</li><li>운송모드별 가속도 계수(IMO Quick Lashing Guide)로 막히지 않은 방향의 미끄럼 억제력과 전도 위험을 참고 계산합니다. 마찰계수는 재질을 확인하지 못했을 때의 최대값 0.3을 쓰고, 문은 막힌 경계로 보지 않습니다.</li><li>본 결과는 CTU Code 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
       <details><summary>현재 계산하지 않는 한계</summary><ul><li>허용하중 미입력 제품의 압축강도, 면압과 포장재 열화</li><li>바닥 집중하중과 차량 축하중</li><li>화물별 실제 마찰계수, 충격·진동, 래싱 LC/STF·각도·수량과 벽·앵커 허용하중</li><li>위험물 격리, 냉동 공기 순환과 법규 적합성</li><li>모든 조합을 탐색하는 전역 최적화</li></ul></details>
       <details><summary>알고리즘 변경 원칙</summary><ul><li>공통 안전 조건을 우회하지 않습니다.</li><li>기존 전략과 같은 입력으로 결과를 비교합니다.</li><li>경계·충돌·중량·지지 회귀 테스트를 통과해야 합니다.</li><li>미배치와 실패 이유를 숨기지 않고 정책 버전과 변경 이력을 갱신합니다.</li></ul></details>
     </div>
@@ -277,7 +280,7 @@
       <details><summary>2. 적입 전·중·후 핵심 확인</summary><ul><li>적입 전에는 CTU의 구조 손상, 청결·건조 상태, 내부 돌출물과 문 작동 상태를 확인합니다.</li><li>적입 중에는 총중량, 무게중심, 바닥 하중 분산, 화물 강도, 적재 순서와 작업자 안전을 검토합니다.</li><li>적입 후에는 화물 이동과 문을 열 때 쏟아질 위험을 방지하고, 고정 상태와 필요한 표시·서류를 확인합니다.</li></ul></details>
       <details><summary>3. 고정의 기본 원칙</summary><ul><li>화물 질량만으로 움직이지 않는다고 가정하지 않으며 마찰만을 단독 고정 수단으로 의존하지 않습니다.</li><li>블로킹·쇼어링은 힘을 CTU 구조로 전달하고, 직접 래싱은 목표 방향에 저항하며, 톱오버 래싱은 추가 압력으로 마찰을 높입니다.</li><li>원통과 구름 가능 화물은 초크·웨지·크래들 등 구름 방지 수단을 먼저 검토합니다.</li><li>밴드, 앵커, 화물 고정점과 컨테이너 벽체는 각각의 허용하중을 확인해야 합니다.</li></ul></details>
       <details><summary>4. 운송 중 작용하는 힘</summary><ul><li>CTU Code는 화물 질량과 도로·철도·해상 조건별 가속도계수로 방향별 관성력을 검토합니다.</li><li>미끄럼과 전도는 서로 다른 위험이므로 전·후·좌·우 방향별 힘과 모멘트를 각각 확인해야 합니다.</li><li>복합운송은 각 운송 구간 중 더 불리한 조건을 고려해야 합니다.</li></ul></details>
-      <details><summary>5. Cubestow의 현재 반영 범위</summary><ul><li>경계·충돌·중량·지지·미배치 검증과 3축 무게중심, 중심 편차, 수직 무게중심, 50% 길이 구간의 최대 질량 집중도를 제공합니다.</li><li>상부 허용하중이 입력된 제품은 상부 화물의 누적하중을 검사하고, 미입력 제품은 미검증으로 구분합니다.</li><li>해상·복합·육상 운송별로 높은 적층, 측면 간극, 문측 노출과 원통 구름 위험을 선별합니다.</li><li>래싱 강도·경로·수량은 화물과 현장 조건에 따라 달라지므로 자동 산출하지 않습니다.</li><li>따라서 현재 결과는 CTU Code 기반 사전 검토 자료이며 적합성 인증이나 현장 승인을 대신하지 않습니다.</li></ul></details>
+      <details><summary>5. Cubestow의 현재 반영 범위</summary><ul><li>경계·충돌·중량·지지·미배치 검증과 3축 무게중심, 중심 편차, 수직 무게중심, 50% 길이 구간의 최대 질량 집중도를 제공합니다.</li><li>상부 허용하중이 입력된 제품은 상부 화물의 누적하중을 검사하고, 미입력 제품은 미검증으로 구분합니다.</li><li>해상·복합·육상 운송별로 높은 적층, 측면 간극, 문측 노출과 원통 구름 위험을 선별합니다.</li><li>에어백(제조사 최대 간극 500mm)·충전재·문쪽 각재(못 1개 1kN으로 못 수 계산)·도어 스트랩·윗단 되잡기 래싱의 위치를 권고하고, 래싱은 대략 수량만 어림합니다. 래싱 경로·각도·STF와 앵커 허용하중은 현장에서 확인해야 합니다.</li><li>"CTU 기준 적용"을 고르면 모든 화물의 안쪽·좌·우를 화물이나 고정재로 막고 얹힘을 금지한 배치를 만듭니다.</li><li>따라서 현재 결과는 CTU Code 기반 사전 검토 자료이며 적합성 인증이나 현장 승인을 대신하지 않습니다.</li></ul></details>
     </div>
     <div class="policy-warning"><strong>현장 책임자 확인</strong><span>실제 적입 전 최신 CTU Code, 운송 구간별 규정, 컨테이너 제작사와 고정재 제조사 지침을 확인하세요.</span></div>
   </dialog>
@@ -291,16 +294,16 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.56</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.57</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
   <script src="project-model.js?v=20260926-11"></script>
   <script src="packing-engine.js?v=20260926-17"></script>
   <script src="load-insights.js?v=20260925-1"></script>
-  <script src="solution-validator.js?v=20260926-2"></script>
+  <script src="solution-validator.js?v=20260927-1"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260926-15"></script>
+  <script src="app.js?v=20260927-1"></script>
   <script src="project-store.js?v=20260925-2"></script>
 </body>
 </html>

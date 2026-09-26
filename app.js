@@ -7,7 +7,7 @@ const CONTAINERS = {
 const COLORS = ['#16734f','#ff8a4c','#5a87ff','#c28b38','#8c6ad8','#e15d71','#43a6a1'];
 const TRANSPORT_PROFILES=LoadwiseEngine.TRANSPORT_PROFILES;
 const shipmentMinSupport=()=>LoadwiseEngine.SAFETY_LEVELS[shipment?.safety]?.minSupport??1;
-const strategyLabel=(safety,preference)=>`${LoadwiseEngine.SAFETY_LEVELS[safety]?.label||'엄격'} 기준 · ${LoadwiseEngine.PREFERENCES[preference]?.label||'자동 추천'}`;
+const strategyLabel=(safety,preference)=>`${LoadwiseEngine.SAFETY_LEVELS[safety]?.label||'기본'} 기준 · ${LoadwiseEngine.PREFERENCES[preference]?.label||'추천'}`;
 const currentTransportMode=()=>typeof document==='undefined'?'combined':$('transportMode')?.value||'combined';
 let products = [];
 let result = null;
@@ -382,7 +382,7 @@ function saveFieldResult(){
 function renderResultSummary(){
   const el=$('resultSummary');if(!el)return;
   if(!result||!result.placed.length){el.hidden=true;el.innerHTML='';return}
-  const ctu=LoadwiseInsights.ctu(result),plan=result.securing||{dunnage:[],airbags:[],reviews:[]},safety=LoadwiseEngine.SAFETY_LEVELS[shipment?.safety||$('safetyLevel').value]?.label||'엄격';
+  const ctu=LoadwiseInsights.ctu(result),plan=result.securing||{dunnage:[],airbags:[],reviews:[]},safety=LoadwiseEngine.SAFETY_LEVELS[shipment?.safety||$('safetyLevel').value]?.label||'기본';
   const level=ctu?.level||'safe',levelText={safe:'양호',caution:'주의',danger:'위험'}[level];
   const count=kind=>plan.dunnage.filter(d=>d.kind===kind).length,nails=plan.dunnage.filter(d=>d.kind==='beam').reduce((sum,d)=>sum+(d.nails||0),0);
   const needs=[
