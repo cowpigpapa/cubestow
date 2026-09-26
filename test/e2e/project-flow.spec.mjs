@@ -138,7 +138,7 @@ test('weight balance, view presets and printable work instruction work together'
   const cog=page.getByRole('button',{name:'무게중심',exact:true});await cog.click();await expect(cog).toHaveClass(/active/);await expect(cog).toHaveAttribute('aria-pressed','true');await cog.click();await expect(cog).not.toHaveClass(/active/);
   for(const name of ['문 기준','좌측면','우측면','상면','3D']){await page.getByRole('button',{name,exact:true}).click();await expect(page.getByRole('button',{name,exact:true})).toHaveClass(/active/)}
   await page.getByRole('button',{name:'우측면',exact:true}).click();await page.getByRole('button',{name:'보기 초기화'}).click();await expect(page.getByRole('button',{name:'3D',exact:true})).toHaveClass(/active/);
-  await expect(page.locator('#fieldResultButton')).toHaveCount(0);const popupPromise=page.waitForEvent('popup');await page.locator('#exportPdf').click();const report=await popupPromise;await report.waitForLoadState();await expect(report.getByRole('button',{name:'인쇄 / PDF 저장'})).toBeVisible();await expect(report.getByText('현장 작업 기록')).toBeVisible();await expect(report.getByText('실제 적재 수량')).toBeVisible();await report.close();
+  await expect(page.locator('#fieldResultButton')).toHaveCount(0);const popupPromise=page.waitForEvent('popup');await page.locator('#exportPdf').click();await expect(page.locator('#messageDialog')).toContainText('현장 확인');await page.locator('#messageConfirm').click();const report=await popupPromise;await report.waitForLoadState();await expect(report.getByRole('button',{name:'인쇄 / PDF 저장'})).toBeVisible();await expect(report.getByText('현장 작업 기록')).toBeVisible();await expect(report.getByText('실제 적재 수량')).toBeVisible();await report.close();
 });
 
 test('CTU pre-check and compression status render after simulation',async({page})=>{
@@ -185,7 +185,7 @@ test('safety slider, segmented choices and securing chips drive the hidden value
   await page.goto('/');
   // 안전 수준 슬라이더: 단계마다 이름과 한 줄 설명이 바뀐다.
   await page.locator('#safetySlider').fill('2');
-  await expect(page.locator('#safetyLevel')).toHaveValue('secure');await expect(page.locator('#safetyLabel')).toHaveText('CTU 완전 준수');await expect(page.locator('#safetyHint')).toContainText('서로 막히게');
+  await expect(page.locator('#safetyLevel')).toHaveValue('secure');await expect(page.locator('#safetyLabel')).toHaveText('CTU 기준 적용');await expect(page.locator('#safetyHint')).toContainText('서로 막히게');await expect(page.locator('#messageDialog')).toContainText('20~40초');await page.locator('#messageConfirm').click();await expect(page.locator('#messageDialog')).not.toHaveAttribute('open','');await page.locator('#safetySlider').fill('1');await page.locator('#safetySlider').fill('2');await expect(page.locator('#messageDialog')).not.toHaveAttribute('open','');
   await page.locator('#safetySlider').fill('0');await expect(page.locator('#safetyLevel')).toHaveValue('standard');await expect(page.locator('#safetyLabel')).toHaveText('적재량 우선');
   // 배치 방식과 운송 경로는 3칸 버튼이다. 폭 균형은 추천에 합쳐 선택지에 없다.
   await expect(page.locator('.segmented[data-for="preference"] button')).toHaveText(['추천','붙여 싣기','무게중심']);

@@ -12,7 +12,7 @@
   const SAFETY_LEVELS={
     strict:{label:'기본',description:'상부 지지 100%',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true},
     // 최고 안전: 엄격 조건에 더해, 모든 화물의 안쪽·좌·우 3면이 벽·화물·에어백 간극으로 막혀야 한다(문쪽은 각재·부목으로 막는다).
-    secure:{label:'CTU 완전 준수',description:'상부 지지 100% · 3면 막힘',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true,blockSides:true},
+    secure:{label:'CTU 기준 적용',description:'상부 지지 100% · 3면 막힘',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true,blockSides:true},
     standard:{label:'적재량 우선',description:'상부 지지 70% 이상',minSupport:.7,maxTopSlender:Infinity}
   };
   // 소프트 목표(우선 기준). 미배치 수량과 컨테이너 대수가 같을 때만 순위를 가른다.

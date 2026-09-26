@@ -83,9 +83,9 @@
           <div class="option-field safety-field">
             <div class="field-control">
             <div class="option-head"><span>안전 수준</span><b id="safetyLabel">기본</b></div>
-            <select id="safetyLevel" class="native-select" tabindex="-1" aria-hidden="true"><option value="standard">적재량 우선</option><option value="strict" selected>기본</option><option value="secure">CTU 완전 준수</option></select>
-            <input id="safetySlider" class="safety-slider" type="range" min="0" max="2" step="1" value="1" aria-label="안전 수준: 적재량 우선, 기본, CTU 완전 준수">
-            <div class="slider-stops" aria-hidden="true"><span>적재량 우선</span><span>기본</span><span>CTU 완전 준수</span></div>
+            <select id="safetyLevel" class="native-select" tabindex="-1" aria-hidden="true"><option value="standard">적재량 우선</option><option value="strict" selected>기본</option><option value="secure">CTU 기준 적용</option></select>
+            <input id="safetySlider" class="safety-slider" type="range" min="0" max="2" step="1" value="1" aria-label="안전 수준: 적재량 우선, 기본, CTU 기준 적용">
+            <div class="slider-stops" aria-hidden="true"><span>적재량 우선</span><span>기본</span><span>CTU 기준 적용</span></div>
             </div>
             <div id="safetyHint" class="safety-hint" aria-live="polite"></div>
           </div>
@@ -178,10 +178,10 @@
     <div class="policy-sections">
       <details open><summary>1. 제품 입력</summary><ul><li>직접 입력에서는 제품명, 형상, 수량, 길이·너비·높이와 개당 중량을 입력합니다.</li><li>여러 제품은 Excel 또는 CSV로 한 번에 등록할 수 있습니다.</li><li>눕힘 허용은 높이 축 변경을 허용하며, 상부 적재 금지는 해당 화물 위의 배치를 막습니다.</li></ul></details>
       <details><summary>2. 선택 항목의 뜻</summary><ul>
-        <li><strong>안전 수준(슬라이더) — 어떤 규칙을 반드시 지킬지</strong>: 왼쪽으로 갈수록 많이 싣고, 오른쪽으로 갈수록 안전 조건이 늘어납니다. <em>적재량 우선</em>은 윗 화물 바닥면 70% 이상만 받치면 되고 충돌·하중 같은 기본 조건만 지킵니다. <em>기본</em>(권장)은 100% 받침, 가느다란 화물 위 적재 금지, 원통은 바닥이나 원통 위에만, 높은 적층 전도 방지를 지키고 남는 틈과 윗단은 고정재(에어백·래싱 등)로 막습니다. <em>CTU 완전 준수</em>는 기본에 더해 모든 화물의 안쪽·좌·우가 화물이나 벽으로 서로 막히도록 쌓고, 다른 크기 화물 위에 따로 얹지 않습니다. 고정재에 기대는 부분을 줄이는 대신 컨테이너가 늘 수 있습니다. 래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다.</li>
+        <li><strong>안전 수준(슬라이더) — 어떤 규칙을 반드시 지킬지</strong>: 왼쪽으로 갈수록 많이 싣고, 오른쪽으로 갈수록 안전 조건이 늘어납니다. <em>적재량 우선</em>은 윗 화물 바닥면 70% 이상만 받치면 되고 충돌·하중 같은 기본 조건만 지킵니다. <em>기본</em>(권장)은 100% 받침, 가느다란 화물 위 적재 금지, 원통은 바닥이나 원통 위에만, 높은 적층 전도 방지를 지키고 남는 틈과 윗단은 고정재(에어백·래싱 등)로 막습니다. <em>CTU 기준 적용</em>는 기본에 더해 모든 화물의 안쪽·좌·우가 화물이나 벽으로 서로 막히도록 쌓고, 다른 크기 화물 위에 따로 얹지 않습니다. 고정재에 기대는 부분을 줄이는 대신 컨테이너가 늘 수 있습니다. 래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다.</li>
         <li><strong>배치 방식 — 같은 대수의 결과 중 무엇을 고를지</strong>: 대수와 미적재는 항상 먼저 줄이고, 그 결과들이 같을 때만 적용합니다. 휴리스틱이라 정답이 하나가 아니므로 목적에 맞게 고릅니다. <em>추천</em>은 무게배분 사전검사 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다. <em>붙여 싣기</em>는 화물을 안쪽으로 바짝 붙여 사용 길이가 가장 짧은 배치(빈틈과 고정재가 가장 적음)를 고릅니다. <em>무게중심</em>은 앞뒤·좌우 편차가 가장 작은 배치를 고릅니다(무게중심을 맞추려고 화물 사이를 벌릴 수 있고, 벌린 만큼 에어백·래싱이 늘어납니다).</li>
         <li><strong>운송 경로 — 어떤 힘을 견뎌야 하는지</strong>: 안전 수준이 "규칙의 수준"이라면 운송 경로는 "받는 힘"입니다. CTU Code 가속도(육상: 좌우 0.5g·전방 0.8g·후방 0.5g, 해상 C: 좌우 0.8g·앞뒤 0.4g)에 따라 측면 지지 판정, 전도 한계, 래싱 수가 바뀝니다. 복합은 육상과 해상 중 불리한 값을 씁니다.</li>
-        <li><strong>고정재(칩)</strong>: 에어백·충전재·바닥 못·래싱 칩을 눌러 켜고 끕니다. 끈 고정재는 다른 방법으로 대신하고, CTU 완전 준수에서 래싱을 끄면 막힘만으로 넘어지지 않게 배치합니다.</li>
+        <li><strong>고정재(칩)</strong>: 에어백·충전재·바닥 못·래싱 칩을 눌러 켜고 끕니다. 끈 고정재는 다른 방법으로 대신하고, CTU 기준 적용에서 래싱을 끄면 막힘만으로 넘어지지 않게 배치합니다.</li>
         <li>20ft, 40ft, 40ft High Cube, 45ft High Cube를 지원합니다.</li>
       </ul></details>
       <details><summary>3. 배치 방식(선적 방법)과 추천 방법</summary><ul>
@@ -192,8 +192,8 @@
         <li><em>공간 집약</em>: 높이 방향까지 빈 곳을 가장 촘촘히 채웁니다.</li>
         <li><em>폭 채움</em>: 한 줄의 폭을 꽉 채워 화물이 옆으로 서로 기대도록 합니다.</li>
         <li><em>무게중심 배치</em>: 놓을 때마다 무게중심이 가운데에 가까운 자리를 고릅니다.</li>
-        <li><em>벽 쌓기 · 전폭 벽(스트립)</em>(CTU 완전 준수 전용): 폭 전체를 채우는 층을 안쪽부터 한 층씩 세웁니다. 스트립은 같은 높이의 기둥들로 벽을 만들어 3면이 서로 막히게 합니다.</li>
-        <li>배치 후에는 서로 걸치지 않는 구간의 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 맞추고, 큰 화물이 안쪽에 오도록 하며, CTU 완전 준수에서는 남은 화물을 한 번 더 채워 넣습니다.</li>
+        <li><em>벽 쌓기 · 전폭 벽(스트립)</em>(CTU 기준 적용 전용): 폭 전체를 채우는 층을 안쪽부터 한 층씩 세웁니다. 스트립은 같은 높이의 기둥들로 벽을 만들어 3면이 서로 막히게 합니다.</li>
+        <li>배치 후에는 서로 걸치지 않는 구간의 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 맞추고, 큰 화물이 안쪽에 오도록 하며, CTU 기준 적용에서는 남은 화물을 한 번 더 채워 넣습니다.</li>
         <li><strong>추천</strong>: 컨테이너마다 ① 실린 부피 ② 실린 수량 ③ 우선 기준 순으로 가장 좋은 안을 씁니다. 같은 입력이면 어느 컴퓨터에서나 같은 결과가 나옵니다.</li>
       </ul></details>
       <details><summary>4. 시뮬레이션 결과 확인</summary><ul><li>3D와 상면 보기로 배치를 확인하고 단계 재생으로 실제 적재 순서를 검토합니다.</li><li>여러 컨테이너가 필요하면 화살표로 각 컨테이너 결과를 이동합니다.</li><li>각재·부목과 에어백 표시는 화면에서 켜고 끌 수 있습니다.</li><li>운송모드별 높은 적층·측면 간극·문측 노출·원통 구름 위험은 구체적인 검토 사유로 표시합니다.</li></ul></details>
@@ -291,16 +291,16 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.45</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.46</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
   <script src="project-model.js?v=20260926-6"></script>
-  <script src="packing-engine.js?v=20260926-7"></script>
+  <script src="packing-engine.js?v=20260926-8"></script>
   <script src="load-insights.js?v=20260925-1"></script>
   <script src="solution-validator.js?v=20260926-1"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260926-12"></script>
+  <script src="app.js?v=20260926-13"></script>
   <script src="project-store.js?v=20260925-2"></script>
 </body>
 </html>
