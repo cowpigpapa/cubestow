@@ -294,6 +294,8 @@ test('every sample starts loading against the inner end wall in every container'
     for(const load of result.loads){
       if(!load.placed.length)continue;
       const first=load.placed.find(p=>p.order===1);
+      // 예외(사용자 결정 2026-09-27): 무거운 화물(개당 1t 이상, 원통 500kg 이상)은 무게중심을 맞추려고 가운데로 옮길 수 있다.
+      if(load.shifted){assert.ok(load.placed.some(p=>p.weight>=1000||p.shape==='cylinder'&&p.weight>=500),`sample ${id}/${safety}: only heavy loads leave the inner wall`);continue}
       assert.equal(first.x+first.l,load.container.l,`sample ${id}/${safety}: first item is off the wall`);
       assert.equal(Math.max(...load.placed.map(p=>p.x+p.l)),load.container.l,`sample ${id}/${safety}`);
       // 최종 적재 상태에서 높은 화물은 모두 2면 이상 측면 지지된다(좌우 무게중심 맞춤·슬라이스 재배열 뒤에도).
@@ -441,12 +443,17 @@ test('CTU explains when the perch ban alone makes it use more containers than th
 });
 
 test('a light last container is re-split with the one before it so neither is weight-distribution danger',async()=>{
+  // 무겁지 않은 대형 박스(980kg) 8개: 6개 + 2개로 나뉘면 두 번째 컨테이너가 위험이었다. 반씩 다시 나눈다.
+  const boxes=Array.from({length:8},(_,i)=>({name:'대형 설비박스',group:'g',shape:'box',l:1800,w:1100,h:1250,weight:980,maxTopLoadKg:2500,rotate:false,fragile:false,pi:0,unit:i+1}));
+  const split=engine.packShipment({container:C20,units:boxes,safety:'strict',transportMode:'combined',timeBudgetMs:8000});
+  assert.equal(split.loads.length,2);assert.equal(split.stats.tailRebalanced,true);
+  for(const load of split.loads)assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger',`${load.placed.length} boxes`);
   if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
   const sample=context.__samples[12],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
   // 엔진 크레이트: 예전에는 16개 + 6개로 나뉘어, 안쪽 벽에 붙인 6개(8.1t)가 무게중심을 안쪽으로 쏠리게 해 두 번째 컨테이너가 위험이었다.
   const result=engine.packShipment({container:CONTAINERS[1],units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:8000});
   assert.equal(result.loads.length,2);
-  assert.equal(result.stats.tailRebalanced,true);
+  // 엔진 크레이트(1.35t)는 무거운 화물이라 가운데 적재나 다시 나누기로 위험을 피한다.
   for(const load of result.loads)assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger',`${load.placed.length} items`);
   assertValidShipment(result,items);
 });

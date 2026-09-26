@@ -98,7 +98,9 @@ test('CTU mode uses no more containers than the basic mode and names each face t
     assert.equal(validation.valid,true,validation.errors.slice(0,3).join('; '));
     const open=validation.securingRequired.flat().length,plan=context.__plan(result.loads[0],sample.mode,undefined,'secure');
     assert.ok(open>0,`sample ${id}: expected open faces for securing`);
-    assert.equal(plan.reviews.filter(r=>r.ctuFace).length,open,`sample ${id}: every open face appears in the securing plan`);
+    // 열린 면은 모두 고정재 권고에 나온다. 단 안쪽 면이 안쪽 바닥 각재로 막힌 화물은 목록에서 빠진다.
+    const load=result.loads[0],beamed=validation.securingRequired.flat().filter(v=>{const p=load.placed[v.index];return v.faces.length===1&&v.faces[0]==='안쪽'&&plan.dunnage.some(d=>d.kind==='beam'&&d.side==='max'&&Math.abs(d.x-(p.x+p.l))<2&&Math.min(d.y+d.w,p.y+p.w)-Math.max(d.y,p.y)>0)}).length;
+    assert.equal(plan.reviews.filter(r=>r.ctuFace).length,open-beamed,`sample ${id}: every open face appears in the securing plan or is closed by an inner beam`);
     assert.ok(plan.reviews.filter(r=>r.ctuFace).every(r=>/래싱으로 묶기/.test(r.location)));
   }
 });
@@ -128,4 +130,24 @@ test('with nails and lashing on there is no filler at the inner wall and no door
       assert.equal(plan.dunnage.filter(d=>(d.kind==='filler'||d.kind==='spacer')&&/안쪽 벽/.test(d.location)).length,0,`sample ${id}: inner-wall filler`);
     }
   }
+});
+
+test('heavy cable drums sit in the middle with nailed beams at both ends, and the Korean road limit caps the payload',()=>{
+  // 사용자 결정(2026-09-27): 무거운 케이블 드럼은 안쪽 벽과 관계없이 가운데에 싣는다(CTU 부속서 7 §3.1 무게중심 ±5%).
+  const c=context.__containers['20ft'],drum=(n,d,h,kg,top)=>Array.from({length:n},(_,i)=>({name:'중량 케이블 드럼',group:'전선',shape:'cylinder',l:d,w:d,h,weight:kg,maxTopLoadKg:top,rotate:false,fragile:false,pi:0,unit:i+1}));
+  for(const safety of ['strict','secure']){
+    const load=context.LoadwiseEngine.packShipment({container:c,units:drum(6,1100,900,2000,0),safety,transportMode:'road',timeBudgetMs:8000}).loads[0];
+    assert.equal(load.shifted,true,safety);
+    assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger',safety);
+    const plan=context.__plan(load,'road',undefined,safety);
+    assert.ok(plan.dunnage.some(d=>d.kind==='beam'&&/안쪽/.test(d.location)),`${safety}: inner-end beam`);
+    assert.ok(plan.dunnage.some(d=>d.kind==='beam'&&/앞 바닥 각재/.test(d.location)),`${safety}: door-end beam`);
+    assert.equal(plan.reviews.filter(r=>r.ctuFace&&/안쪽/.test(r.location)).length,0,`${safety}: inner faces are closed by the beams`);
+  }
+  // 한국 도로 한도(20ft 21t): 1.5t 드럼 16개(24t)는 명판 한도(28.2t)면 1대, 도로 한도면 2대.
+  const units=drum(16,700,900,1500,0);
+  assert.equal(context.LoadwiseEngine.packShipment({container:c,units,safety:'strict',transportMode:'road',timeBudgetMs:8000}).loads.length,1);
+  const road=context.LoadwiseEngine.packShipment({container:context.__containers['20ft-kr'],units,safety:'strict',transportMode:'road',timeBudgetMs:8000});
+  assert.equal(road.loads.length,2);
+  assert.ok(road.loads.every(l=>l.totalWeight<=21000));
 });

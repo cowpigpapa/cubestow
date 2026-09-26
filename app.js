@@ -2,7 +2,13 @@ const CONTAINERS = {
   '20ft': { name:'20ft Dry', l:5898, w:2352, h:2393, maxWeight:28200 },
   '40ft': { name:'40ft Dry', l:12032, w:2352, h:2393, maxWeight:26700 },
   '40hc': { name:'40ft High Cube', l:12032, w:2352, h:2698, maxWeight:26500 },
-  '45hc': { name:'45ft High Cube', l:13556, w:2352, h:2698, maxWeight:27600 }
+  '45hc': { name:'45ft High Cube', l:13556, w:2352, h:2698, maxWeight:27600 },
+  // 한국 도로 운송 실무 한도(도로법 총중량 40t·축하중 10t에서 트랙터·샤시·컨테이너 자중을 뺀 값, 한국무역협회 안내: 20ft 최대 21t 미만, 40ft 25t 미만).
+  // 명판 최대 중량보다 작으므로 도로로 나가는 컨테이너는 이 항목을 고르면 대수를 중량 기준으로 나눈다(예: 2t 케이블 드럼 20ft에 10개).
+  '20ft-kr': { name:'한국 도로 한도 · 20ft Dry', l:5898, w:2352, h:2393, maxWeight:21000 },
+  '40ft-kr': { name:'한국 도로 한도 · 40ft Dry', l:12032, w:2352, h:2393, maxWeight:25000 },
+  '40hc-kr': { name:'한국 도로 한도 · 40ft High Cube', l:12032, w:2352, h:2698, maxWeight:25000 },
+  '45hc-kr': { name:'한국 도로 한도 · 45ft High Cube', l:13556, w:2352, h:2698, maxWeight:25000 }
 };
 const COLORS = ['#16734f','#ff8a4c','#5a87ff','#c28b38','#8c6ad8','#e15d71','#43a6a1'];
 const TRANSPORT_PROFILES=LoadwiseEngine.TRANSPORT_PROFILES;
@@ -214,6 +220,8 @@ async function simulate(){syncSelects();if(editingIndex>=0){showAppMessage('수�
 const VOID_SUM_LIMIT=150,AIRBAG_MIN_GAP=50,AIRBAG_MAX_GAP=500,AIRBAG_FLOOR_CLEARANCE=100,AIRBAG_LIMIT=40,NAIL_KN=1,CTU_FRICTION=.3;
 const DOOR_FREE_GAP=VOID_SUM_LIMIT,FENCE_DEPTH=50,SPACER_MIN_GAP=10,SPACER_MAX_GAP=120;
 // 문쪽(후방) 방향 필요 억제 가속도(g): 운송모드별 CTU 가속도 c에서 마찰 μ·v를 뺀 값의 최댓값.
+// 안쪽(전방·급정거) 방향으로 막아야 할 가속도: CTU 가속도 c − 마찰 × v, 운송모드 중 불리한 값.
+function innerPull(mode){const acc=LoadwiseInsights.CTU_ACCELERATIONS,profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'];return Math.max(0,...profiles.map(k=>acc[k].forward.c-CTU_FRICTION*acc[k].forward.v))}
 function doorPull(mode){const acc=LoadwiseInsights.CTU_ACCELERATIONS,profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'];return Math.max(0,...profiles.map(k=>acc[k].backward.c-CTU_FRICTION*acc[k].backward.v))}
 const airbagSize=gap=>gap<=200?'600×1200':gap<=300?'900×1800':gap<=400?'1200×1800':'1500×2400';
 // 고정재 아이콘(SVG). 3D 토글과 권고 목록에서 같이 쓴다.
@@ -327,6 +335,21 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
       upper.forEach(p=>{const gap=Math.round(p.x-fenceDepth);if(gap<30)return;const f={type:'dunnage',kind:'filler',axis:'x',side:'min',x:fenceDepth,y:p.y,z:p.z,l:gap-2,w:p.w,h:Math.min(p.h,1400),product:p.name,location:`문쪽 충전재 ${gap}mm · ${esc(p.name)} 앞(세운 팔레트·골판지)`};if(!inCargo(f))dunnage.push(f)});
     }
   }
+  // 안쪽 끝: 무거운 화물을 가운데로 옮겨 안쪽 벽과 떨어진 바닥 화물은 문쪽과 같이 뒤쪽 바닥에 각재를 대고 못으로 고정한다(쐐기 추가).
+  // 못 수는 안쪽 방향(급정거) 가속도로 계산한다. 못을 쓰지 않으면 각재 버팀을 검토 항목으로 남긴다.
+  {
+    const innerExposed=load.placed.filter(p=>p.z===0&&c.l-(p.x+p.l)>DOOR_FREE_GAP&&!load.placed.some(q=>q!==p&&q.x>=p.x+p.l-2&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>40));
+    const pull=innerPull(transportMode);
+    if(innerExposed.length&&options.nails)innerExposed.forEach(p=>{
+      const mass=load.placed.filter(q=>q===p||q.z>=p.z+p.h-2&&Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)>q.l*.5&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>q.w*.5).reduce((sum,q)=>sum+q.weight,0);
+      const force=mass*9.81*pull/1000,nails=Math.max(2,Math.ceil(force/NAIL_KN)),beamL=Math.min(100,c.l-(p.x+p.l)-2);
+      dunnage.push({type:'dunnage',kind:'beam',axis:'x',side:'max',x:p.x+p.l,y:p.y,z:0,l:beamL,w:p.w,h:100,product:p.name,nails,force,location:`${esc(p.name)} 뒤(안쪽) 바닥 각재 · 못 ${nails}개 · 필요 억제력 ${force.toFixed(1)}kN(무거운 화물 가운데 적재)`});
+      if(c.l-(p.x+p.l)-beamL<160)return;
+      const count=Math.max(2,Math.min(4,Math.round(p.w/450))),chockL=Math.min(180,c.l-(p.x+p.l)-beamL-10);
+      for(let i=0;i<count;i++){const w=Math.min(150,p.w/count*.55),center=p.y+p.w*(i+.5)/count;dunnage.push({type:'dunnage',kind:'chock',axis:'x',side:'max',x:p.x+p.l+beamL+2,y:Math.max(0,Math.min(c.w-w,center-w/2)),z:0,l:chockL,w,h:125,product:p.name,location:`${esc(p.name)} 안쪽 각재 지지 쐐기 ${i+1}/${count} · 바닥 못 고정`})}
+    });
+    else if(innerExposed.length)reviews.push({product:'안쪽 끝 고정',severity:'review',location:`무거운 화물을 가운데 적재 · 안쪽 벽과 떨어진 화물 ${innerExposed.length}개 · 바닥 못을 쓰지 않으면 각재 버팀(쇼어링)으로 막기`,axes:'',count:innerExposed.length});
+  }
   {
     const candidates=[];
     load.placed.forEach(p=>{const left=p.y,right=c.w-(p.y+p.w),length=Math.min(700,p.l*.6),width=Math.min(700,p.w*.6),x=p.x+(p.l-length)/2,y=p.y+(p.w-width)/2,height=Math.min(1200,p.h*.72),z=p.z+Math.max(20,p.h*.14),level=p.z>0?`${Math.round(p.z/1000*10)/10}m 높이`:'',addWall=(zone,gap,make)=>{if(gap<AIRBAG_MIN_GAP)return;const bag=Math.min(gap,AIRBAG_MAX_GAP),filler=Math.round(gap-bag);candidates.push({...make(bag),type:'airbag',zone,z,h:height,bag:airbagSize(bag),filler,p,gap,location:`${zone==='left'?'좌측':'우측'} 벽 간극 ${Math.round(gap)}mm${filler>0?` · 충전재 ${filler}mm + 에어백`:''} ${level}`.trim(),product:p.name})};addWall('left',left,bag=>({x,y:p.y-bag,l:length,w:bag}));addWall('right',right,bag=>({x,y:p.y+p.w,l:length,w:bag}));/* 실무상 컨테이너 끝(안쪽 벽·문)에는 에어백을 두지 않는다. 화물은 안쪽 벽에 밀착하고 문 쪽은 각재·부목으로 막는다. */});
@@ -362,6 +385,10 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
     airbags.filter(a=>a.filler>0&&(a.zone==='left'||a.zone==='right')).forEach(a=>{const f={type:'dunnage',kind:'filler',axis:'y',side:a.zone==='left'?'min':'max',x:a.x,y:a.zone==='left'?a.y-a.filler:a.y+a.w,z:a.z,l:a.l,w:a.filler,h:a.h,product:a.product,location:`${a.zone==='left'?'좌측':'우측'} 벽 충전재 ${a.filler}mm(세운 빈 팔레트·골판지)`};if(f.y>=0&&f.y+f.w<=c.w+1&&free(f)&&!airbags.some(o=>intersects(o,f))&&!dunnage.some(d=>intersects(d,f)))dunnage.push(f)});
   }
   fillRemainingVoids(load,airbags,dunnage);
+  // 바닥 선하중(길이 1m당 화물 중량): 20ft 4.5t/m, 40ft·45ft 3.0t/m(TIS-GDV 컨테이너 적재 지침, CTU Code는 운영사 협의로 둠).
+  // 넘으면 화물 밑에 길이 방향 받침목(20ft 폭 0.10m·40ft 0.15m 이상)을 깔아 하중을 나누도록 검토 항목으로 알린다.
+  {const limit=c.l<=7000?4500:3000;let worst=0,at=0;for(let x0=0;x0+1000<=c.l;x0+=100){const kg=load.placed.reduce((sum,p)=>sum+p.weight*Math.max(0,Math.min(x0+1000,p.x+p.l)-Math.max(x0,p.x))/p.l,0);if(kg>worst){worst=kg;at=x0}}
+   if(worst>limit)reviews.push({product:'바닥 선하중',severity:'review',location:`문에서 ${(at/1000).toFixed(1)}~${((at+1000)/1000).toFixed(1)}m 구간 ${(worst/1000).toFixed(1)}t/m · 한계 ${(limit/1000).toFixed(1)}t/m 초과 → 화물 밑 길이 방향 받침목(폭 ${c.l<=7000?'0.10':'0.15'}m 이상)으로 하중 분산`,axes:'',count:1})}
   reviews.push(...LoadwiseEngine.transportReviews(load,transportMode));
   // 문쪽 줄에 윗단 화물이 있으면 문을 열 때 떨어지지 않게 상단을 도어 스트랩(웹 래싱)으로 측면·바닥 고정점에 묶는다.
   // 에어백은 문쪽에 쓰지 않는다(CTU Code 부속서 7 §2.3.8). 문은 충격하중이 없을 때만 경계로 본다(§4.2.5).
@@ -371,7 +398,7 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
   if(!options.filler){const skipped=dunnage.filter(d=>d.kind==='filler'||d.kind==='spacer');if(skipped.length)reviews.push({product:'고정재 선택',severity:'review',location:`충전재·스페이서 미사용 · 채우지 못한 틈 ${skipped.length}곳`,axes:'',count:skipped.length});for(let i=dunnage.length-1;i>=0;i--)if(dunnage[i].kind==='filler'||dunnage[i].kind==='spacer')dunnage.splice(i,1)}
   if(!options.lashing){const skipped=dunnage.filter(d=>d.kind==='lashing'||d.kind==='strap');if(skipped.length)reviews.push({product:'고정재 선택',severity:'rearrange',location:`래싱 미사용 · 상단·문쪽 고정이 필요한 곳 ${skipped.length}곳(재배치 검토)`,axes:'',count:skipped.length});for(let i=dunnage.length-1;i>=0;i--)if(dunnage[i].kind==='lashing'||dunnage[i].kind==='strap')dunnage.splice(i,1)}
   // CTU 기준: 화물로 막히지 않은 옆면을 화물별로 적고, 켜 둔 고정재 중 맞는 것으로 막게 한다(래싱 → 에어백·충전재 순).
-  if(safety==='secure'){const method=options.lashing?'래싱으로 묶기':options.airbag?'에어백·충전재로 막기':options.filler?'충전재로 막기':'';if(method)for(const v of LoadwiseValidator.openFaces(load,options))reviews.push({product:v.item.name,severity:'review',location:`${v.item.order||v.index+1}번 · ${v.faces.join('·')} 면이 화물로 막히지 않음 → ${method}`,axes:'',count:1,ctuFace:true})}
+  if(safety==='secure'){const method=options.lashing?'래싱으로 묶기':options.airbag?'에어백·충전재로 막기':options.filler?'충전재로 막기':'';const innerBeamed=p=>options.nails&&p.z===0&&load.container.l-(p.x+p.l)>DOOR_FREE_GAP&&!load.placed.some(q=>q!==p&&q.x>=p.x+p.l-2&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>40);if(method)for(const v of LoadwiseValidator.openFaces(load,options).map(v=>({...v,faces:v.faces.filter(f=>f!=='안쪽'||!innerBeamed(v.item))})).filter(v=>v.faces.length))reviews.push({product:v.item.name,severity:'review',location:`${v.item.order||v.index+1}번 · ${v.faces.join('·')} 면이 화물로 막히지 않음 → ${method}`,axes:'',count:1,ctuFace:true})}
   return{dunnage,airbags,reviews,transportMode,options:{...options},ctu:LoadwiseInsights.securing(load,{mode:transportMode})};
 }
 function updateResults(){

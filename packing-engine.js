@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.26';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.27';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -192,15 +192,17 @@
   let BLOCK_GAP=500,FLOOR_FILL=true;
   // packing=true: 적재 좌표(안쪽 벽 x=0), false: 화면 좌표(안쪽 벽 x=l). 안쪽·좌·우 면이 각각 막혔는지 돌려준다.
   // 벽까지 비어 있으면 바닥 화물은 충전재(세운 팔레트·골판지)와 에어백으로, 높은 곳 화물은 에어백 한계(600mm) 안에서만 막을 수 있다.
-  function blockedSides(s,d,placed,c,packing,self=null){
+  // innerOpenOk: 무거운 화물을 가운데로 옮긴 적재(shifted)의 최종 검사에서, 뒤(안쪽 벽 쪽)에 아무 화물도 없는 바닥 화물은 문쪽처럼 못 박은 각재·쐐기로 막는다고 본다.
+  function blockedSides(s,d,placed,c,packing,self=null,innerOpenOk=false){
     const [l,w,h]=d,x0=s.x,x1=s.x+l,y0=s.y,y1=s.y+w,z0=s.z,z1=s.z+h;
-    const back=[],front=[],left=[],right=[];let leftClear=true,rightClear=true,doorClear=true;
+    const back=[],front=[],left=[],right=[];let leftClear=true,rightClear=true,doorClear=true,innerClear=true;
     // 좌우는 벽까지의 통로, 앞뒤는 문까지의 통로와 안쪽 간극 범위만 보면 된다.
     const rects=[[x0-1,x1+1,0,c.w],packing?[x0-BLOCK_GAP-TOL,c.l,y0-1,y1+1]:[0,x1+BLOCK_GAP+TOL,y0-1,y1+1]];
     for(const p of nearby(placed,rects)){
       if(p===self)continue;
       const pz0=p.z,pz1=p.z+p.h;
       if(doorClear&&p.y+p.w>y0+TOL&&p.y<y1-TOL&&(packing?p.x>=x1-TOL:p.x+p.l<=x0+TOL))doorClear=false;
+      if(innerClear&&p.y+p.w>y0+TOL&&p.y<y1-TOL&&(packing?p.x+p.l<=x0+TOL:p.x>=x1-TOL))innerClear=false;
       if(pz1<=z0+TOL||pz0>=z1-TOL)continue;
       const px0=p.x,px1=p.x+p.l,py0=p.y,py1=p.y+p.w;
       // 안쪽 방향 간극
@@ -217,7 +219,7 @@
     const half=(rects,a0,a1)=>coveredArea(rects,a0,a1,z0,z1)>=(a1-a0)*(z1-z0)*.5-1;
     const innerWall=packing?x0<=TOL:x1>=c.l-TOL;
     const wallOk=gap=>z0<=TOL&&FLOOR_FILL||gap<=BLOCK_GAP;
-    return{front:doorClear||half(front,y0,y1),back:innerWall||half(back,y0,y1),left:y0<=TOL||leftClear&&wallOk(y0)||half(left,x0,x1),right:y1>=c.w-TOL||rightClear&&wallOk(c.w-y1)||half(right,x0,x1)};
+    return{front:doorClear||half(front,y0,y1),back:innerWall||innerOpenOk&&innerClear&&z0<=TOL||half(back,y0,y1),left:y0<=TOL||leftClear&&wallOk(y0)||half(left,x0,x1),right:y1>=c.w-TOL||rightClear&&wallOk(c.w-y1)||half(right,x0,x1)};
   }
   // 최고 안전 기준에서만 켠다.
   let STRICT_BLOCK=false;
@@ -838,16 +840,19 @@
       const delta=Math.max(-min,Math.min(Math.round(length/2-cog),length-max));
       placed.forEach(p=>p[axis]+=delta);
     };
-    // 길이 방향으로는 절대 옮기지 않는다. 첫 적재는 항상 안쪽 벽에 붙이고, 무게 쏠림은 사전검사 경고로만 알린다.
     shift('y','w',c.w);
+    // 길이 방향: 보통은 옮기지 않는다(첫 화물은 안쪽 벽에 붙인다). 무거운 화물(개당 1t 이상, 원통은 500kg 이상 — 케이블 드럼 등)은
+    // 현장에서 컨테이너 가운데에 싣는다(CTU Code 부속서 7 §3.1 무게중심 ±5%, 도로 축하중). 이 경우에만 무게중심이 가운데에 오도록 옮긴 안을 함께 비교한다(사용자 결정 2026-09-27).
+    if(placed.some(p=>p.weight>=HEAVY_UNIT_KG||p.shape==='cylinder'&&p.weight>=HEAVY_CYLINDER_KG))shift('x','l',c.l);
   }
+  const HEAVY_UNIT_KG=1000,HEAVY_CYLINDER_KG=500;
 
   function finalizeLoad(c,raw,centered){
     const placed=raw.placed.map(p=>({...p,x:c.l-(p.x+p.l)}));
     if(centered)centerCargoByWeight(placed,c);
     orderPlacementsForLoading(placed);
     const volume=placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0);
-    return{container:c,placed,rejected:raw.rejected,totalWeight:raw.totalWeight,volume,volumeRate:volume/(c.l*c.w*c.h)*100,weightRate:raw.totalWeight/c.maxWeight*100,heuristic:raw.heuristic,order:raw.order,centered:Boolean(centered)};
+    return{container:c,placed,rejected:raw.rejected,totalWeight:raw.totalWeight,volume,volumeRate:volume/(c.l*c.w*c.h)*100,weightRate:raw.totalWeight/c.maxWeight*100,heuristic:raw.heuristic,order:raw.order,centered:Boolean(centered),shifted:placed.length>0&&Math.max(...placed.map(p=>p.x+p.l))<c.l-TOL};
   }
 
   function transportStabilityAssessment(p,placed,c,mode){
@@ -1004,7 +1009,7 @@
   }
   function sidesHold(load){
     const all=load.placed;
-    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p))&&perchOk(p,d,all,load.container,false,p))&&(!PERCH_HARD||perchOk(p,d,all,load.container,false,p))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
+    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p,Boolean(load.shifted)))&&perchOk(p,d,all,load.container,false,p))&&(!PERCH_HARD||perchOk(p,d,all,load.container,false,p))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
   }
   // 적재 전체를 사용 길이 안에서 앞뒤로 뒤집는다. 받침·상부하중·적층 무게중심은 그대로이고, 안쪽 벽 접촉이 바뀌므로 첫 화물 밀착과 측면 지지를 다시 확인한다.
   function mirrorLoad(ctx,raw){
@@ -1091,7 +1096,8 @@
   }
   // 빈틈을 문쪽으로 모은다(현장 관행: 안쪽부터 꽉 채운다). 밀어서 무게배분이 위험이 될 때만 원래 배치를 쓴다(주의까지는 민다).
   function pushGapsToDoor(ctx,best,stats){
-    if(!(best?.placed.length>1))return best;
+    // 무거운 화물을 가운데로 옮긴 안은 다시 안쪽 벽으로 밀지 않는다.
+    if(!(best?.placed.length>1)||best.shifted)return best;
     const placed=pushInward(ctx.c,best.placed);
     if(!placed.some((p,i)=>p.x!==best.placed[i].x))return best;
     orderPlacementsForLoading(placed);const next={...best,placed};next.metrics=loadMetrics(next,ctx.mode);
@@ -1205,10 +1211,10 @@
       }
     }
     // 마지막 두 컨테이너 다시 나누기: 첫 화물은 늘 안쪽 벽에 붙이므로 마지막 컨테이너에 화물이 조금만 남으면 무게중심이 안쪽으로 쏠린다.
-    // 마지막 컨테이너가 가볍고(앞 컨테이너 중량의 60% 미만) 두 컨테이너 중 무게배분이 위험이면 두 대의 화물을 제품 규격마다 반씩 나눠 다시 싣고, 두 대에 모두 들어가며 나쁜 쪽 등급이 좋아질 때만 쓴다.
+    // 마지막 컨테이너가 가볍고(앞 컨테이너 중량의 60% 미만) 두 컨테이너 중 무게배분이 위험(CTU 기준이 아니면 주의 이상)이면 두 대의 화물을 제품 규격마다 반씩 나눠 다시 싣고, 두 대에 모두 들어가며 나쁜 쪽 등급이 좋아질 때만 쓴다.
     if(!stats.repaired&&!stats.securedFaces&&!remaining.length&&loads.length>=2){
       const A=loads[loads.length-2],B=loads[loads.length-1],grade=list=>[Math.max(...list.map(l=>l.metrics.ctuLevel)),list.reduce((sum,l)=>sum+l.metrics.ctuLevel,0)];
-      if(Math.max(A.metrics.ctuLevel,B.metrics.ctuLevel)===2&&B.totalWeight<A.totalWeight*.6){
+      if(Math.max(A.metrics.ctuLevel,B.metrics.ctuLevel)>=(STRICT_BLOCK?2:1)&&B.totalWeight<A.totalWeight*.6){
         const byId=new Map(units.map(u=>[u.uid,u])),pool=[...A.placed,...B.placed].map(p=>byId.get(p.uid)),groups=new Map();
         for(const u of pool){if(!groups.has(u.typeKey))groups.set(u.typeKey,[]);groups.get(u.typeKey).push(u)}
         const first=[],second=[];for(const list of groups.values())list.forEach((u,i)=>(i%2?second:first).push(u));
