@@ -80,7 +80,8 @@ function enhanceSafetySlider(){
 }
 // 3칸 버튼: 숨긴 select의 값을 그대로 쓰고, 누르면 change를 보낸다.
 function enhanceSegmented(select,hints={}){
-  const group=select.parentElement.querySelector('.segmented'),hint=document.createElement('p');hint.className='segment-hint';hint.setAttribute('aria-live','polite');group.after(hint);
+  // 설명은 조작부(field-control) 뒤, 칸(option-field)의 둘째 요소로 둔다(넓은 화면에서 설명끼리 한 줄에 맞춘다).
+  const group=select.parentElement.querySelector('.segmented'),hint=document.createElement('p');hint.className='segment-hint';hint.setAttribute('aria-live','polite');(select.closest('.option-field')||group.parentElement).append(hint);
   const render=()=>{group.innerHTML=[...select.options].map(o=>`<button type="button" role="radio" aria-checked="${o.selected}" data-value="${o.value}">${esc(o.textContent)}</button>`).join('');hint.textContent=hints[select.value]||''};
   group.onclick=event=>{const button=event.target.closest('button[data-value]');if(!button||button.dataset.value===select.value)return;select.value=button.dataset.value;select.dispatchEvent(new Event('change'));render()};
   selectRenderers.push(render);render();
@@ -388,7 +389,7 @@ function renderResultSummary(){
   const rearrange=plan.reviews.filter(r=>r.severity==='rearrange').length,review=plan.reviews.length-rearrange,restraint=ctuSecuringDirections(plan.ctu).length;
   const checks=[rearrange?`배치 재검토 ${rearrange}건`:'',review?`현장 고정 검토 ${review}건`:'',restraint?`CTU 고정 필요 ${restraint}방향`:''].filter(Boolean);
   el.hidden=false;el.dataset.level=level;
-  el.innerHTML=`<div class="summary-verdict"><span>안전 판정</span><strong>${esc(safety)} 기준 · 사전검사 ${levelText}</strong></div>`+
+  el.innerHTML=`<div class="summary-verdict"><span>안전 판정</span><strong>안전 수준 ${esc(safety)} · 사전검사 ${levelText}</strong></div>`+
     `<div class="summary-needs"><span>꼭 필요한 고정재</span><strong>${needs.length?needs.map(n=>`<em><i class="securing-icon">${securingIcon(n.icon)}</i>${n.text}</em>`).join(''):'추가 고정재 없음'}</strong></div>`+
     `<div class="summary-checks"><span>확인할 항목</span><strong>${checks.length?checks.join(' · '):'없음'}</strong></div>`;
 }

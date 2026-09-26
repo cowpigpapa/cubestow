@@ -230,7 +230,7 @@ details.menu>summary[aria-label]::after{content:""}
 /* 조건 선택: 안전 수준 슬라이더 · 3칸 버튼 · 고정재 칩 · 컨테이너 드롭박스 */
 .simulation-config-bar.option-board{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);grid-template-areas:"safety pref trans" "safety secure secure";gap:14px 18px;align-items:start}
 .option-board .safety-field{grid-area:safety}.option-board .securing-field{grid-area:secure}.option-board .container-select{grid-area:container}.option-board .container-spec{grid-area:spec;align-self:end}
-.option-board>.option-field:nth-of-type(2){grid-area:pref}.option-board>.option-field:nth-of-type(3){grid-area:trans}
+.option-board>.pref-field{grid-area:pref}.option-board>.route-field{grid-area:trans}
 .option-field{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px;font-weight:600;color:rgb(67,80,71)}
 .option-field>span small{font-weight:500;color:#8a938e;margin-left:4px}
 .option-head{display:flex;justify-content:space-between;align-items:baseline}.option-head b{font-size:14px;color:#1b1f1d}
@@ -416,5 +416,31 @@ details.menu>summary[aria-label]::after{content:""}
 .option-board .securing-field>span{display:flex;flex-direction:column;gap:2px;white-space:nowrap}
 .option-board .securing-field .securing-note{margin:0;font-size:11px;font-weight:500;color:#8a938e}
 .option-board .securing-field .chip-group{flex-wrap:nowrap}
-@media(min-width:1101px){.option-board .safety-field{align-self:stretch;display:flex;flex-direction:column}.option-board .safety-field .safety-hint{margin-top:auto}}
+.option-board .field-control{display:flex;flex-direction:column;gap:7px;min-width:0}
+@media(min-width:1101px){
+  .simulation-config-bar.option-board{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);grid-template-areas:"sc pc rc" "sh ph rh" "sh sec sec";gap:12px 18px;align-items:stretch}
+  .option-board>.safety-field,.option-board>.pref-field,.option-board>.route-field{display:contents}
+  .option-board .safety-field>.field-control{grid-area:sc}.option-board .safety-field>.safety-hint{grid-area:sh;margin:0;display:flex;align-items:center}
+  .option-board .pref-field>.field-control{grid-area:pc}.option-board .pref-field>.segment-hint{grid-area:ph}
+  .option-board .route-field>.field-control{grid-area:rc}.option-board .route-field>.segment-hint{grid-area:rh}
+  .option-board .field-control{align-self:end}
+  .option-board>.securing-field{grid-area:sec;align-self:end}
+}
 @media(max-width:640px){.option-board .securing-field{flex-direction:column;align-items:flex-start}.option-board .securing-field .chip-group{flex-wrap:wrap}}
+.option-board select.native-select{display:none}
+/* 현장 결과 기록 카드는 고정재 권고 카드와 같은 제목·여백을 쓴다. 좁은 화면에서는 제목을 한 줄로 두고 요약 글을 제목 아래로 내린다. */
+.field-card>summary{padding:18px}
+.field-card>summary>div{align-items:baseline;gap:12px}
+.field-card>summary strong{margin:0;font-size:18px;font-weight:700;color:var(--v3-ink)}
+.field-card>summary span#fieldSummary{font-size:13px}
+.securing-card>summary strong,.field-card>summary strong{white-space:nowrap}
+@media(max-width:640px){.securing-card>summary>div,.field-card>summary>div{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}}
+/* 휴대폰: 카드 머리 정리 — 요약 글은 버튼과 겹치지 않게 줄바꿈, 적재 순서 버튼은 제목 아래 한 줄, 무게중심 카드 제목은 단어 단위로 줄바꿈 */
+@media(max-width:640px){
+  .securing-card>summary>div,.field-card>summary>div{flex:1 1 auto}
+  .securing-card>summary span#securingCount,.field-card>summary span#fieldSummary{white-space:normal;overflow-wrap:anywhere}
+  .loading-plan .plan-head{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+  .loading-plan .plan-actions{display:flex;flex-wrap:nowrap;gap:6px;justify-content:flex-start}
+  .loading-plan .plan-actions button{white-space:nowrap;flex:0 0 auto;padding-inline:12px}
+  .balance-card .balance-title h3{word-break:keep-all;font-size:17px}
+}
