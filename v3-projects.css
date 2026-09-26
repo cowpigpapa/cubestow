@@ -228,7 +228,7 @@ details.menu>summary[aria-label]::after{content:""}
 .securing-visibility .cog-toggle.active{border-color:#9fd3b2;color:#17693a}
 .securing-visibility .cog-toggle.active i{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.15)}
 /* 조건 선택: 안전 수준 슬라이더 · 3칸 버튼 · 고정재 칩 · 컨테이너 드롭박스 */
-.simulation-config-bar.option-board{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.95fr);grid-template-areas:"safety pref trans" "secure container spec";gap:14px 18px;align-items:start}
+.simulation-config-bar.option-board{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);grid-template-areas:"safety pref trans" "safety secure secure";gap:14px 18px;align-items:start}
 .option-board .safety-field{grid-area:safety}.option-board .securing-field{grid-area:secure}.option-board .container-select{grid-area:container}.option-board .container-spec{grid-area:spec;align-self:end}
 .option-board>.option-field:nth-of-type(2){grid-area:pref}.option-board>.option-field:nth-of-type(3){grid-area:trans}
 .option-field{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px;font-weight:600;color:rgb(67,80,71)}
@@ -239,7 +239,15 @@ details.menu>summary[aria-label]::after{content:""}
 .safety-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #1766d6;box-shadow:0 2px 6px rgba(0,0,0,.18)}
 .safety-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #1766d6}
 .slider-stops{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:#7a847f}
-.safety-hint{font-size:12px;font-weight:500;color:#39413c;line-height:1.45;min-height:34px}
+.safety-hint{margin-top:2px;padding:10px 12px;border-radius:10px;border:1px solid #cfe0f7;background:#eef5ff}
+.safety-hint ul{margin:0;padding-left:16px;display:grid;gap:3px}
+.safety-hint li{font-size:13px;font-weight:600;color:#1b3f73;line-height:1.45}
+.safety-field[data-level="standard"] .safety-hint{border-color:#f0d9a8;background:#fff7e6}.safety-field[data-level="standard"] .safety-hint li{color:#7a4d00}
+.safety-field[data-level="secure"] .safety-hint{border-color:#b7e0c6;background:#ecf8f0}.safety-field[data-level="secure"] .safety-hint li{color:#145c33}
+.run-group{display:flex;align-items:center;gap:10px;margin-left:auto}
+.header-container{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:rgb(67,80,71)}
+.header-container .select-box{min-width:330px}
+@media(max-width:900px){.run-group{flex-wrap:wrap;margin-left:0;width:100%}.header-container{flex:1 1 100%}.header-container .select-box{min-width:0;flex:1}}
 .segmented{display:flex;border:1px solid var(--v3-line,#dde3e0);border-radius:10px;background:#f4f6f5;padding:3px;gap:3px}
 .segmented button{flex:1;border:0;border-radius:8px;background:transparent;padding:8px 6px;font-size:13px;font-weight:600;color:#56605b;cursor:pointer;white-space:nowrap}
 .segmented button[aria-checked="true"]{background:#fff;color:#1766d6;box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -248,8 +256,8 @@ details.menu>summary[aria-label]::after{content:""}
 .chip-group button .securing-icon{margin:0;width:16px;height:16px;flex-basis:16px}
 .chip-group button[aria-pressed="false"]{background:#f1f3f2;color:#9aa39e;text-decoration:line-through}
 .chip-group button[aria-pressed="false"] .securing-icon{filter:grayscale(1);opacity:.5}
-@media(max-width:1100px){.simulation-config-bar.option-board{grid-template-columns:1fr 1fr;grid-template-areas:"safety safety" "pref trans" "secure secure" "container spec"}}
-@media(max-width:640px){.simulation-config-bar.option-board{grid-template-columns:1fr;grid-template-areas:"safety" "pref" "trans" "secure" "container" "spec"}}
+@media(max-width:1100px){.simulation-config-bar.option-board{grid-template-columns:1fr 1fr;grid-template-areas:"safety safety" "pref trans" "secure secure"}}
+@media(max-width:640px){.simulation-config-bar.option-board{grid-template-columns:1fr;grid-template-areas:"safety" "pref" "trans" "secure"}}
 .field-card{margin-top:12px}
 .field-form{display:grid;grid-template-columns:140px 140px minmax(0,1fr) auto;gap:10px;align-items:end;padding:4px 18px 8px}
 .field-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:rgb(67,80,71)}
@@ -398,3 +406,6 @@ details.menu>summary[aria-label]::after{content:""}
 .securing-options-field{color:rgb(67,80,71);font-size:12px;font-weight:600}
 .securing-options summary{height:38px;display:flex;align-items:center;box-sizing:border-box}
 .option-board .option-field>select.native-select{display:none}
+.run-group .header-container{flex-direction:row;display:flex;align-items:center;margin:0}.run-group .header-container>span{white-space:nowrap}
+@media(max-width:900px){.run-group .header-container{min-width:0;flex:1 1 100%}.run-group .header-container .select-box{min-width:0;flex:1 1 auto;max-width:100%}.run-group .header-container .select-button{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.run-group .select-list{max-width:calc(100vw - 32px)}}
+.run-group .select-list{left:auto;right:0;width:max-content;max-width:min(440px,calc(100vw - 32px))}.run-group .select-list li{white-space:normal}

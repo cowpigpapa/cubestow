@@ -96,7 +96,8 @@ test('metrics follow the 3D view and dense sections collapse',async({page})=>{
   await page.goto('/');
   await expect(page.locator('#simulate')).toHaveCount(0);
   await expect(page.locator('.control-panel #containerType')).toHaveCount(0);
-  await expect(page.locator('.simulation-config-bar #containerType')).toBeVisible();
+  // 컨테이너 규격은 실행 버튼 옆에 있고, 선택지에 치수와 최대 중량이 함께 보인다.
+  await expect(page.locator('.run-group .select-button').first()).toContainText('20ft Dry (5.90 × 2.35 × 2.39 m · 최대 28.2 t)');
   await expect(page.locator('.simulation-config-bar #transportMode')).toHaveValue('combined');
   await expect(page.locator('#toggleBands')).toHaveCount(0);
   await expect(page.locator('.result-header #recalculateOptions')).toBeVisible();
@@ -176,8 +177,8 @@ test('container dropdown opens a smooth list and keeps the native select value i
   await page.goto('/');
   const box=page.locator('.select-box').filter({has:page.locator('#containerType')});
   await box.locator('.select-button').click();await expect(box).toHaveClass(/open/);
-  await box.getByRole('option',{name:'40ft Dry'}).click();
-  await expect(page.locator('#containerType')).toHaveValue('40ft');await expect(box.locator('.select-button')).toHaveText('40ft Dry');await expect(box).not.toHaveClass(/open/);
+  await box.getByRole('option',{name:/^40ft Dry/}).click();
+  await expect(page.locator('#containerType')).toHaveValue('40ft');await expect(box.locator('.select-button')).toHaveText('40ft Dry (12.03 × 2.35 × 2.39 m · 최대 26.7 t)');await expect(box).not.toHaveClass(/open/);
 });
 
 test('safety slider, segmented choices and securing chips drive the hidden values',async({page})=>{

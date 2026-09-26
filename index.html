@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260926-2">
+  <link rel="stylesheet" href="v3-projects.css?v=20260926-4">
 </head>
 <body>
   <header class="topbar">
@@ -75,7 +75,7 @@
 
       <section class="result-panel">
         <div class="result-header">
-          <div class="step-heading"><span>03</span><div><h2>3D 적재 시뮬레이션</h2></div></div><button class="top-simulate" id="recalculateOptions" type="button" disabled>시뮬레이션 실행 <b>→</b></button>
+          <div class="step-heading"><span>03</span><div><h2>3D 적재 시뮬레이션</h2></div></div><div class="run-group"><label class="container-select header-container"><span>컨테이너</span><select id="containerType"></select></label><button class="top-simulate" id="recalculateOptions" type="button" disabled>시뮬레이션 실행 <b>→</b></button></div>
           
         </div>
 
@@ -85,7 +85,7 @@
             <select id="safetyLevel" class="native-select" tabindex="-1" aria-hidden="true"><option value="standard">적재량 우선</option><option value="strict" selected>기본</option><option value="secure">CTU 완전 준수</option></select>
             <input id="safetySlider" class="safety-slider" type="range" min="0" max="2" step="1" value="1" aria-label="안전 수준: 적재량 우선, 기본, CTU 완전 준수">
             <div class="slider-stops" aria-hidden="true"><span>적재량 우선</span><span>기본</span><span>CTU 완전 준수</span></div>
-            <small id="safetyHint" class="safety-hint"></small>
+            <div id="safetyHint" class="safety-hint" aria-live="polite"></div>
           </div>
           <div class="option-field"><span>배치 방식</span>
             <select id="preference" class="native-select" tabindex="-1" aria-hidden="true"><option value="auto" selected>추천</option><option value="density">붙여 싣기</option><option value="balance">무게중심</option></select>
@@ -103,8 +103,6 @@
               <button type="button" data-key="lashing" aria-pressed="true" title="래싱·스트랩(윗단 되잡기)"><i class="securing-icon" data-icon="strap"></i>래싱</button>
             </div>
           </div>
-          <label class="container-select">컨테이너 규격<select id="containerType"></select></label>
-          <div class="container-spec" id="containerSpec"></div>
         </div>
 
         <div class="canvas-wrap" id="canvasWrap">
@@ -291,7 +289,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.40</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.41</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
@@ -300,7 +298,7 @@
   <script src="load-insights.js?v=20260925-1"></script>
   <script src="solution-validator.js?v=20260926-1"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
-  <script src="app.js?v=20260926-8"></script>
+  <script src="app.js?v=20260926-9"></script>
   <script src="project-store.js?v=20260925-2"></script>
 </body>
 </html>

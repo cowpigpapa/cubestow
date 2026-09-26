@@ -40,7 +40,8 @@ function showAppMessage(message,{title='안내',tone='info',confirmAction=false,
 if(typeof window!=='undefined')window.showAppMessage=showAppMessage;
 
 function init(){
-  $('containerType').innerHTML = Object.entries(CONTAINERS).map(([k,c])=>`<option value="${k}">${c.name}</option>`).join('');
+  // 선택지에 내부 치수와 최대 중량을 바로 보여 준다(따로 치수 칸을 두지 않는다).
+  $('containerType').innerHTML = Object.entries(CONTAINERS).map(([k,c])=>`<option value="${k}">${c.name} (${(c.l/1000).toFixed(2)} × ${(c.w/1000).toFixed(2)} × ${(c.h/1000).toFixed(2)} m · 최대 ${(c.maxWeight/1000).toFixed(1)} t)</option>`).join('');
   ['productShape','containerType'].forEach(id=>enhanceSelect($(id)));
   enhanceSafetySlider();enhanceSegmented($('preference'),PREFERENCE_HINTS);enhanceSegmented($('transportMode'),TRANSPORT_HINTS);
   suggestFromHistory($('productName'),'names');suggestFromHistory($('productGroup'),'groups');
@@ -67,12 +68,12 @@ const selectRenderers=[];
 function syncSelects(){selectRenderers.forEach(render=>render())}
 // 안전 수준 슬라이더: 적재량 우선 ↔ 기본 ↔ CTU 완전 준수. 단계마다 무엇을 지키는지 한 줄로 보여 준다.
 const SAFETY_STEPS=['standard','strict','secure'];
-const SAFETY_HINTS={standard:'받침 70% 이상 · 충돌·하중 같은 기본 조건만 지켜 대수를 줄입니다',strict:'받침 100% · 높은 적층·원통 규칙 · 틈과 윗단은 고정재로 막습니다',secure:'모든 화물의 안쪽·좌·우가 서로 막히게, 얹지 않게 쌓습니다 · 래싱을 끄면 CTU 전도 기준 · 대수가 늘 수 있습니다'};
+const SAFETY_HINTS={standard:['윗 화물 바닥면 70% 이상만 받치면 됩니다','충돌·하중 같은 기본 조건만 지켜 대수를 줄입니다'],strict:['윗 화물 바닥면을 100% 받칩니다','높은 적층·원통 규칙을 지킵니다','남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다'],secure:['모든 화물의 안쪽·좌·우가 서로 막히게 쌓습니다','다른 크기 화물 위에 따로 얹지 않습니다','래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다','컨테이너 대수가 늘 수 있습니다']};
 const PREFERENCE_HINTS={auto:'무게배분 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다',density:'안쪽으로 바짝 붙여 사용 길이가 가장 짧은 배치(빈틈 최소)를 고릅니다',balance:'앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'};
 const TRANSPORT_HINTS={road:'도로 가속도(좌우 0.5g·전방 0.8g)',combined:'도로와 해상 중 불리한 값',sea:'해상 C 가속도(좌우 0.8g·앞뒤 0.4g)'};
 function enhanceSafetySlider(){
   const select=$('safetyLevel'),slider=$('safetySlider');
-  const render=()=>{const i=Math.max(0,SAFETY_STEPS.indexOf(select.value));slider.value=String(i);slider.style.setProperty('--fill',`${i*50}%`);$('safetyLabel').textContent=select.selectedOptions[0]?.textContent||'';$('safetyHint').textContent=SAFETY_HINTS[select.value]||'';slider.closest('.safety-field').dataset.level=select.value};
+  const render=()=>{const i=Math.max(0,SAFETY_STEPS.indexOf(select.value));slider.value=String(i);slider.style.setProperty('--fill',`${i*50}%`);$('safetyLabel').textContent=select.selectedOptions[0]?.textContent||'';$('safetyHint').innerHTML=`<ul>${(SAFETY_HINTS[select.value]||[]).map(line=>`<li>${esc(line)}</li>`).join('')}</ul>`;slider.closest('.safety-field').dataset.level=select.value};
   slider.oninput=()=>{const value=SAFETY_STEPS[+slider.value];if(value!==select.value){select.value=value;select.dispatchEvent(new Event('change'))}render()};
   selectRenderers.push(render);render();
 }
@@ -176,7 +177,8 @@ if(typeof window!=='undefined')window.loadwiseProject={algorithmVersion:Loadwise
 function changeProductQty(index,delta){if(!products[index])return;products[index].qty=Math.max(1,products[index].qty+delta);renderProducts();markSimulationChanged()}
 function setProductQty(index,value){if(!products[index])return;const qty=Math.max(1,Math.floor(Number(value)||1));if(products[index].qty===qty){renderProducts();return}products[index].qty=qty;renderProducts();markSimulationChanged()}
 function markSimulationChanged(){syncSelects();inputVersion++;resultStale=true;window.loadwiseStorage?.markDirty();for(const id of ['exportPdf','exportPlan']){$(id).disabled=true;$(id).title='입력이 바뀌어 다시 계산한 뒤 내보낼 수 있습니다.'}$('recalculateOptions').classList.add('needs-update');$('recalculateOptions').innerHTML='다시 계산 <b>→</b>'}
-function updateContainerSpec(){syncSelects();const c=CONTAINERS[$('containerType').value]||CONTAINERS['20ft'];$('containerSpec').innerHTML=`<span>내부</span><strong>${(c.l/1000).toFixed(2)} × ${(c.w/1000).toFixed(2)} × ${(c.h/1000).toFixed(2)} m</strong><i></i><span>최대</span><strong>${(c.maxWeight/1000).toFixed(1)} t</strong>`}
+// 컨테이너 치수와 최대 중량은 선택지 이름에 들어 있다. 선택 표시만 갱신한다.
+function updateContainerSpec(){syncSelects()}
 
 function runPackingEngine(input,onProgress=()=>{}){
   const local=()=>new Promise((resolve,reject)=>setTimeout(()=>{try{resolve(LoadwiseEngine.packShipment({...input,onProgress}))}catch(error){reject(error)}},0));
