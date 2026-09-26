@@ -172,13 +172,28 @@ test('CTU sliding and tipping reference calculation appears in the securing pane
   await expect(page.locator('#securingCount')).toContainText('CTU 고정 필요');
 });
 
-test('condition dropdowns open a smooth list and keep the native select value in sync',async({page})=>{
+test('container dropdown opens a smooth list and keeps the native select value in sync',async({page})=>{
   await page.goto('/');
-  const transport=page.locator('.select-box').filter({has:page.locator('#transportMode')});
-  await transport.locator('.select-button').click();await expect(transport).toHaveClass(/open/);
-  await transport.getByRole('option',{name:'해상 · 보수적'}).click();
-  await expect(page.locator('#transportMode')).toHaveValue('sea');await expect(transport.locator('.select-button')).toHaveText('해상 · 보수적');await expect(transport).not.toHaveClass(/open/);
-  await transport.locator('.select-button').press('ArrowDown');await expect(page.locator('#transportMode')).toHaveValue('combined');
+  const box=page.locator('.select-box').filter({has:page.locator('#containerType')});
+  await box.locator('.select-button').click();await expect(box).toHaveClass(/open/);
+  await box.getByRole('option',{name:'40ft Dry'}).click();
+  await expect(page.locator('#containerType')).toHaveValue('40ft');await expect(box.locator('.select-button')).toHaveText('40ft Dry');await expect(box).not.toHaveClass(/open/);
+});
+
+test('safety slider, segmented choices and securing chips drive the hidden values',async({page})=>{
+  await page.goto('/');
+  // 안전 수준 슬라이더: 단계마다 이름과 한 줄 설명이 바뀐다.
+  await page.locator('#safetySlider').fill('2');
+  await expect(page.locator('#safetyLevel')).toHaveValue('secure');await expect(page.locator('#safetyLabel')).toHaveText('CTU 완전 준수');await expect(page.locator('#safetyHint')).toContainText('서로 막히게');
+  await page.locator('#safetySlider').fill('0');await expect(page.locator('#safetyLevel')).toHaveValue('standard');await expect(page.locator('#safetyLabel')).toHaveText('적재량 우선');
+  // 배치 방식과 운송 경로는 3칸 버튼이다. 폭 균형은 추천에 합쳐 선택지에 없다.
+  await expect(page.locator('.segmented[data-for="preference"] button')).toHaveText(['추천','붙여 싣기','무게중심']);
+  await page.locator('.segmented[data-for="preference"] button',{hasText:'붙여 싣기'}).click();await expect(page.locator('#preference')).toHaveValue('density');
+  await page.locator('.segmented[data-for="transportMode"] button',{hasText:'해상'}).click();await expect(page.locator('#transportMode')).toHaveValue('sea');
+  await expect(page.locator('.segmented[data-for="transportMode"] button[aria-checked="true"]')).toHaveText('해상');
+  // 고정재 칩을 누르면 꺼지고 다시 누르면 켜진다.
+  const nails=page.locator('#securingChips button[data-key="nails"]');
+  await nails.click();await expect(nails).toHaveAttribute('aria-pressed','false');await nails.click();await expect(nails).toHaveAttribute('aria-pressed','true');
 });
 
 test('product name and group inputs suggest previously entered values',async({page})=>{

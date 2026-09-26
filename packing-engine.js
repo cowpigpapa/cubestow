@@ -10,16 +10,16 @@
 
   // 하드 조건(안전 기준). 모든 후보는 선택된 안전 기준을 통과해야만 배치된다.
   const SAFETY_LEVELS={
-    strict:{label:'엄격',description:'상부 지지 100%',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true},
+    strict:{label:'기본',description:'상부 지지 100%',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true},
     // 최고 안전: 엄격 조건에 더해, 모든 화물의 안쪽·좌·우 3면이 벽·화물·에어백 간극으로 막혀야 한다(문쪽은 각재·부목으로 막는다).
-    secure:{label:'최고 안전',description:'상부 지지 100% · 3면 막힘',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true,blockSides:true},
-    standard:{label:'표준',description:'상부 지지 70% 이상',minSupport:.7,maxTopSlender:Infinity}
+    secure:{label:'CTU 완전 준수',description:'상부 지지 100% · 3면 막힘',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true,blockSides:true},
+    standard:{label:'적재량 우선',description:'상부 지지 70% 이상',minSupport:.7,maxTopSlender:Infinity}
   };
   // 소프트 목표(우선 기준). 미배치 수량과 컨테이너 대수가 같을 때만 순위를 가른다.
   const PREFERENCES={
-    auto:{label:'자동 추천'},
-    density:{label:'공간 활용'},
-    width:{label:'폭 균형'},
+    auto:{label:'추천'},
+    density:{label:'붙여 싣기'},
+    width:{label:'폭 균형(추천에 통합)'},
     balance:{label:'무게중심'}
   };
   const TRANSPORT_PROFILES={

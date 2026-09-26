@@ -41,7 +41,8 @@ if(typeof window!=='undefined')window.showAppMessage=showAppMessage;
 
 function init(){
   $('containerType').innerHTML = Object.entries(CONTAINERS).map(([k,c])=>`<option value="${k}">${c.name}</option>`).join('');
-  ['productShape','safetyLevel','preference','transportMode','containerType'].forEach(id=>enhanceSelect($(id)));
+  ['productShape','containerType'].forEach(id=>enhanceSelect($(id)));
+  enhanceSafetySlider();enhanceSegmented($('preference'),PREFERENCE_HINTS);enhanceSegmented($('transportMode'),TRANSPORT_HINTS);
   suggestFromHistory($('productName'),'names');suggestFromHistory($('productGroup'),'groups');
   bindEvents(); updateContainerSpec(); renderProducts(); resizeCanvas();
 }
@@ -64,6 +65,24 @@ function suggestFromHistory(input,kind){
 // 값과 change 이벤트는 원래 select가 그대로 가지며, 코드가 값을 바꾸면 syncSelects()로 표시를 맞춘다.
 const selectRenderers=[];
 function syncSelects(){selectRenderers.forEach(render=>render())}
+// 안전 수준 슬라이더: 적재량 우선 ↔ 기본 ↔ CTU 완전 준수. 단계마다 무엇을 지키는지 한 줄로 보여 준다.
+const SAFETY_STEPS=['standard','strict','secure'];
+const SAFETY_HINTS={standard:'받침 70% 이상 · 충돌·하중 같은 기본 조건만 지켜 대수를 줄입니다',strict:'받침 100% · 높은 적층·원통 규칙 · 틈과 윗단은 고정재로 막습니다',secure:'모든 화물의 안쪽·좌·우가 서로 막히게, 얹지 않게 쌓습니다 · 래싱을 끄면 CTU 전도 기준 · 대수가 늘 수 있습니다'};
+const PREFERENCE_HINTS={auto:'무게배분 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다',density:'안쪽으로 바짝 붙여 사용 길이가 가장 짧은 배치(빈틈 최소)를 고릅니다',balance:'앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'};
+const TRANSPORT_HINTS={road:'도로 가속도(좌우 0.5g·전방 0.8g)',combined:'도로와 해상 중 불리한 값',sea:'해상 C 가속도(좌우 0.8g·앞뒤 0.4g)'};
+function enhanceSafetySlider(){
+  const select=$('safetyLevel'),slider=$('safetySlider');
+  const render=()=>{const i=Math.max(0,SAFETY_STEPS.indexOf(select.value));slider.value=String(i);slider.style.setProperty('--fill',`${i*50}%`);$('safetyLabel').textContent=select.selectedOptions[0]?.textContent||'';$('safetyHint').textContent=SAFETY_HINTS[select.value]||'';slider.closest('.safety-field').dataset.level=select.value};
+  slider.oninput=()=>{const value=SAFETY_STEPS[+slider.value];if(value!==select.value){select.value=value;select.dispatchEvent(new Event('change'))}render()};
+  selectRenderers.push(render);render();
+}
+// 3칸 버튼: 숨긴 select의 값을 그대로 쓰고, 누르면 change를 보낸다.
+function enhanceSegmented(select,hints={}){
+  const group=select.parentElement.querySelector('.segmented');
+  const render=()=>{group.innerHTML=[...select.options].map(o=>`<button type="button" role="radio" aria-checked="${o.selected}" data-value="${o.value}" title="${esc(hints[o.value]||'')}">${esc(o.textContent)}</button>`).join('')};
+  group.onclick=event=>{const button=event.target.closest('button[data-value]');if(!button||button.dataset.value===select.value)return;select.value=button.dataset.value;select.dispatchEvent(new Event('change'));render()};
+  selectRenderers.push(render);render();
+}
 function enhanceSelect(select){
   const box=document.createElement('div'),button=document.createElement('button'),list=document.createElement('ul');
   box.className='select-box';button.type='button';button.className='select-button';button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');
@@ -104,8 +123,7 @@ function bindEvents(){
   $('viewIso').onclick=()=>setView('iso');$('viewTop').onclick=()=>setView('top');$('viewDoor').onclick=()=>setView('door');$('viewLeft').onclick=()=>setView('left');$('viewRight').onclick=()=>setView('right');
   $('viewCog').onclick=toggleCenterOfGravity;$('viewAxes').onclick=()=>{showAxes=!showAxes;const button=$('viewAxes');button.classList.toggle('active',showAxes);button.setAttribute('aria-pressed',String(showAxes));button.querySelector('b').textContent=showAxes?'ON':'OFF';draw()};
   document.querySelectorAll('i.securing-icon[data-icon]').forEach(i=>i.innerHTML=SECURING_ICONS[i.dataset.icon]||'');
-  document.querySelectorAll('#securingOptions input[type=checkbox]').forEach(box=>box.onchange=()=>{securingOptions={...securingOptions,[box.value]:box.checked};renderSecuringOptions();markSimulationChanged()});
-  document.addEventListener('click',event=>{const menu=$('securingOptions');if(menu?.open&&!menu.contains(event.target))menu.open=false});
+  $('securingChips').onclick=event=>{const chip=event.target.closest('button[data-key]');if(!chip)return;securingOptions={...securingOptions,[chip.dataset.key]:!securingOptions[chip.dataset.key]};renderSecuringOptions();markSimulationChanged()};
   renderSecuringOptions();
   $('saveField').onclick=saveFieldResult;
   $('toggleDunnage').onclick=()=>toggleSecuringVisibility('dunnage');
@@ -152,7 +170,7 @@ function renderProducts(){
 }
 
 function projectSnapshot(){let resultSummary=null;if(shipment){const outcome=shipmentOutcome(shipment);resultSummary={state:outcome.state,loaded:outcome.loaded,total:outcome.total,containerCount:shipment.containers.length,totalWeight:shipment.containers.reduce((sum,load)=>sum+load.totalWeight,0),calculatedAt:new Date().toISOString()}}return LoadwiseProjectModel.createSnapshot(products,$('containerType').value,{safety:$('safetyLevel').value,preference:$('preference').value},{algorithmVersion:LoadwiseProjectModel.CURRENT_ALGORITHM_VERSION,transportMode:$('transportMode').value,securing:securingOptions,resultSummary,fieldResult})}
-function applyProjectSnapshot(snapshot){if(editingIndex>=0){stopEditing();clearProductForm()}const data=LoadwiseProjectModel.normalizeSnapshot(snapshot);products=data.products.map((p,i)=>({...p,id:Date.now()+i,color:COLORS[i%COLORS.length]}));fieldResult=data.fieldResult;$('containerType').value=data.containerType;$('safetyLevel').value=data.safety;$('preference').value=data.preference;$('transportMode').value=data.transportMode;securingOptions={...data.securing};renderSecuringOptions();result=null;shipment=null;activeContainer=0;visibleStep=0;$('balanceCard').hidden=true;$('exportPdf').disabled=true;updateContainerSpec();renderProducts();markSimulationChanged();resizeCanvas();draw()}
+function applyProjectSnapshot(snapshot){if(editingIndex>=0){stopEditing();clearProductForm()}const data=LoadwiseProjectModel.normalizeSnapshot(snapshot);products=data.products.map((p,i)=>({...p,id:Date.now()+i,color:COLORS[i%COLORS.length]}));fieldResult=data.fieldResult;$('containerType').value=data.containerType;$('safetyLevel').value=data.safety;$('preference').value=data.preference==='width'?'auto':data.preference;$('transportMode').value=data.transportMode;securingOptions={...data.securing};renderSecuringOptions();result=null;shipment=null;activeContainer=0;visibleStep=0;$('balanceCard').hidden=true;$('exportPdf').disabled=true;updateContainerSpec();renderProducts();markSimulationChanged();resizeCanvas();draw()}
 function resetProject(){applyProjectSnapshot({products:[],containerType:'20ft',safety:'strict',preference:'auto',transportMode:'combined'})}
 if(typeof window!=='undefined')window.loadwiseProject={algorithmVersion:LoadwiseProjectModel.CURRENT_ALGORITHM_VERSION,snapshot:projectSnapshot,apply:applyProjectSnapshot,reset:resetProject};
 function changeProductQty(index,delta){if(!products[index])return;products[index].qty=Math.max(1,products[index].qty+delta);renderProducts();markSimulationChanged()}
@@ -162,7 +180,7 @@ function updateContainerSpec(){syncSelects();const c=CONTAINERS[$('containerType
 
 function runPackingEngine(input,onProgress=()=>{}){
   const local=()=>new Promise((resolve,reject)=>setTimeout(()=>{try{resolve(LoadwiseEngine.packShipment({...input,onProgress}))}catch(error){reject(error)}},0));
-  if(!engineWorker&&typeof Worker!=='undefined'&&location.protocol!=='file:')try{engineWorker=new Worker('engine-worker.js?v=20260926-6')}catch{engineWorker=null}
+  if(!engineWorker&&typeof Worker!=='undefined'&&location.protocol!=='file:')try{engineWorker=new Worker('engine-worker.js?v=20260926-7')}catch{engineWorker=null}
   if(!engineWorker)return local();
   const id=++engineJob,worker=engineWorker;
   return new Promise((resolve,reject)=>{
@@ -266,7 +284,7 @@ function fillRemainingVoids(load,airbags,dunnage){
 }
 // 빠른 래싱 가이드(해상 C, 웨빙 MSL 2,000daN, 마찰 0.3) 표: 스프링 래싱 1줄당 앞뒤 6.1t, 하프루프 한 쌍당 좌우 4.3t. 최소 1.
 function lashingCount(massKg,kind){return Math.max(1,Math.ceil(massKg/(kind==='side'?4300:6100)))}
-function renderSecuringOptions(){const on=Object.keys(SECURING_OPTION_LABELS).filter(k=>securingOptions[k]);document.querySelectorAll('#securingOptions input[type=checkbox]').forEach(box=>box.checked=Boolean(securingOptions[box.value]));const summary=$('securingOptionsSummary');if(summary)summary.textContent=on.length===4?'모두 사용':on.length?on.map(k=>SECURING_OPTION_LABELS[k]).join('·'):'사용 안 함'}
+function renderSecuringOptions(){document.querySelectorAll('#securingChips button[data-key]').forEach(chip=>chip.setAttribute('aria-pressed',String(Boolean(securingOptions[chip.dataset.key]))))}
 function buildSecuringPlan(load,transportMode=currentTransportMode(),options=securingOptions){
   const dunnage=[],airbags=[],reviews=[],floorItems=load.placed.filter(p=>p.z===0),c=load.container;
   // 문쪽: 앞에 화물이 없는 문쪽 화물이 문에서 150mm 넘게 떨어져 있으면 뒤 기둥 사이에 가로 각재 펜스를 세우고, 펜스와 화물 사이를 충전재로 채운다.
