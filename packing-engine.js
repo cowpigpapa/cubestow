@@ -1188,8 +1188,11 @@
         // 전도 한계(TIP)는 CTU 설정(래싱 여부)을 그대로 쓴다.
         let secured=withRules({STRICT_BLOCK:false,PERCH_PREFER:true,PERCH_HARD:false},()=>fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)),half,limit));
         // 얹힘을 금지하면 더 빡빡해지므로, 기본 기준 그대로도 대수를 줄이지 못했으면 다시 채우지 않는다.
+        // 기본 기준 그대로면 대수를 줄였는데 얹힘 때문에 못 쓴 경우를 기록한다(결과 설명에 쓴다).
+        const basicLoads=!secured.cut&&secured.loads.length<loads.length&&!perchClean(secured.loads)?secured.loads.length:0;
         if(!secured.cut&&!perchClean(secured.loads))secured=withRules({STRICT_BLOCK:false,PERCH_PREFER:true,PERCH_HARD:true},()=>fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),half,limit));
         if(!secured.cut&&secured.remaining.length<remaining.length||!secured.cut&&secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
+        if(basicLoads&&loads.length>basicLoads)stats.perchLimited=basicLoads;
       }
     }
     // 미적재 사유를 구체적으로: 최대 대수에 걸렸거나, CTU 기준에서 에어백·충전재를 모두 꺼 아무것도 실을 수 없는 경우.
@@ -1213,6 +1216,7 @@
     else if(!left)parts.push(`부피·중량 하한 ${bound}대`);
     if(left)parts.push(`미배치 ${left}개`);
     if(result.stats.repaired)parts.push('기존 배치 유지');
+    if(result.stats.perchLimited)parts.push(`다른 크기 화물 위 얹힘 금지 때문에 기본 기준(${result.stats.perchLimited}대)보다 많음`);
     if(result.stats.truncated)parts.push('시간 제한으로 일부 후보 생략');
     return parts.join(' · ');
   }

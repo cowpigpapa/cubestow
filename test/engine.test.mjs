@@ -429,3 +429,13 @@ test('unloaded items say why when the 50-container cap is reached or CTU has no 
   assert.equal(bare.remaining.length,3);
   assert.ok(bare.remaining.every(u=>/에어백이나 충전재를 켜세요/.test(u.reason)),bare.remaining.map(u=>u.reason).join(','));
 });
+
+test('CTU explains when the perch ban alone makes it use more containers than the basic mode',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[18],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  // 가정 이사 화물: 기본 기준은 1대지만 작은 이삿짐 박스가 큰 박스 위에 문쪽이 열린 채 얹혀 있어, 얹힘을 금지하는 CTU 기준은 2대가 된다.
+  const result=engine.packShipment({container:C20,units:items,safety:'secure',transportMode:sample.mode,timeBudgetMs:8000});
+  assert.equal(result.loads.length,2);
+  assert.equal(result.stats.perchLimited,1);
+  assert.match(result.reason,/얹힘 금지 때문에 기본 기준\(1대\)보다 많음/);
+});
