@@ -68,9 +68,10 @@ const selectRenderers=[];
 function syncSelects(){selectRenderers.forEach(render=>render())}
 // 안전 수준 슬라이더: 적재량 우선 ↔ 기본 ↔ CTU 완전 준수. 단계마다 무엇을 지키는지 한 줄로 보여 준다.
 const SAFETY_STEPS=['standard','strict','secure'];
-const SAFETY_HINTS={standard:['윗 화물 바닥면 70% 이상만 받치면 됩니다','충돌·하중 같은 기본 조건만 지켜 대수를 줄입니다'],strict:['윗 화물 바닥면을 100% 받칩니다','높은 적층·원통 규칙을 지킵니다','남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다'],secure:['모든 화물의 안쪽·좌·우가 서로 막히게 쌓습니다','다른 크기 화물 위에 따로 얹지 않습니다','래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다','컨테이너 대수가 늘 수 있습니다']};
-const PREFERENCE_HINTS={auto:'무게배분 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다',density:'안쪽으로 바짝 붙여 사용 길이가 가장 짧은 배치(빈틈 최소)를 고릅니다',balance:'앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'};
-const TRANSPORT_HINTS={road:'도로 가속도(좌우 0.5g·전방 0.8g)',combined:'도로와 해상 중 불리한 값',sea:'해상 C 가속도(좌우 0.8g·앞뒤 0.4g)'};
+// 세 단계 모두 3줄. 설명칸 높이를 고정해 슬라이더를 움직여도 화면이 흔들리지 않게 한다.
+const SAFETY_HINTS={standard:['윗 화물 바닥면 70% 이상만 받치면 됩니다','충돌·중량·상부하중 같은 기본 조건만 지킵니다','컨테이너 대수를 가장 적게 씁니다'],strict:['윗 화물 바닥면을 100% 받칩니다','높은 적층·원통 규칙을 지킵니다','남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다'],secure:['모든 화물의 안쪽·좌·우가 서로 막히게 쌓습니다','다른 크기 화물 위에 따로 얹지 않습니다','래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다']};
+const PREFERENCE_HINTS={auto:'무게배분 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다',density:'안쪽으로 바짝 붙여 사용 길이가 가장 짧고 빈틈이 적은 배치를 고릅니다',balance:'앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'};
+const TRANSPORT_HINTS={road:'도로 기준으로 계산합니다 · 좌우 0.5g, 급정거 0.8g',combined:'도로와 해상 중 불리한 값을 씁니다(권장)',sea:'거친 해역 기준으로 계산합니다 · 좌우 0.8g, 앞뒤 0.4g'};
 function enhanceSafetySlider(){
   const select=$('safetyLevel'),slider=$('safetySlider');
   const render=()=>{const i=Math.max(0,SAFETY_STEPS.indexOf(select.value));slider.value=String(i);slider.style.setProperty('--fill',`${i*50}%`);$('safetyLabel').textContent=select.selectedOptions[0]?.textContent||'';$('safetyHint').innerHTML=`<ul>${(SAFETY_HINTS[select.value]||[]).map(line=>`<li>${esc(line)}</li>`).join('')}</ul>`;slider.closest('.safety-field').dataset.level=select.value};
@@ -79,8 +80,8 @@ function enhanceSafetySlider(){
 }
 // 3칸 버튼: 숨긴 select의 값을 그대로 쓰고, 누르면 change를 보낸다.
 function enhanceSegmented(select,hints={}){
-  const group=select.parentElement.querySelector('.segmented');
-  const render=()=>{group.innerHTML=[...select.options].map(o=>`<button type="button" role="radio" aria-checked="${o.selected}" data-value="${o.value}" title="${esc(hints[o.value]||'')}">${esc(o.textContent)}</button>`).join('')};
+  const group=select.parentElement.querySelector('.segmented'),hint=document.createElement('p');hint.className='segment-hint';hint.setAttribute('aria-live','polite');group.after(hint);
+  const render=()=>{group.innerHTML=[...select.options].map(o=>`<button type="button" role="radio" aria-checked="${o.selected}" data-value="${o.value}">${esc(o.textContent)}</button>`).join('');hint.textContent=hints[select.value]||''};
   group.onclick=event=>{const button=event.target.closest('button[data-value]');if(!button||button.dataset.value===select.value)return;select.value=button.dataset.value;select.dispatchEvent(new Event('change'));render()};
   selectRenderers.push(render);render();
 }
