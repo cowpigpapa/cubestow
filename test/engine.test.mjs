@@ -439,3 +439,14 @@ test('CTU explains when the perch ban alone makes it use more containers than th
   assert.equal(result.stats.perchLimited,1);
   assert.match(result.reason,/얹힘 금지 때문에 기본 기준\(1대\)보다 많음/);
 });
+
+test('a light last container is re-split with the one before it so neither is weight-distribution danger',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[12],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  // 엔진 크레이트: 예전에는 16개 + 6개로 나뉘어, 안쪽 벽에 붙인 6개(8.1t)가 무게중심을 안쪽으로 쏠리게 해 두 번째 컨테이너가 위험이었다.
+  const result=engine.packShipment({container:CONTAINERS[1],units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:8000});
+  assert.equal(result.loads.length,2);
+  assert.equal(result.stats.tailRebalanced,true);
+  for(const load of result.loads)assert.notEqual(context.LoadwiseInsights.ctu(load).level,'danger',`${load.placed.length} items`);
+  assertValidShipment(result,items);
+});

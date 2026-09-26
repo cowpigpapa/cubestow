@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.23';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.24';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -1193,6 +1193,24 @@
         if(!secured.cut&&!perchClean(secured.loads))secured=withRules({STRICT_BLOCK:false,PERCH_PREFER:true,PERCH_HARD:true},()=>fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),half,limit));
         if(!secured.cut&&secured.remaining.length<remaining.length||!secured.cut&&secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
         if(basicLoads&&loads.length>basicLoads)stats.perchLimited=basicLoads;
+      }
+    }
+    // 마지막 두 컨테이너 다시 나누기: 첫 화물은 늘 안쪽 벽에 붙이므로 마지막 컨테이너에 화물이 조금만 남으면 무게중심이 안쪽으로 쏠린다.
+    // 마지막 컨테이너가 가볍고(앞 컨테이너 중량의 60% 미만) 두 컨테이너 중 무게배분이 위험이면 두 대의 화물을 제품 규격마다 반씩 나눠 다시 싣고, 두 대에 모두 들어가며 나쁜 쪽 등급이 좋아질 때만 쓴다.
+    if(!stats.repaired&&!stats.securedFaces&&!remaining.length&&loads.length>=2){
+      const A=loads[loads.length-2],B=loads[loads.length-1],grade=list=>[Math.max(...list.map(l=>l.metrics.ctuLevel)),list.reduce((sum,l)=>sum+l.metrics.ctuLevel,0)];
+      if(Math.max(A.metrics.ctuLevel,B.metrics.ctuLevel)===2&&B.totalWeight<A.totalWeight*.6){
+        const byId=new Map(units.map(u=>[u.uid,u])),pool=[...A.placed,...B.placed].map(p=>byId.get(p.uid)),groups=new Map();
+        for(const u of pool){if(!groups.has(u.typeKey))groups.set(u.typeKey,[]);groups.get(u.typeKey).push(u)}
+        const first=[],second=[];for(const list of groups.values())list.forEach((u,i)=>(i%2?second:first).push(u));
+        const share=budget/Math.max(1,bound),deadline=started+Math.max(budget*3,45000);
+        const la=packOneContainer({...ctx,widthGap:createWidthOracle(first,c.w)},first,share,stats,deadline);
+        const rest=[...second,...la.rejected.map(({reason,...u})=>u)];
+        const lb=la.placed.length?packOneContainer({...ctx,widthGap:createWidthOracle(rest,c.w)},rest,share,stats,deadline):null;
+        if(lb&&lb.placed.length&&!lb.rejected.length){
+          const before=grade([A,B]),after=grade([la,lb]);
+          if(after[0]<before[0]||after[0]===before[0]&&after[1]<before[1]){loads=[...loads.slice(0,-2),la,lb];stats.tailRebalanced=true}
+        }
       }
     }
     // 미적재 사유를 구체적으로: 최대 대수에 걸렸거나, CTU 기준에서 에어백·충전재를 모두 꺼 아무것도 실을 수 없는 경우.
