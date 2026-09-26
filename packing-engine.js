@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.20';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.21';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -735,14 +735,14 @@
     for(const item of pending)rejected.push({...item,reason:weight+item.weight>c.maxWeight?'중량 초과':'공간 또는 지지 조건 부족'});
     return{placed,rejected,totalWeight:weight,heuristic:'wall',order};
   }
-  function packContainer(ctx,units,heuristic,order,seed=[]){
-    if(heuristic==='wall'&&!seed.length)return packWalls(ctx,units,order);
-    if(!ctx.deferSides||seed.length)return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
-    let raw=heuristic==='strip'&&!seed.length?packStrips(ctx,units,order):packContainerOnce(ctx,units,heuristic,order,seed),best=null;
+  function packContainer(ctx,units,heuristic,order,seed=[],initial=null){
+    if(heuristic==='wall'&&!seed.length&&!initial)return packWalls(ctx,units,order);
+    if(!initial&&(!ctx.deferSides||seed.length))return packContainerOnce({...ctx,deferSides:false},units,heuristic,order,seed);
+    let raw=initial||(heuristic==='strip'&&!seed.length?packStrips(ctx,units,order):packContainerOnce(ctx,units,heuristic,order,seed)),best=null;
     const volume=list=>list.reduce((sum,p)=>sum+p.l*p.w*p.h,0);
     // 최종 상태 검사 → 미달 화물(과 그 위 화물) 제거 → 뺀 화물을 다시 놓기를 반복하고, 검사를 통과한 안 중 부피가 가장 큰 안을 쓴다.
     // 다시 놓을 때도 처음처럼 임시로 놓는다(옆 칸이 나중에 채워지면 막힌다). 마지막 두 번은 놓는 순간 규칙을 지키게 놓는다.
-    const rounds=STRICT_BLOCK?RESETTLE_ROUNDS:3;
+    const rounds=initial?3:STRICT_BLOCK?RESETTLE_ROUNDS:3;
     for(let round=0;round<=rounds;round++){
       const settled=settleSides(ctx.c,raw.placed,new Set());
       const ids=new Set([...settled.removed,...raw.rejected].map(u=>u.uid)),retry=units.filter(u=>ids.has(u.uid));
@@ -1009,6 +1009,7 @@
     return best;
   }
   // (packOneContainer 앞)
+  const RELAXED_SEEDS=[{heuristic:'width',order:0},{heuristic:'dblf',order:0},{heuristic:'column',order:0},{heuristic:'columnBalance',order:0},{heuristic:'density',order:1},{heuristic:'dblf',order:2}];
   function packOneContainer(ctx,units,budgetMs,stats,hardDeadline){
     let best=null,bestKey=null,done=0;
     const variants=[false,true];
@@ -1036,6 +1037,22 @@
       }
       // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
       if(best&&!best.rejected.length&&best.metrics.ctuLevel===0){stats.settled=(stats.settled||0)+1;break}
+    }
+    // CTU 기준에서 화물이 남으면 기본 기준 배치를 출발점으로 삼는다: 기본 기준으로 가볍게 여러 안을 만들고,
+    // 지금보다 많이 싣는 안 중 가장 많이 싣는 1개만 CTU 검사에 걸린 화물을 빼고 다시 놓는다(다시 놓기는 3회로 제한).
+    // 래싱을 끈 CTU(전도 한계 적용)는 기본 기준 배치와 전도 규칙이 달라 출발점으로 쓰지 않는다(평가 세트에서 대수가 늘었다).
+    if(STRICT_BLOCK&&TIP_STACKED_ONLY&&best?.rejected.length&&now()<=hardDeadline){
+      const keep={STRICT_BLOCK,PERCH_PREFER,TIP,TIP_STACKED_ONLY},loose=[];
+      try{STRICT_BLOCK=false;PERCH_PREFER=true;TIP={side:3,forward:3,backward:3};TIP_STACKED_ONLY=true;
+        for(const {heuristic,order} of RELAXED_SEEDS){const raw=packContainerOnce({...ctx,safety:SAFETY_LEVELS.strict,deferSides:false},units,heuristic,order);if(raw.placed.length>best.placed.length)loose.push({heuristic,order,raw,volume:raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)})}
+      }finally{({STRICT_BLOCK,PERCH_PREFER,TIP,TIP_STACKED_ONLY}=keep)}
+      loose.sort((a,b)=>b.volume-a.volume||a.raw.rejected.length-b.raw.rejected.length);
+      for(const seed of loose.slice(0,1)){
+        const raw=packContainer(ctx,units,seed.heuristic,seed.order,[],seed.raw);stats.runs++;
+        if(raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
+        for(const centered of variants){const load=finalizeLoad(ctx.c,raw,centered);if(!sidesHold(load))continue;const key=containerKey(load,ctx);if(compareKeys(key,bestKey)<0){best=load;bestKey=key;stats.relaxed=(stats.relaxed||0)+1}}
+        if(!best.rejected.length)break;
+      }
     }
     // 남은 화물이 있으면 기존 배치 사이에 한 번 더 넣어 본다.
     if(STRICT_BLOCK&&best?.rejected.length&&best.rejected.length<=units.length*.25){const filled=topUp(ctx,best,units);if(filled!==best){stats.toppedUp=(stats.toppedUp||0)+1;best=filled}}
