@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.22';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.23';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -543,7 +543,15 @@
     const slender=item.h/Math.max(1,Math.min(item.l,item.w));
     return(item.shape==='cylinder'?2:0)+(slender>1.15?1:0)+(item.h>=1200?1:0);
   }
+  // 추가 투입 순서(4번 이후): 제품 규격 묶음의 순서를 고정 시드로 섞는다(묶음 안은 부피순). 같은 입력이면 늘 같은 순서다.
+  const EXTRA_ORDERS=24;
+  function seeded(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function sortUnits(units,order){
+    if(order>=ORDER_COUNT){
+      const base=sortUnits(units,0),groups=new Map();for(const u of base){if(!groups.has(u.typeKey))groups.set(u.typeKey,[]);groups.get(u.typeKey).push(u)}
+      const keys=[...groups.keys()],rand=seeded(order*7919+keys.length);for(let i=keys.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[keys[i],keys[j]]=[keys[j],keys[i]]}
+      return keys.flatMap(k=>groups.get(k));
+    }
     const compare=ORDER_COMPARATORS[order%ORDER_COMPARATORS.length];
     return[...units].sort((a,b)=>compare(a,b)||stabilityRisk(b)-stabilityRisk(a)||String(a.name).localeCompare(String(b.name))||(a.pi||0)-(b.pi||0)||(a.unit||0)-(b.unit||0));
   }
@@ -891,6 +899,9 @@
     // 기둥 쌓기는 시간 예산 안에 반드시 실행되도록 우선 기준 규칙 바로 다음에 둔다.
     const first=PREFERRED_HEURISTIC[preference]||'dblf',names=[first,...(first==='column'?[]:['column']),'columnBalance',...Object.keys(HEURISTICS).filter(h=>h!==first&&h!=='column'&&h!=='columnBalance')],runs=[];
     for(let order=0;order<ORDER_COUNT;order++)for(const heuristic of names)if(heuristic!=='wall'&&heuristic!=='strip'||STRICT_BLOCK)runs.push({heuristic,order});
+    // 예산이 남으면 규격 순서를 섞은 투입 순서로 주요 규칙을 더 계산한다(runCap이 예산 안에서 자른다).
+    const PREFERRED=first,extra=[...new Set([PREFERRED,'column','columnBalance','dblf','width'])];
+    for(let order=ORDER_COUNT;order<ORDER_COUNT+EXTRA_ORDERS;order++)for(const heuristic of extra)runs.push({heuristic,order});
     return runs;
   }
 
@@ -1021,8 +1032,11 @@
     const index=new Map(units.map((u,i)=>[u,i])),sequences=[],seen=new Set();
     for(let i=0;i<runs.length;i++){
       // 시간이 지나도 아직 아무것도 싣지 못했으면 다음 배치안을 계속 시도한다(빈 컨테이너로 끝내면 남은 화물을 모두 포기하게 된다).
-      if(i>0&&(done>=cap||now()>hardDeadline)&&best?.placed.length){stats.truncated=true;if(now()>hardDeadline)stats.timedOut=true;break}
       const {heuristic,order}=runs[i];
+      // 비상 시간 상한은 기본 순서에만 본다. 추가 투입 순서는 가벼운 기본 기준 계산이고 배치안 수(cap)로만 자르므로 기기 속도와 관계없이 같은 결과가 나온다.
+      if(i>0&&(done>=cap||order<ORDER_COUNT&&now()>hardDeadline)&&best?.placed.length){stats.truncated=true;if(order<ORDER_COUNT&&now()>hardDeadline)stats.timedOut=true;break}
+      // 추가 투입 순서는 화물이 남았거나(대수를 줄일 여지) 무게배분이 위험일 때만 계산한다. 화물끼리 막는 CTU 탐색은 비싸서 쓰지 않는다.
+      if(order>=ORDER_COUNT&&(STRICT_BLOCK||best&&!best.rejected.length&&best.metrics.ctuLevel<2))continue;
       sequences[order]=sequences[order]||sortUnits(units,order).map(u=>index.get(u)).join(',');
       const runKey=`${heuristic}|${sequences[order]}`;
       if(seen.has(runKey)){stats.skipped++;continue}
@@ -1122,11 +1136,10 @@
     const bound=lowerBound(c,units),stats={runs:0,skipped:0,truncated:false,repaired:false,lowerBound:bound};
     let loads=[],remaining=units;
     // 컨테이너를 차례로 채운다. progress(비율)로 진행률 구간을 나눠 쓴다.
-    const fillContainers=(progress)=>{
+    // 컨테이너별 예산(share)은 경과 시간이 아니라 필요 대수 하한으로 나눈다(결과 고정). CTU 보강안은 절반씩 쓴다.
+    const fillContainers=(progress,share=budget/Math.max(1,bound))=>{
       const out=[];let left=units;
       while(left.length&&out.length<MAX_CONTAINERS){
-        // 컨테이너별 예산은 경과 시간이 아니라 남은 화물의 필요 대수 하한으로 나눈다(결과 고정).
-        const share=budget/Math.max(1,bound);
         // 폭 조합은 이 컨테이너에 남은 화물로만 계산한다. 앞 컨테이너에 모두 실린 규격의 폭은 쓸 수 없다.
         const widthGap=left===units?ctx.widthGap:createWidthOracle(left,c.w);
         const load=packOneContainer({...ctx,widthGap},left,share,stats,started+Math.max(budget*3,45000));
@@ -1149,8 +1162,8 @@
         const keep={STRICT_BLOCK,PERCH_PREFER,PERCH_HARD},perchClean=list=>list.every(L=>L.placed.every(p=>perchOk(p,[p.l,p.w,p.h],L.placed,L.container,false,p)));
         let secured;
         try{
-          STRICT_BLOCK=false;PERCH_PREFER=true;PERCH_HARD=false;secured=fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)));
-          if(!perchClean(secured.loads)){PERCH_HARD=true;secured=fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)))}
+          STRICT_BLOCK=false;PERCH_PREFER=true;PERCH_HARD=false;secured=fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)),budget/2/Math.max(1,bound));
+          if(!perchClean(secured.loads)){PERCH_HARD=true;secured=fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),budget/2/Math.max(1,bound))}
         }finally{({STRICT_BLOCK,PERCH_PREFER,PERCH_HARD}=keep)}
         if(secured.remaining.length<remaining.length||secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
       }

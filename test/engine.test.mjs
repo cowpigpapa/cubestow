@@ -402,3 +402,16 @@ test('results do not depend on how fast the machine runs',async()=>{
     assert.equal(signature(late),signature(fast),safety);
   }
 });
+
+test('extra seeded input orders find a one-container plan for the sofa and mattress sample under load-max safety',async()=>{
+  if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
+  const sample=context.__samples[8],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const containers={'20ft':C20,'40ft':CONTAINERS[1],'40hc':CONTAINERS[2]};
+  // 기본 투입 순서 4종으로는 2대(64+4개)였다. 규격 묶음 순서를 고정 시드로 섞은 추가 순서로 한 대에 모두 싣는다. 결과는 매번 같다.
+  const run=()=>engine.packShipment({container:containers[sample.container],units:items,safety:'standard',transportMode:sample.mode,timeBudgetMs:8000});
+  const result=run();
+  assert.equal(result.loads.length,1,`containers ${result.loads.length}`);
+  assert.equal(result.remaining.length,0);
+  assertValidShipment(result,items);
+  assert.equal(JSON.stringify(run().loads[0].placed.map(p=>[p.x,p.y,p.z])),JSON.stringify(result.loads[0].placed.map(p=>[p.x,p.y,p.z])));
+});
