@@ -1137,9 +1137,11 @@
     let loads=[],remaining=units;
     // 컨테이너를 차례로 채운다. progress(비율)로 진행률 구간을 나눠 쓴다.
     // 컨테이너별 예산(share)은 경과 시간이 아니라 필요 대수 하한으로 나눈다(결과 고정). CTU 보강안은 절반씩 쓴다.
-    const fillContainers=(progress,share=budget/Math.max(1,bound))=>{
+    // limit: 이 대수를 채우고도 화물이 남으면 더 볼 필요가 없다(CTU 보강안은 대수가 줄 때만 쓰므로 화물끼리 막는 안보다 한 대 적게까지만 본다).
+    const fillContainers=(progress,share=budget/Math.max(1,bound),limit=MAX_CONTAINERS)=>{
       const out=[];let left=units;
       while(left.length&&out.length<MAX_CONTAINERS){
+        if(out.length>=limit){out.cut=true;break}
         // 폭 조합은 이 컨테이너에 남은 화물로만 계산한다. 앞 컨테이너에 모두 실린 규격의 폭은 쓸 수 없다.
         const widthGap=left===units?ctx.widthGap:createWidthOracle(left,c.w);
         const load=packOneContainer({...ctx,widthGap},left,share,stats,started+Math.max(budget*3,45000));
@@ -1147,7 +1149,7 @@
         out.push(load);left=load.rejected;
         progress(1-left.length/Math.max(1,units.length));
       }
-      return{loads:out,remaining:left};
+      return{loads:out,remaining:left,cut:Boolean(out.cut)};
     };
     const repaired=input.previous?repairFromPrevious(ctx,units,input.previous):null;
     if(repaired){
@@ -1162,10 +1164,12 @@
         const keep={STRICT_BLOCK,PERCH_PREFER,PERCH_HARD},perchClean=list=>list.every(L=>L.placed.every(p=>perchOk(p,[p.l,p.w,p.h],L.placed,L.container,false,p)));
         let secured;
         try{
-          STRICT_BLOCK=false;PERCH_PREFER=true;PERCH_HARD=false;secured=fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)),budget/2/Math.max(1,bound));
-          if(!perchClean(secured.loads)){PERCH_HARD=true;secured=fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),budget/2/Math.max(1,bound))}
+          const limit=remaining.length?MAX_CONTAINERS:loads.length-1;
+          STRICT_BLOCK=false;PERCH_PREFER=true;PERCH_HARD=false;secured=fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)),budget/2/Math.max(1,bound),limit);
+          // 얹힘을 금지하면 더 빡빡해지므로, 기본 기준 그대로도 대수를 줄이지 못했으면 다시 채우지 않는다.
+          if(!secured.cut&&!perchClean(secured.loads)){PERCH_HARD=true;secured=fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),budget/2/Math.max(1,bound),limit)}
         }finally{({STRICT_BLOCK,PERCH_PREFER,PERCH_HARD}=keep)}
-        if(secured.remaining.length<remaining.length||secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
+        if(!secured.cut&&secured.remaining.length<remaining.length||!secured.cut&&secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
       }
     }
     onProgress(1);
