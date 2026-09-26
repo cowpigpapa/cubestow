@@ -1192,6 +1192,10 @@
         if(!secured.cut&&secured.remaining.length<remaining.length||!secured.cut&&secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
       }
     }
+    // 미적재 사유를 구체적으로: 최대 대수에 걸렸거나, CTU 기준에서 에어백·충전재를 모두 꺼 아무것도 실을 수 없는 경우.
+    const SPACE='공간 또는 지지 조건 부족';
+    if(remaining.length&&loads.length>=MAX_CONTAINERS)remaining=remaining.map(u=>u.reason===SPACE?{...u,reason:`최대 컨테이너 수(${MAX_CONTAINERS}대)를 넘음`}:u);
+    else if(remaining.length&&safetyKey==='secure'&&!securing.airbag&&!securing.filler&&loads.every(L=>!L.placed.length))remaining=remaining.map(u=>u.reason===SPACE?{...u,reason:'CTU 기준에서 에어백·충전재를 모두 끄면 화물 옆 틈을 막을 수 없음(에어백이나 충전재를 켜세요)'}:u);
     onProgress(1);
     const result={
       engine:ENGINE_VERSION,safety:safetyKey,preference,transportMode:mode,

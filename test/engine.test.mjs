@@ -415,3 +415,17 @@ test('extra seeded input orders find a one-container plan for the sofa and mattr
   assertValidShipment(result,items);
   assert.equal(JSON.stringify(run().loads[0].placed.map(p=>[p.x,p.y,p.z])),JSON.stringify(result.loads[0].placed.map(p=>[p.x,p.y,p.z])));
 });
+
+test('unloaded items say why when the 50-container cap is reached or CTU has no airbags or fillers',()=>{
+  // 한 대에 하나만 들어가는 화물 52개: 50대를 채우고 남은 2개는 최대 대수 때문이라고 알려 준다.
+  const huge=Array.from({length:52},(_,i)=>({name:'대형 설비',group:'g',shape:'box',l:5000,w:2000,h:2000,weight:500,rotate:false,fragile:false,pi:0,unit:i+1}));
+  const capped=engine.packShipment({container:C20,units:huge,safety:'strict',transportMode:'combined',timeBudgetMs:8000});
+  assert.equal(capped.loads.length,50);
+  assert.equal(capped.remaining.length,2);
+  assert.ok(capped.remaining.every(u=>/최대 컨테이너 수\(50대\)/.test(u.reason)),capped.remaining.map(u=>u.reason).join(','));
+  // CTU 기준에서 에어백·충전재·래싱을 모두 끄면 옆 틈을 막을 수 없어 아무것도 싣지 못한다. 사유가 고정재를 켜라고 알려 준다.
+  const boxes=Array.from({length:3},(_,i)=>({name:'박스',group:'g',shape:'box',l:1000,w:800,h:700,weight:100,rotate:false,fragile:false,pi:0,unit:i+1}));
+  const bare=engine.packShipment({container:C20,units:boxes,safety:'secure',transportMode:'combined',securing:{airbag:false,filler:false,nails:true,lashing:false},timeBudgetMs:8000});
+  assert.equal(bare.remaining.length,3);
+  assert.ok(bare.remaining.every(u=>/에어백이나 충전재를 켜세요/.test(u.reason)),bare.remaining.map(u=>u.reason).join(','));
+});
