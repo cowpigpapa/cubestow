@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.21';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.22';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -12,7 +12,7 @@
   const SAFETY_LEVELS={
     strict:{label:'기본',description:'상부 지지 100%',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true},
     // 최고 안전: 엄격 조건에 더해, 모든 화물의 안쪽·좌·우 3면이 벽·화물·에어백 간극으로 막혀야 한다(문쪽은 각재·부목으로 막는다).
-    secure:{label:'CTU 기준 적용',description:'상부 지지 100% · 3면 막힘',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true,blockSides:true},
+    secure:{label:'CTU 기준 적용',description:'상부 지지 100% · 3면 막힘(화물·고정재)',minSupport:1,maxTopSlender:1.15,cylinderOnFloor:true,blockSides:true},
     standard:{label:'적재량 우선',description:'상부 지지 70% 이상',minSupport:.7,maxTopSlender:Infinity}
   };
   // 소프트 목표(우선 기준). 미배치 수량과 컨테이너 대수가 같을 때만 순위를 가른다.
@@ -223,6 +223,8 @@
   let STRICT_BLOCK=false;
   // 얹힘: 받치는 화물 중에 바닥면 크기가 다른 화물이 있는 쌓인 화물. 같은 규격 기둥의 윗단은 얹힘이 아니다.
   let PERCH_PREFER=false;
+  // CTU 기준의 고정재 보강안: 화물끼리 막힘은 요구하지 않지만 얹힘(문쪽이 열린 채 다른 규격 위에 올린 화물)은 금지한다.
+  let PERCH_HARD=false;
   function perchOk(s,d,placed,c,packing,self=null){
     if(s.z<=0)return true;
     const [l,w]=d;let perched=false;
@@ -484,6 +486,7 @@
     const sides=needSides?lateralSupportDirections(pos,d,placed,c,true):null,supported=sides?countSides(sides):4;
     if((z+h)/base>1.5&&supported<(ctx.deferSides?1:2))return null;
     if(STRICT_BLOCK&&!ctx.deferSides&&(!blockedOk(blockedSides(pos,d,placed,c,true))||!perchOk(pos,d,placed,c,true)))return null;
+    if(PERCH_HARD&&!ctx.deferSides&&!perchOk(pos,d,placed,c,true))return null;
     if(TOWER_CHECK&&!ctx.deferSides&&!towerOk(pos,d,placed,c,true))return null;
     if(ctx.hasTopLoadLimits&&!compressionSafe(item,x,y,z,d,state))return null;
     if(!stackSafe(item,x,y,z,d,state))return null;
@@ -616,7 +619,7 @@
   function settleSides(c,placed,fixed){
     let kept=placed,removed=[];
     for(let round=0;round<placed.length;round++){
-      const failing=kept.filter(p=>{if(fixed.has(p))return false;const d=[p.l,p.w,p.h];return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,kept,c,true,p))<2||STRICT_BLOCK&&(!blockedOk(blockedSides(p,d,kept,c,true,p))||!perchOk(p,d,kept,c,true,p))||TOWER_CHECK&&!towerOk(p,d,kept,c,true,p)});
+      const failing=kept.filter(p=>{if(fixed.has(p))return false;const d=[p.l,p.w,p.h];return(p.z+p.h)/Math.max(1,Math.min(p.l,p.w))>1.5&&countSides(lateralSupportDirections(p,d,kept,c,true,p))<2||STRICT_BLOCK&&(!blockedOk(blockedSides(p,d,kept,c,true,p))||!perchOk(p,d,kept,c,true,p))||PERCH_HARD&&!perchOk(p,d,kept,c,true,p)||TOWER_CHECK&&!towerOk(p,d,kept,c,true,p)});
       if(!failing.length)break;
       const drop=new Set();
       for(const p of failing){
@@ -973,7 +976,7 @@
   }
   function sidesHold(load){
     const all=load.placed;
-    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p))&&perchOk(p,d,all,load.container,false,p))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
+    return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p))&&perchOk(p,d,all,load.container,false,p))&&(!PERCH_HARD||perchOk(p,d,all,load.container,false,p))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
   }
   // 적재 전체를 사용 길이 안에서 앞뒤로 뒤집는다. 받침·상부하중·적층 무게중심은 그대로이고, 안쪽 벽 접촉이 바뀌므로 첫 화물 밀착과 측면 지지를 다시 확인한다.
   function mirrorLoad(ctx,raw){
@@ -1110,29 +1113,46 @@
     const mode=TRANSPORT_PROFILES[input.transportMode]?input.transportMode:'combined',budget=Number.isFinite(input.timeBudgetMs)?input.timeBudgetMs:8000;
     const onProgress=typeof input.onProgress==='function'?input.onProgress:()=>{};
     const units=prepareUnits(input.units||[]);
-    STRICT_BLOCK=Boolean(SAFETY_LEVELS[safetyKey].blockSides);
+    STRICT_BLOCK=Boolean(SAFETY_LEVELS[safetyKey].blockSides);PERCH_HARD=false;
     TOWER_CHECK=safetyKey!=='standard';PERCH_PREFER=safetyKey==='strict';
     const securing={airbag:true,filler:true,nails:true,lashing:true,...(input.securing||{})},ctuTip=Boolean(SAFETY_LEVELS[safetyKey].blockSides)&&securing.lashing===false;
     TIP=ctuTip?tipLimits(mode):{side:3,forward:3,backward:3};TIP_STACKED_ONLY=!ctuTip;
     BLOCK_GAP=securing.airbag||securing.filler?500:TOL;FLOOR_FILL=securing.filler!==false;
     const ctx={c,safetyKey,safety:SAFETY_LEVELS[safetyKey],preference,mode,widthGap:createWidthOracle(units,c.w),deferSides:true,hasTopLoadLimits:units.some(u=>Number.isFinite(u.maxTopLoadKg))};
     const bound=lowerBound(c,units),stats={runs:0,skipped:0,truncated:false,repaired:false,lowerBound:bound};
-    const deadline=started+budget,loads=[];
-    let remaining=units;
+    let loads=[],remaining=units;
+    // 컨테이너를 차례로 채운다. progress(비율)로 진행률 구간을 나눠 쓴다.
+    const fillContainers=(progress)=>{
+      const out=[];let left=units;
+      while(left.length&&out.length<MAX_CONTAINERS){
+        // 컨테이너별 예산은 경과 시간이 아니라 남은 화물의 필요 대수 하한으로 나눈다(결과 고정).
+        const share=budget/Math.max(1,bound);
+        // 폭 조합은 이 컨테이너에 남은 화물로만 계산한다. 앞 컨테이너에 모두 실린 규격의 폭은 쓸 수 없다.
+        const widthGap=left===units?ctx.widthGap:createWidthOracle(left,c.w);
+        const load=packOneContainer({...ctx,widthGap},left,share,stats,started+Math.max(budget*3,45000));
+        if(!load.placed.length){if(!out.length)out.push(load);left=load.rejected;break}
+        out.push(load);left=load.rejected;
+        progress(1-left.length/Math.max(1,units.length));
+      }
+      return{loads:out,remaining:left};
+    };
     const repaired=input.previous?repairFromPrevious(ctx,units,input.previous):null;
     if(repaired){
       loads.push(repaired);remaining=[];stats.repaired=true;
     }else{
-      while(remaining.length&&loads.length<MAX_CONTAINERS){
-        // 컨테이너별 예산은 경과 시간이 아니라 남은 화물의 필요 대수 하한으로 나눈다(결과 고정).
-        const share=budget/Math.max(1,bound);
-        // 폭 조합은 이 컨테이너에 남은 화물로만 계산한다. 앞 컨테이너에 모두 실린 규격의 폭은 쓸 수 없다.
-        const widthGap=remaining===units?ctx.widthGap:createWidthOracle(remaining,c.w);
-        const load=packOneContainer({...ctx,widthGap},remaining,share,stats,started+Math.max(budget*3,45000));
-        if(!load.placed.length){if(!loads.length)loads.push(load);remaining=load.rejected;break}
-        loads.push(load);
-        remaining=load.rejected;
-        onProgress(Math.min(.98,1-remaining.length/Math.max(1,units.length)));
+      const blocked=fillContainers(f=>onProgress(Math.min(.98,(STRICT_BLOCK?.6:1)*f)));
+      ({loads,remaining}=blocked);
+      // CTU 기준: 화물끼리 서로 막는 배치가 하한보다 많은 대수를 쓰면, 기본 기준 규칙(얹힘은 금지)으로도 채워 본다.
+      // 이 안의 열린 옆면은 에어백·충전재·각재·래싱으로 막는다(CTU Code는 화물 외 고정재로 막는 것도 인정). 대수·미적재가 줄 때만 쓴다.
+      if(STRICT_BLOCK&&(remaining.length||loads.length>bound)&&(securing.airbag||securing.filler||securing.lashing)){
+        // 먼저 기본 기준 그대로 채우고 최종 배치에 얹힘이 없으면 쓴다. 얹힘이 남으면 얹힘을 금지하고 다시 채운다.
+        const keep={STRICT_BLOCK,PERCH_PREFER,PERCH_HARD},perchClean=list=>list.every(L=>L.placed.every(p=>perchOk(p,[p.l,p.w,p.h],L.placed,L.container,false,p)));
+        let secured;
+        try{
+          STRICT_BLOCK=false;PERCH_PREFER=true;PERCH_HARD=false;secured=fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)));
+          if(!perchClean(secured.loads)){PERCH_HARD=true;secured=fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)))}
+        }finally{({STRICT_BLOCK,PERCH_PREFER,PERCH_HARD}=keep)}
+        if(secured.remaining.length<remaining.length||secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
       }
     }
     onProgress(1);

@@ -185,7 +185,7 @@ test('safety slider, segmented choices and securing chips drive the hidden value
   await page.goto('/');
   // 안전 수준 슬라이더: 단계마다 이름과 한 줄 설명이 바뀐다.
   await page.locator('#safetySlider').fill('2');
-  await expect(page.locator('#safetyLevel')).toHaveValue('secure');await expect(page.locator('#safetyLabel')).toHaveText('CTU 기준 적용');await expect(page.locator('#safetyHint')).toContainText('서로 막히게');await expect(page.locator('#messageDialog')).toContainText('20~40초');await page.locator('#messageConfirm').click();await expect(page.locator('#messageDialog')).not.toHaveAttribute('open','');await page.locator('#safetySlider').fill('1');await page.locator('#safetySlider').fill('2');await expect(page.locator('#messageDialog')).not.toHaveAttribute('open','');
+  await expect(page.locator('#safetyLevel')).toHaveValue('secure');await expect(page.locator('#safetyLabel')).toHaveText('CTU 기준 적용');await expect(page.locator('#safetyHint')).toContainText('화물이나 고정재로 막습니다');await expect(page.locator('#messageDialog')).toContainText('20~40초');await page.locator('#messageConfirm').click();await expect(page.locator('#messageDialog')).not.toHaveAttribute('open','');await page.locator('#safetySlider').fill('1');await page.locator('#safetySlider').fill('2');await expect(page.locator('#messageDialog')).not.toHaveAttribute('open','');
   await page.locator('#safetySlider').fill('0');await expect(page.locator('#safetyLevel')).toHaveValue('standard');await expect(page.locator('#safetyLabel')).toHaveText('적재량 우선');
   // 배치 방식과 운송 경로는 3칸 버튼이다. 폭 균형은 추천에 합쳐 선택지에 없다.
   await expect(page.locator('.segmented[data-for="preference"] button')).toHaveText(['추천','붙여 싣기','무게중심']);

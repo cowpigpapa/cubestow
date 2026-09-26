@@ -74,7 +74,9 @@
     const fill=options.fill||{gap:BLOCK_GAP,floor:true};
     // CTU 안전: 다른 크기 화물 위에 따로 올린 화물(얹힘)은 문쪽 면이 막혀 있어야 한다(앞에 같은 높이 화물 또는 문쪽 첫 줄).
     if(options.blockSides)placed.forEach((p,i)=>{if(p.z<=0)return;const perched=placed.some(q=>q!==p&&Math.abs(q.z+q.h-p.z)<2&&footprintOverlap(p,q)>0&&(Math.abs(q.l-p.l)>2||Math.abs(q.w-p.w)>2));if(perched&&openSides(p,placed,c,fill).includes('문쪽'))errors.push(`${i+1}번 화물이 다른 화물 위에 얹혀 문쪽 면이 막히지 않음(최고 안전)`)});
-    if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c,fill).filter(s=>s!=='문쪽');if(open.length)errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(최고 안전)`)});
+    // CTU 기준: 화물로 막히지 않은 옆면은 고정재(에어백·충전재·각재·래싱)를 하나라도 쓰면 고정재로 막을 곳으로 넘기고(CTU Code는 화물 외 고정재 막음도 인정), 모두 끄면 오류다.
+    const securingRequired=[];
+    if(options.blockSides)placed.forEach((p,i)=>{const open=openSides(p,placed,c,fill).filter(s=>s!=='문쪽');if(!open.length)return;if(options.secureOpenFaces)securingRequired.push({index:i,faces:open});else errors.push(`${i+1}번 화물 ${open.join('·')} 면이 막히지 않음(최고 안전)`)});
     // 높은 적층 전도: 쌓인 화물의 (바닥부터 높이 ÷ 그 방향 폭)이 3을 넘으면 그 방향 양쪽 면이 막혀 있어야 한다(엄격 이상).
     // 전도 한계: 숫자면 쌓인 화물에 모든 방향 같은 한계, 객체({side,forward,backward})면 CTU 운송모드 한계를 모든 화물에 적용한다.
     if(options.towerLimit)placed.forEach((p,i)=>{const numeric=typeof options.towerLimit==='number',lim=numeric?{side:options.towerLimit,forward:options.towerLimit,backward:options.towerLimit}:options.towerLimit;if(numeric&&p.z<=0)return;const H=p.z+p.h,rx=H/Math.max(1,p.l),ry=H/Math.max(1,p.w);if(rx<=lim.forward&&rx<=lim.backward&&ry<=lim.side)return;const open=openSides(p,placed,c,fill),bad=[...(rx>lim.backward?['문쪽']:[]),...(rx>lim.forward?['안쪽']:[]),...(ry>lim.side?['좌','우']:[])].filter(s=>open.includes(s));if(bad.length)errors.push(`${i+1}번 화물 높은 적층의 ${bad.join('·')} 면이 막히지 않음(전도 위험)`)});
@@ -86,16 +88,18 @@
     const compression=placed.map((p,i)=>({topLoad:Math.max(0,loads[i].weight-p.weight),limit:Number.isFinite(p.maxTopLoadKg)?p.maxTopLoadKg:null}));compression.forEach((v,i)=>{if(v.limit!=null&&v.topLoad>v.limit+1e-6)errors.push(`${i+1}번 화물 상부 허용하중 초과: ${Math.round(v.topLoad)}kg / ${v.limit}kg`)});
     const weight=placed.reduce((sum,p)=>sum+p.weight,0);
     if(weight>c.maxWeight+1e-6)errors.push(`허용중량 초과: ${weight}kg / ${c.maxWeight}kg`);
-    return{valid:!errors.length,errors:[...new Set(errors)],metrics:{placed:placed.length,weight,compressionVerified:compression.filter(v=>v.limit!=null).length,compressionUnverified:compression.filter(v=>v.limit==null).length,maxTopLoad:compression.reduce((m,v)=>Math.max(m,v.topLoad),0)}};
+    return{valid:!errors.length,errors:[...new Set(errors)],securingRequired,metrics:{placed:placed.length,weight,compressionVerified:compression.filter(v=>v.limit!=null).length,compressionUnverified:compression.filter(v=>v.limit==null).length,maxTopLoad:compression.reduce((m,v)=>Math.max(m,v.topLoad),0)}};
   }
   // CTU 정보자료 5 가속도(도로·해상 C)로 방향별 전도 한계 v/c. 복합운송은 둘 중 불리한 값.
   function ctuTipLimits(mode){const acc={road:{side:[.5,1],forward:[.8,1],backward:[.5,1]},seaC:{side:[.8,1],forward:[.4,.2],backward:[.4,.2]}},profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'],lim=k=>Math.min(...profiles.map(p=>acc[p][k][1]/acc[p][k][0]));return{side:lim('side'),forward:lim('forward'),backward:lim('backward')}}
   function validateShipment(shipment){
     // 고정재 선택: 에어백·충전재를 모두 쓰지 않으면 틈을 채워 막을 수 없다. CTU 안전에서 래싱을 쓰지 않으면 CTU 전도 한계(운송모드별 v/c)로 검사한다.
-    const securing=shipment?.securing||{},noFill=securing.airbag===false&&securing.filler===false,ctuTip=shipment?.safety==='secure'&&securing.lashing===false;
-    const loads=shipment?.containers||[],strict=!(shipment?.safety==='standard'||shipment?.priority==='volume'),options={minSupport:strict?1:.7,cylinderOnFloor:strict,blockSides:shipment?.safety==='secure',towerLimit:ctuTip?ctuTipLimits(shipment.transportMode):strict?3:0,fill:{gap:noFill?2:BLOCK_GAP,floor:securing.filler!==false}},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
+    const securing=shipment?.securing||{},noFill=securing.airbag===false&&securing.filler===false,ctuTip=shipment?.safety==='secure'&&securing.lashing===false,secureOpenFaces=!(noFill&&securing.lashing===false);
+    const loads=shipment?.containers||[],strict=!(shipment?.safety==='standard'||shipment?.priority==='volume'),options={minSupport:strict?1:.7,cylinderOnFloor:strict,blockSides:shipment?.safety==='secure',towerLimit:ctuTip?ctuTipLimits(shipment.transportMode):strict?3:0,fill:{gap:noFill?2:BLOCK_GAP,floor:securing.filler!==false},secureOpenFaces},results=loads.map(load=>validateLoad(load,options)),loaded=loads.reduce((sum,l)=>sum+(l.placed?.length||0),0),unallocated=shipment?.unallocated?.length||0,errors=results.flatMap((r,i)=>r.errors.map(e=>`${i+1}번 컨테이너: ${e}`));
     if(Number.isFinite(shipment?.totalUnits)&&loaded+unallocated!==shipment.totalUnits)errors.push(`수량 불일치: 적재 ${loaded} + 미배치 ${unallocated} ≠ 입력 ${shipment.totalUnits}`);
-    return{valid:!errors.length,errors,metrics:{loaded,unallocated,containers:loads.length}};
+    return{valid:!errors.length,errors,securingRequired:results.map(r=>r.securingRequired||[]),metrics:{loaded,unallocated,containers:loads.length}};
   }
-  root.LoadwiseValidator={validateLoad,validateShipment};
+  // 화면용: CTU 기준에서 화물로 막히지 않은 옆면(문쪽 제외). 고정재 권고에 화물별로 적는다.
+  function openFaces(load,securing={}){const noFill=securing.airbag===false&&securing.filler===false,fill={gap:noFill?2:BLOCK_GAP,floor:securing.filler!==false},c=load?.container,placed=load?.placed||[];if(!c)return[];return placed.map((p,i)=>({item:p,index:i,faces:openSides(p,placed,c,fill).filter(s=>s!=='문쪽')})).filter(v=>v.faces.length)}
+  root.LoadwiseValidator={validateLoad,validateShipment,openFaces};
 })(typeof window!=='undefined'?window:globalThis);

@@ -56,6 +56,17 @@ test('highest safety requires inner, left and right faces blocked; the door face
   // 안쪽 벽에서 떨어져 있고 600mm 안에 받쳐 줄 화물도 없으면 안쪽 면이 막히지 않는다.
   assert.match(check([{x:100,y:0,z:0,l:200,w:200,h:200,weight:5}]).errors.join(' / '),/안쪽 면이 막히지 않음/);
 });
+test('CTU shipments hand faces not blocked by cargo to securing materials unless every securing material is off',()=>{
+  const c={l:1000,w:1000,h:1000,maxWeight:1000},slab={x:800,y:0,z:0,l:200,w:1000,h:200,weight:20},top={x:800,y:0,z:200,l:200,w:200,h:100,weight:5};
+  const ship=securing=>context.LoadwiseValidator.validateShipment({safety:'secure',transportMode:'combined',securing,containers:[{container:c,placed:[slab,top]}],unallocated:[],totalUnits:2});
+  // 사용자 결정(2026-09-26): CTU Code는 화물 외 고정재(에어백·충전재·각재·래싱)로 막는 것도 인정한다. 열린 면은 고정재로 막을 곳 목록으로 넘긴다.
+  const secured=ship({});assert.equal(secured.valid,true,secured.errors.join(' / '));
+  assert.equal(JSON.stringify(secured.securingRequired[0].map(v=>[v.index,v.faces.join('')])),JSON.stringify([[1,'우']]));
+  assert.equal(context.LoadwiseValidator.openFaces({container:c,placed:[slab,top]}).map(v=>v.faces.join('')).join(),'우');
+  // 래싱만 켜도 막을 수 있다. 모두 끄면 화물로 막혀야 하므로 오류다.
+  assert.equal(ship({airbag:false,filler:false}).valid,true);
+  assert.match(ship({airbag:false,filler:false,lashing:false}).errors.join(' / '),/우 면이 막히지 않음/);
+});
 test('strict validation rejects a tall narrow stack whose open face would let it tip',()=>{
   const c={l:1000,w:900,h:2000,maxWeight:1000},box=z=>({x:800,y:0,z,l:200,w:200,h:200,weight:5});
   // 안쪽 벽·좌측 벽 모서리에 200mm 박스 4단(800mm, 높이/폭 4). 문쪽 앞은 1단 박스뿐이라 윗단 앞면이 비어 있다. 우측 벽 간극은 에어백 한계(500mm) 안이다.

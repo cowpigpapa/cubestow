@@ -85,3 +85,20 @@ test('gaps collect at the door side: sample 6 has no airbag in a gap near the in
     }
   }
 });
+
+test('CTU mode uses no more containers than the basic mode and names each face that securing must close',()=>{
+  // 사용자 결정(2026-09-26): 화물끼리 막는 배치가 대수를 늘리면 기본 배치를 쓰고, 화물로 막히지 않은 옆면은 고정재 권고에 화물별로 적는다.
+  for(const id of ['1','10']){
+    const sample=context.__samples[id],container=context.__containers[sample.container];
+    const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+    const result=context.LoadwiseEngine.packShipment({container,units:items,safety:'secure',transportMode:sample.mode,timeBudgetMs:8000});
+    assert.equal(result.loads.length,1,`sample ${id}: containers ${result.loads.length}`);
+    assert.equal(result.remaining.length,0);
+    const validation=context.LoadwiseValidator.validateShipment({safety:'secure',transportMode:sample.mode,containers:result.loads,unallocated:result.remaining,totalUnits:items.length});
+    assert.equal(validation.valid,true,validation.errors.slice(0,3).join('; '));
+    const open=validation.securingRequired.flat().length,plan=context.__plan(result.loads[0],sample.mode,undefined,'secure');
+    assert.ok(open>0,`sample ${id}: expected open faces for securing`);
+    assert.equal(plan.reviews.filter(r=>r.ctuFace).length,open,`sample ${id}: every open face appears in the securing plan`);
+    assert.ok(plan.reviews.filter(r=>r.ctuFace).every(r=>/래싱으로 묶기/.test(r.location)));
+  }
+});
