@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.19';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.20';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -947,6 +947,30 @@
   }
   // 완성된 배치안에서 높은 화물(누적 높이/바닥 최소 치수 > 1.5)이 모두 2면 이상 측면 지지되는지 확인한다(화면 좌표).
   // 좌우 무게중심 맞춤으로 적재 전체를 옮기면 옆벽에 기대던 화물이 벽에서 떨어질 수 있다.
+  // 빈틈은 문쪽으로: 받침으로 이어진 화물 묶음을 안쪽 벽 쪽으로 끝까지 민다(화면 좌표, 안쪽 = 큰 x).
+  // 한 묶음씩 옮기고 측면 지지·막힘·전도 검사가 그대로면 남긴다. 안쪽에 남던 틈이 문쪽으로 모여 에어백·문막이가 현실적인 위치에 온다.
+  function pushInward(c,placed){
+    const n=placed.length;if(n<2)return placed;
+    const ov=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0)>TOL;
+    const parent=placed.map((_,i)=>i),find=i=>parent[i]===i?i:(parent[i]=find(parent[i]));
+    for(let i=0;i<n;i++){const p=placed[i];if(p.z<=TOL)continue;for(let j=0;j<n;j++){const q=placed[j];if(i!==j&&Math.abs(q.z+q.h-p.z)<TOL&&ov(p.x,p.x+p.l,q.x,q.x+q.l)&&ov(p.y,p.y+p.w,q.y,q.y+q.w))parent[find(i)]=find(j)}}
+    const groups=new Map();placed.forEach((p,i)=>{const r=find(i);if(!groups.has(r))groups.set(r,[]);groups.get(r).push(i)});
+    let list=placed.map(p=>({...p}));
+    for(let pass=0;pass<3;pass++){
+      let moved=false;
+      const order=[...groups.values()].sort((a,b)=>Math.max(...b.map(i=>list[i].x+list[i].l))-Math.max(...a.map(i=>list[i].x+list[i].l)));
+      for(const members of order){
+        const inGroup=new Set(members);let dx=Infinity;
+        for(const i of members){const p=list[i];let room=c.l-(p.x+p.l);for(let j=0;j<n;j++){if(inGroup.has(j))continue;const q=list[j];if(q.x>=p.x+p.l-TOL&&ov(p.y,p.y+p.w,q.y,q.y+q.w)&&ov(p.z,p.z+p.h,q.z,q.z+q.h))room=Math.min(room,q.x-(p.x+p.l))}dx=Math.min(dx,room)}
+        if(!(dx>TOL))continue;
+        const trial=list.map((p,i)=>inGroup.has(i)?{...p,x:p.x+dx}:p);
+        if(!sidesHold({container:c,placed:trial}))continue;
+        list=trial;moved=true;
+      }
+      if(!moved)break;
+    }
+    return list;
+  }
   function sidesHold(load){
     const all=load.placed;
     return all.every(p=>{const d=[p.l,p.w,p.h];return((p.z+p.h)/Math.max(1,Math.min(p.l,p.w))<=1.5||countSides(lateralSupportDirections(p,d,all,load.container,false,p))>=2)&&(!STRICT_BLOCK||blockedOk(blockedSides(p,d,all,load.container,false,p))&&perchOk(p,d,all,load.container,false,p))&&(!TOWER_CHECK||towerOk(p,d,all,load.container,false,p))});
@@ -1015,6 +1039,8 @@
     }
     // 남은 화물이 있으면 기존 배치 사이에 한 번 더 넣어 본다.
     if(STRICT_BLOCK&&best?.rejected.length&&best.rejected.length<=units.length*.25){const filled=topUp(ctx,best,units);if(filled!==best){stats.toppedUp=(stats.toppedUp||0)+1;best=filled}}
+    // 빈틈을 문쪽으로 모은다. CTU 사전검사 등급이 나빠지면 원래 배치를 쓴다.
+    if(best?.placed.length>1){const placed=pushInward(ctx.c,best.placed);if(placed.some((p,i)=>p.x!==best.placed[i].x)){orderPlacementsForLoading(placed);const next={...best,placed};next.metrics=loadMetrics(next,ctx.mode);if(next.metrics.ctuLevel<=best.metrics.ctuLevel){best=next;stats.pushed=(stats.pushed||0)+1}}}
     // 완성안이 하나도 최종 검사를 통과하지 못하면 이 컨테이너에는 싣지 않는다(안전 우선).
     return best||finalizeLoad(ctx.c,{placed:[],rejected:units.map(item=>({...item,reason:'공간 또는 지지 조건 부족'})),totalWeight:0,heuristic:'none',order:0},false);
   }

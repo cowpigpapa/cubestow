@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-26T01:33:09.232Z",
-  "engine": "ep-lex-portfolio-2026.10.19",
+  "generatedAt": "2026-09-26T05:30:12.555Z",
+  "engine": "ep-lex-portfolio-2026.10.20",
   "rows": [
     {
       "case": "uniform-36",
@@ -115,7 +115,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 0.2,
+      "cogRisk": 1,
       "runs": 1,
       "truncated": false
     },
@@ -141,7 +141,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 1.1,
+      "cogRisk": 3.1,
       "runs": 1,
       "truncated": false
     },
@@ -154,7 +154,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 0.2,
+      "cogRisk": 1,
       "runs": 2,
       "truncated": false
     },
@@ -167,7 +167,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 0.2,
+      "cogRisk": 1,
       "runs": 1,
       "truncated": false
     },
@@ -193,7 +193,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 1.1,
+      "cogRisk": 3.1,
       "runs": 1,
       "truncated": false
     },
@@ -206,7 +206,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 23.7,
-      "cogRisk": 0.2,
+      "cogRisk": 1,
       "runs": 2,
       "truncated": false
     },
@@ -544,7 +544,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 22.6,
-      "cogRisk": 6.2,
+      "cogRisk": 6.6,
       "runs": 12,
       "truncated": false
     },
@@ -596,7 +596,7 @@
       "lowerBound": 1,
       "unallocated": 0,
       "volumeRate": 22.6,
-      "cogRisk": 19.3,
+      "cogRisk": 21.5,
       "runs": 12,
       "truncated": false
     },

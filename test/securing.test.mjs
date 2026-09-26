@@ -70,3 +70,18 @@ test('securing options replace or drop airbags, fillers, floor nails and lashing
   const noLash=context.__plan(load,sample.mode,{airbag:true,filler:true,nails:true,lashing:false});
   assert.ok(!noLash.dunnage.some(d=>d.kind==='lashing'||d.kind==='strap'));assert.ok(noLash.reviews.some(r=>/래싱 미사용/.test(r.location)));
 });
+
+test('gaps collect at the door side: sample 6 has no airbag in a gap near the inner wall',()=>{
+  // 사용자 지적(1.1.46): 75형 TV 줄과 안쪽 55형 묶음 사이 470mm 틈에 에어백이 들어갔다. 화물을 안쪽으로 밀면 이 틈은 문쪽으로 간다.
+  const sample=context.__samples[6],container=context.__containers[sample.container];
+  const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const result=context.LoadwiseEngine.packShipment({container,units:items,safety:'standard',transportMode:'road',timeBudgetMs:60000});
+  for(const load of result.loads){
+    const plan=context.__plan(load,'road');
+    for(const a of plan.airbags){
+      if(a.x+a.l<container.l-2500)continue;
+      const inner=load.placed.some(p=>p.x>=a.x+a.l-1&&Math.min(a.y+a.w,p.y+p.w)-Math.max(a.y,p.y)>0&&Math.min(a.z+a.h,p.z+p.h)-Math.max(a.z,p.z)>0);
+      assert.ok(!inner,`airbag at x ${Math.round(a.x)} sits between cargo within 2.5 m of the inner wall`);
+    }
+  }
+});
