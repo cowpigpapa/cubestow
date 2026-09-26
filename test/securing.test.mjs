@@ -102,3 +102,15 @@ test('CTU mode uses no more containers than the basic mode and names each face t
     assert.ok(plan.reviews.filter(r=>r.ctuFace).every(r=>/래싱으로 묶기/.test(r.location)));
   }
 });
+
+test('identical boxes fill every lane up to the inner wall and leave the short lane at the door',()=>{
+  // 사용자 지적(1.1.57): 수출박스 42개(3단 기둥 14개)에서 빈 기둥 자리가 안쪽 끝에 생겨 충전재·에어백이 들어갔다. 같은 화물은 안쪽까지 꽉 채운다.
+  const sample=context.__samples[2],container=context.__containers[sample.container];
+  const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const load=context.LoadwiseEngine.packShipment({container,units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:8000}).loads[0];
+  // 바닥 화물마다 같은 줄(폭이 절반 이상 겹침)에 안쪽 벽에 닿은 화물이 있어야 한다.
+  const floor=load.placed.filter(p=>p.z===0),inner=floor.filter(p=>p.x+p.l===container.l);
+  for(const p of floor)assert.ok(inner.some(q=>Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>=p.w/2),`lane at y ${p.y} does not reach the inner wall`);
+  const plan=context.__plan(load,sample.mode);
+  assert.equal(plan.airbags.filter(a=>a.x+a.l>container.l-1500).length,0,'no airbag near the inner wall');
+});

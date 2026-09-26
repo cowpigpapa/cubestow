@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.24';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.25';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -1080,13 +1080,13 @@
       if(!state.best.rejected.length)break;
     }
   }
-  // 빈틈을 문쪽으로 모은다. CTU 사전검사 등급이 나빠지면 원래 배치를 쓴다.
+  // 빈틈을 문쪽으로 모은다(현장 관행: 안쪽부터 꽉 채운다). 밀어서 무게배분이 위험이 될 때만 원래 배치를 쓴다(주의까지는 민다).
   function pushGapsToDoor(ctx,best,stats){
     if(!(best?.placed.length>1))return best;
     const placed=pushInward(ctx.c,best.placed);
     if(!placed.some((p,i)=>p.x!==best.placed[i].x))return best;
     orderPlacementsForLoading(placed);const next={...best,placed};next.metrics=loadMetrics(next,ctx.mode);
-    if(next.metrics.ctuLevel>best.metrics.ctuLevel)return best;
+    if(next.metrics.ctuLevel===2&&best.metrics.ctuLevel<2)return best;
     stats.pushed=(stats.pushed||0)+1;return next;
   }
   function packOneContainer(ctx,units,budgetMs,stats,hardDeadline){
