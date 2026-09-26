@@ -240,7 +240,8 @@ details.menu>summary[aria-label]::after{content:""}
 .safety-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #1766d6}
 .slider-stops{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:#7a847f}
 .safety-hint{margin-top:2px;padding:9px 12px;border-radius:10px;border:1px solid #cfe0f7;background:#eef5ff}
-.segment-hint{margin:0;min-height:54px;box-sizing:border-box;padding:8px 10px;border-radius:9px;background:#f4f6f5;font-size:12.5px;font-weight:600;color:#39413c;line-height:1.45}
+.segment-hint{margin:0;min-height:54px;box-sizing:border-box;padding:9px 12px;border-radius:10px;border:1px solid #d8cffa;background:#f4f1ff;font-size:13px;font-weight:600;color:#3b2a82;line-height:1.45;display:flex;align-items:center}
+.route-field .segment-hint{border-color:#bfe2e8;background:#ebf7f9;color:#0f4f5c}
 .safety-hint ul{margin:0;padding-left:16px;display:grid;gap:3px}
 .safety-hint li{font-size:13px;font-weight:600;color:#1b3f73;line-height:1.45}
 .safety-field[data-level="standard"] .safety-hint{border-color:#f0d9a8;background:#fff7e6}.safety-field[data-level="standard"] .safety-hint li{color:#7a4d00}
@@ -444,3 +445,14 @@ details.menu>summary[aria-label]::after{content:""}
   .loading-plan .plan-actions button{white-space:nowrap;flex:0 0 auto;padding-inline:12px}
   .balance-card .balance-title h3{word-break:keep-all;font-size:17px}
 }
+/* 가독성: 보조 글자를 한 단계 진하게, 설명 글자는 13px·줄간격 1.5로. 조작부 라벨도 13px로 맞춘다. */
+:root{--muted:#555a5f}
+.product-item small,.sequence-list small,.securing-items div,.balance-card>p,.securing-recommendation p,.product-options label,.option-row label{font-size:13px;line-height:1.5}
+.securing-items strong{font-size:13.5px}
+.form-grid label,.container-select>span,.option-head>span,.field-control>span,.option-field>span,.field-form>label,.qty-stepper>span{font-size:13px;color:#3a423d}
+.stats span,.balance-grid>span,.summary-verdict>span,.summary-needs>span,.summary-checks>span{font-size:12.5px;color:#4f5752}
+.stats small{font-size:12.5px}
+.slider-stops span,.securing-note{font-size:12px;color:#5f6863}
+.chip-group>button{font-size:13px}
+#inputHint,#productCount,.calc-time{font-size:12.5px}
+@media(max-width:640px){.chip-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.chip-group>button{font-size:12.5px;padding-left:4px;padding-right:4px;justify-content:center;white-space:nowrap;gap:4px}}
