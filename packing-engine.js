@@ -246,6 +246,14 @@
     return(!needBack||b.back)&&(!needFront||b.front)&&(!needSide||b.left&&b.right);
   }
   const blockedOk=b=>b.back&&b.left&&b.right;
+  // 규칙 스위치(전역)를 잠시 바꿔 계산하고 반드시 되돌린다. BASIC_RULES = 기본 기준(화물끼리 막힘 없음, 얹힘은 뒤로 미룸, 쌓인 화물만 전도 한계 3).
+  const BASIC_RULES={STRICT_BLOCK:false,PERCH_PREFER:true,TIP:{side:3,forward:3,backward:3},TIP_STACKED_ONLY:true};
+  function withRules(patch,fn){
+    const keep={STRICT_BLOCK,PERCH_PREFER,PERCH_HARD,TIP,TIP_STACKED_ONLY};
+    const apply=r=>{if('STRICT_BLOCK' in r)STRICT_BLOCK=r.STRICT_BLOCK;if('PERCH_PREFER' in r)PERCH_PREFER=r.PERCH_PREFER;if('PERCH_HARD' in r)PERCH_HARD=r.PERCH_HARD;if('TIP' in r)TIP=r.TIP;if('TIP_STACKED_ONLY' in r)TIP_STACKED_ONLY=r.TIP_STACKED_ONLY};
+    try{apply(patch);return fn()}finally{apply(keep)}
+  }
+  const volumeOf=list=>list.reduce((sum,p)=>sum+p.l*p.w*p.h,0);
   const countSides=sides=>(sides.front?1:0)+(sides.back?1:0)+(sides.left?1:0)+(sides.right?1:0);
 
   function transportPlacementRisk(item,s,d,sides,c,mode){
@@ -1022,15 +1030,22 @@
     }
     return best;
   }
-  // (packOneContainer 앞)
-  const RELAXED_SEEDS=[{heuristic:'width',order:0},{heuristic:'dblf',order:0},{heuristic:'column',order:0},{heuristic:'columnBalance',order:0},{heuristic:'density',order:1},{heuristic:'dblf',order:2}];
-  function packOneContainer(ctx,units,budgetMs,stats,hardDeadline){
-    let best=null,bestKey=null,done=0;
-    const variants=[false,true];
+  // ---------- 컨테이너 한 대 채우기 ----------
+  // 단계: 배치안 포트폴리오 → (CTU) 기본 기준 배치 고쳐 쓰기 → (CTU) 남은 화물 끼워 넣기 → 빈틈을 문쪽으로.
+  // 후보 비교: 최종 검사를 통과한 안 중 비교 키가 가장 작은 안.
+  function offerLoad(ctx,state,load){
+    if(!sidesHold(load))return false;
+    const key=containerKey(load,ctx);
+    if(!state.best||compareKeys(key,state.bestKey)<0){state.best=load;state.bestKey=key;return true}
+    return false;
+  }
+  const CENTER_VARIANTS=[false,true];
+  function searchPortfolio(ctx,units,budgetMs,stats,hardDeadline,state){
     const runs=portfolioRuns(ctx.preference),cap=runCap(ctx,units.length,budgetMs,runs.length);
     // 투입 순서가 같은 실행은 결과도 같으므로 한 번만 계산한다.
-    const index=new Map(units.map((u,i)=>[u,i])),sequences=[],seen=new Set();
+    const index=new Map(units.map((u,i)=>[u,i])),sequences=[],seen=new Set();let done=0;
     for(let i=0;i<runs.length;i++){
+      const best=state.best;
       // 시간이 지나도 아직 아무것도 싣지 못했으면 다음 배치안을 계속 시도한다(빈 컨테이너로 끝내면 남은 화물을 모두 포기하게 된다).
       const {heuristic,order}=runs[i];
       // 비상 시간 상한은 기본 순서에만 본다. 추가 투입 순서는 가벼운 기본 기준 계산이고 배치안 수(cap)로만 자르므로 기기 속도와 관계없이 같은 결과가 나온다.
@@ -1044,37 +1059,44 @@
       const raw=packContainer(ctx,units,heuristic,order);
       stats.runs++;done++;
       // 부피가 현재 최선보다 작으면 비교 키 첫 항목에서 지므로 마무리 계산을 건너뛴다.
-      if(best&&raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
+      if(best&&volumeOf(raw.placed)<best.volume-1e-6)continue;
       const shifted=rebalanceSlices(ctx,raw),sources=[raw,shifted,mirrorLoad(ctx,raw),shifted&&mirrorLoad(ctx,shifted)].filter(Boolean);
-      for(const source of sources)for(const centered of variants){
-        const load=finalizeLoad(ctx.c,source,centered);
-        if(!sidesHold(load))continue;
-        const key=containerKey(load,ctx);
-        if(!best||compareKeys(key,bestKey)<0){best=load;bestKey=key}
-      }
+      for(const source of sources)for(const centered of CENTER_VARIANTS)offerLoad(ctx,state,finalizeLoad(ctx.c,source,centered));
       // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
-      if(best&&!best.rejected.length&&best.metrics.ctuLevel===0){stats.settled=(stats.settled||0)+1;break}
+      if(state.best&&!state.best.rejected.length&&state.best.metrics.ctuLevel===0){stats.settled=(stats.settled||0)+1;break}
     }
-    // CTU 기준에서 화물이 남으면 기본 기준 배치를 출발점으로 삼는다: 기본 기준으로 가볍게 여러 안을 만들고,
-    // 지금보다 많이 싣는 안 중 가장 많이 싣는 1개만 CTU 검사에 걸린 화물을 빼고 다시 놓는다(다시 놓기는 3회로 제한).
-    // 래싱을 끈 CTU(전도 한계 적용)는 기본 기준 배치와 전도 규칙이 달라 출발점으로 쓰지 않는다(평가 세트에서 대수가 늘었다).
-    if(STRICT_BLOCK&&TIP_STACKED_ONLY&&best?.rejected.length&&now()<=hardDeadline){
-      const keep={STRICT_BLOCK,PERCH_PREFER,TIP,TIP_STACKED_ONLY},loose=[];
-      try{STRICT_BLOCK=false;PERCH_PREFER=true;TIP={side:3,forward:3,backward:3};TIP_STACKED_ONLY=true;
-        for(const {heuristic,order} of RELAXED_SEEDS){const raw=packContainerOnce({...ctx,safety:SAFETY_LEVELS.strict,deferSides:false},units,heuristic,order);if(raw.placed.length>best.placed.length)loose.push({heuristic,order,raw,volume:raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)})}
-      }finally{({STRICT_BLOCK,PERCH_PREFER,TIP,TIP_STACKED_ONLY}=keep)}
-      loose.sort((a,b)=>b.volume-a.volume||a.raw.rejected.length-b.raw.rejected.length);
-      for(const seed of loose.slice(0,1)){
-        const raw=packContainer(ctx,units,seed.heuristic,seed.order,[],seed.raw);stats.runs++;
-        if(raw.placed.reduce((sum,p)=>sum+p.l*p.w*p.h,0)<best.volume-1e-6)continue;
-        for(const centered of variants){const load=finalizeLoad(ctx.c,raw,centered);if(!sidesHold(load))continue;const key=containerKey(load,ctx);if(compareKeys(key,bestKey)<0){best=load;bestKey=key;stats.relaxed=(stats.relaxed||0)+1}}
-        if(!best.rejected.length)break;
-      }
+  }
+  // CTU 기준에서 화물이 남으면 기본 기준 배치를 출발점으로 삼는다: 기본 기준으로 가볍게 여러 안을 만들고,
+  // 지금보다 많이 싣는 안 중 가장 많이 싣는 1개만 CTU 검사에 걸린 화물을 빼고 다시 놓는다(다시 놓기는 3회로 제한).
+  // 래싱을 끈 CTU(전도 한계 적용)는 기본 기준 배치와 전도 규칙이 달라 출발점으로 쓰지 않는다(평가 세트에서 대수가 늘었다).
+  const RELAXED_SEEDS=[{heuristic:'width',order:0},{heuristic:'dblf',order:0},{heuristic:'column',order:0},{heuristic:'columnBalance',order:0},{heuristic:'density',order:1},{heuristic:'dblf',order:2}];
+  function repairFromBasicLayout(ctx,units,stats,state){
+    const best=state.best,loose=withRules(BASIC_RULES,()=>RELAXED_SEEDS.map(({heuristic,order})=>({heuristic,order,raw:packContainerOnce({...ctx,safety:SAFETY_LEVELS.strict,deferSides:false},units,heuristic,order)})).filter(v=>v.raw.placed.length>best.placed.length).map(v=>({...v,volume:volumeOf(v.raw.placed)})));
+    loose.sort((a,b)=>b.volume-a.volume||a.raw.rejected.length-b.raw.rejected.length);
+    for(const seed of loose.slice(0,1)){
+      const raw=packContainer(ctx,units,seed.heuristic,seed.order,[],seed.raw);stats.runs++;
+      if(volumeOf(raw.placed)<state.best.volume-1e-6)continue;
+      for(const centered of CENTER_VARIANTS)if(offerLoad(ctx,state,finalizeLoad(ctx.c,raw,centered)))stats.relaxed=(stats.relaxed||0)+1;
+      if(!state.best.rejected.length)break;
     }
+  }
+  // 빈틈을 문쪽으로 모은다. CTU 사전검사 등급이 나빠지면 원래 배치를 쓴다.
+  function pushGapsToDoor(ctx,best,stats){
+    if(!(best?.placed.length>1))return best;
+    const placed=pushInward(ctx.c,best.placed);
+    if(!placed.some((p,i)=>p.x!==best.placed[i].x))return best;
+    orderPlacementsForLoading(placed);const next={...best,placed};next.metrics=loadMetrics(next,ctx.mode);
+    if(next.metrics.ctuLevel>best.metrics.ctuLevel)return best;
+    stats.pushed=(stats.pushed||0)+1;return next;
+  }
+  function packOneContainer(ctx,units,budgetMs,stats,hardDeadline){
+    const state={best:null,bestKey:null};
+    searchPortfolio(ctx,units,budgetMs,stats,hardDeadline,state);
+    if(STRICT_BLOCK&&TIP_STACKED_ONLY&&state.best?.rejected.length&&now()<=hardDeadline)repairFromBasicLayout(ctx,units,stats,state);
+    let best=state.best;
     // 남은 화물이 있으면 기존 배치 사이에 한 번 더 넣어 본다.
     if(STRICT_BLOCK&&best?.rejected.length&&best.rejected.length<=units.length*.25){const filled=topUp(ctx,best,units);if(filled!==best){stats.toppedUp=(stats.toppedUp||0)+1;best=filled}}
-    // 빈틈을 문쪽으로 모은다. CTU 사전검사 등급이 나빠지면 원래 배치를 쓴다.
-    if(best?.placed.length>1){const placed=pushInward(ctx.c,best.placed);if(placed.some((p,i)=>p.x!==best.placed[i].x)){orderPlacementsForLoading(placed);const next={...best,placed};next.metrics=loadMetrics(next,ctx.mode);if(next.metrics.ctuLevel<=best.metrics.ctuLevel){best=next;stats.pushed=(stats.pushed||0)+1}}}
+    best=pushGapsToDoor(ctx,best,stats);
     // 완성안이 하나도 최종 검사를 통과하지 못하면 이 컨테이너에는 싣지 않는다(안전 우선).
     return best||finalizeLoad(ctx.c,{placed:[],rejected:units.map(item=>({...item,reason:'공간 또는 지지 조건 부족'})),totalWeight:0,heuristic:'none',order:0},false);
   }
@@ -1161,14 +1183,12 @@
       // 이 안의 열린 옆면은 에어백·충전재·각재·래싱으로 막는다(CTU Code는 화물 외 고정재로 막는 것도 인정). 대수·미적재가 줄 때만 쓴다.
       if(STRICT_BLOCK&&(remaining.length||loads.length>bound)&&(securing.airbag||securing.filler||securing.lashing)){
         // 먼저 기본 기준 그대로 채우고 최종 배치에 얹힘이 없으면 쓴다. 얹힘이 남으면 얹힘을 금지하고 다시 채운다.
-        const keep={STRICT_BLOCK,PERCH_PREFER,PERCH_HARD},perchClean=list=>list.every(L=>L.placed.every(p=>perchOk(p,[p.l,p.w,p.h],L.placed,L.container,false,p)));
-        let secured;
-        try{
-          const limit=remaining.length?MAX_CONTAINERS:loads.length-1;
-          STRICT_BLOCK=false;PERCH_PREFER=true;PERCH_HARD=false;secured=fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)),budget/2/Math.max(1,bound),limit);
-          // 얹힘을 금지하면 더 빡빡해지므로, 기본 기준 그대로도 대수를 줄이지 못했으면 다시 채우지 않는다.
-          if(!secured.cut&&!perchClean(secured.loads)){PERCH_HARD=true;secured=fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),budget/2/Math.max(1,bound),limit)}
-        }finally{({STRICT_BLOCK,PERCH_PREFER,PERCH_HARD}=keep)}
+        const perchClean=list=>list.every(L=>L.placed.every(p=>perchOk(p,[p.l,p.w,p.h],L.placed,L.container,false,p)));
+        const limit=remaining.length?MAX_CONTAINERS:loads.length-1,half=budget/2/Math.max(1,bound);
+        // 전도 한계(TIP)는 CTU 설정(래싱 여부)을 그대로 쓴다.
+        let secured=withRules({STRICT_BLOCK:false,PERCH_PREFER:true,PERCH_HARD:false},()=>fillContainers(f=>onProgress(Math.min(.98,.6+.2*f)),half,limit));
+        // 얹힘을 금지하면 더 빡빡해지므로, 기본 기준 그대로도 대수를 줄이지 못했으면 다시 채우지 않는다.
+        if(!secured.cut&&!perchClean(secured.loads))secured=withRules({STRICT_BLOCK:false,PERCH_PREFER:true,PERCH_HARD:true},()=>fillContainers(f=>onProgress(Math.min(.98,.8+.18*f)),half,limit));
         if(!secured.cut&&secured.remaining.length<remaining.length||!secured.cut&&secured.remaining.length===remaining.length&&secured.loads.length<loads.length){({loads,remaining}=secured);stats.securedFaces=true}
       }
     }
