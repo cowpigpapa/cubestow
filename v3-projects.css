@@ -533,3 +533,12 @@ button.collapse-toggle:hover,.collapsible-card>summary:hover .collapse-state{bac
 /* 실행 중: 계산 중… + 도는 표시 */
 .top-simulate.is-running{opacity:1!important;cursor:progress!important;background:#4a6fa5!important}
 .top-simulate.is-running b{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;font-size:0;animation:status-spin .8s linear infinite}
+/* 1.1.67: 01·02 카드 좌우 안쪽 여백 16→12px, 불러오기·접기·펼치기 버튼은 모두 같은 크기(76×30px, 12px 굵게 = 시뮬레이션 실행과 같은 글자 크기) */
+.input-card{padding-left:12px!important;padding-right:12px!important}
+.product-list-card .collapsible-head{padding-left:12px!important;padding-right:12px!important}
+button.collapse-toggle,.collapse-state,.load-menu>summary{width:76px!important;height:30px!important;min-height:30px!important;padding:0 8px!important;gap:6px!important;font-size:12px!important;justify-content:center!important}
+.collapse-state::after{font-size:12px!important}
+button.collapse-toggle::after,.collapse-state::before,.load-menu>summary::after{border-left-width:5px!important;border-right-width:5px!important;border-top-width:6px!important}
+button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .collapse-state::before,.load-menu[open]>summary::after{border-bottom-width:6px!important}
+.heading-actions{gap:6px}
+.input-card .heading-actions,.product-list-card .collapsible-actions{margin-top:-1.5px}
