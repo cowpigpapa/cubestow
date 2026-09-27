@@ -468,3 +468,19 @@ details.menu>summary[aria-label]::after{content:""}
 .auto-review li[data-level="info"] i{background:#4a6fa5}.auto-review li[data-level="warn"] i{background:#c77700}.auto-review li[data-level="bad"] i{background:#b3261e}
 .auto-review li b{display:block}.auto-review li span{display:block;color:#4f5752}.auto-review li em{display:block;font-style:normal;color:#16734f;font-weight:600}
 .auto-review-flag{margin:10px 0 0;font-size:12px;color:#6b736e}
+
+/* 제품 데이터 입력칸 접기(제목 옆 ▴/▾) */
+.title-toggle{display:inline-grid;place-items:center;width:26px;height:26px;margin-left:8px;vertical-align:middle;border:1px solid #d6dfd9;border-radius:8px;background:#fff;color:#16734f;font-size:13px;font-weight:700;cursor:pointer;line-height:1}
+.title-toggle:hover{background:#eef5f0}.title-toggle em,.panel-toggle em{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.input-card.input-collapsed #manualPane{display:none}.input-card.input-collapsed+.add-connector{display:none}
+.input-card.input-collapsed{padding-bottom:18px}
+/* 왼쪽 칸 전체 숨기기(두 칸 화면에서만, 칸 경계의 손잡이) */
+.result-panel{position:relative}
+.panel-toggle{position:absolute;left:-14px;top:30px;z-index:6;display:grid;place-items:center;width:28px;height:64px;padding:0;border:1px solid #d6dfd9;border-radius:14px;background:#fff;color:#16734f;font-size:20px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.panel-toggle:hover{background:#eef5f0}
+@media(min-width:901px){
+  .workspace.panel-hidden{grid-template-columns:minmax(0,1fr)!important}
+  .workspace.panel-hidden>.control-panel{display:none}
+  .workspace.panel-hidden .panel-toggle{left:0;border-radius:0 14px 14px 0;border-left:0}
+}
+@media(max-width:900px){.panel-toggle{display:none}}

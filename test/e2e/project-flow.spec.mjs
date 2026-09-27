@@ -296,3 +296,18 @@ test('result summary shows the safety verdict and field results compare with the
   await expect(page.locator('#fieldCompare')).toContainText('실제 30개');await expect(page.locator('#fieldCompare')).toContainText('2대(계획 1대, +1)');
   await expect(page.locator('#fieldSummary')).toContainText('기록됨');
 });
+
+test('the product input can be folded and the whole left column hidden to widen the 3D view',async({page})=>{
+  await page.goto('/');await page.evaluate(()=>{localStorage.removeItem('loadwise.v3.ui.inputCollapsed');localStorage.removeItem('loadwise.v3.ui.panelHidden')});await page.reload();
+  // 제품 데이터 입력칸 접기: 제목 옆 버튼. 접으면 입력칸과 추가 버튼이 숨는다.
+  await page.locator('#toggleInput').click();
+  await expect(page.locator('#manualPane')).toBeHidden();await expect(page.locator('#addProduct')).toBeHidden();await expect(page.locator('#toggleInput')).toHaveAttribute('aria-expanded','false');
+  await page.locator('#toggleInput').click();await expect(page.locator('#manualPane')).toBeVisible();
+  // 왼쪽 칸 전체 숨기기: 칸 경계 손잡이. 3D 화면이 넓어지고 상태를 기억한다.
+  const before=await page.locator('#canvasWrap').boundingBox();
+  await page.locator('#togglePanel').click();
+  await expect(page.locator('#controlPanel')).toBeHidden();
+  await expect.poll(async()=>(await page.locator('#canvasWrap').boundingBox()).width).toBeGreaterThan(before.width+200);
+  await page.reload();await expect(page.locator('#controlPanel')).toBeHidden();
+  await page.locator('#togglePanel').click();await expect(page.locator('#controlPanel')).toBeVisible();
+});

@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260927-1">
+  <link rel="stylesheet" href="v3-projects.css?v=20260927-2">
 </head>
 <body>
   <header class="topbar">
@@ -45,9 +45,9 @@
           <button id="saveProject" class="primary" type="button">저장</button>
         </div>
       </div>
-      <aside class="control-panel">
+      <aside class="control-panel" id="controlPanel">
         <section class="panel-card input-card">
-          <div class="control-heading"><div class="step-heading"><span>01</span><div><h2>제품 데이터</h2><p id="inputHint" aria-live="polite">직접 입력하거나 불러옵니다.</p></div></div><details class="menu load-menu"><summary>불러오기</summary><div class="menu-list"><button id="openProjects" type="button">저장 목록</button><button id="loadDemo" type="button">샘플</button><button id="openImport" type="button">Excel / CSV</button></div></details></div>
+          <div class="control-heading"><div class="step-heading"><span>01</span><div><h2>제품 데이터<button class="title-toggle" id="toggleInput" type="button" aria-expanded="true" aria-controls="manualPane" title="입력칸 접기"><span aria-hidden="true">▴</span><em>입력칸 접기</em></button></h2><p id="inputHint" aria-live="polite">직접 입력하거나 불러옵니다.</p></div></div><details class="menu load-menu"><summary>불러오기</summary><div class="menu-list"><button id="openProjects" type="button">저장 목록</button><button id="loadDemo" type="button">샘플</button><button id="openImport" type="button">Excel / CSV</button></div></details></div>
           <div id="manualPane">
             <div class="form-grid">
               <label class="third">제품명<input id="productName" autocomplete="off" placeholder="예: 산업용 펌프"></label>
@@ -74,6 +74,7 @@
       </aside>
 
       <section class="result-panel">
+        <button class="panel-toggle" id="togglePanel" type="button" aria-expanded="true" aria-controls="controlPanel" title="제품 입력 칸 숨기기"><span aria-hidden="true">‹</span><em>제품 입력 칸 숨기기</em></button>
         <div class="result-header">
           <div class="step-heading"><span>03</span><div><h2>3D 적재 시뮬레이션</h2></div></div><div class="run-group"><label class="container-select header-container"><span>컨테이너</span><select id="containerType"></select></label><button class="top-simulate" id="recalculateOptions" type="button" disabled>시뮬레이션 실행 <b>→</b></button></div>
           
@@ -177,7 +178,7 @@
       <article><b>STEP 04</b><strong>저장·내보내기</strong><span>프로젝트를 저장하거나 PDF 작업지시서·Excel 계획을 내려받습니다.</span></article>
     </div>
     <div class="policy-sections">
-      <details open><summary>1. 제품 입력</summary><ul><li>직접 입력에서는 제품명, 형상, 수량, 길이·너비·높이와 개당 중량을 입력합니다.</li><li>여러 제품은 Excel 또는 CSV로 한 번에 등록할 수 있습니다.</li><li>눕힘 허용은 높이 축 변경을 허용하며, 상부 적재 금지는 해당 화물 위의 배치를 막습니다.</li></ul></details>
+      <details open><summary>1. 제품 입력</summary><ul><li>직접 입력에서는 제품명, 형상, 수량, 길이·너비·높이와 개당 중량을 입력합니다.</li><li>여러 제품은 Excel 또는 CSV로 한 번에 등록할 수 있습니다.</li><li>눕힘 허용은 높이 축 변경을 허용하며, 상부 적재 금지는 해당 화물 위의 배치를 막습니다.</li><li>제품 데이터 제목 옆 ▴ 버튼으로 입력칸을 접을 수 있고, 넓은 화면에서는 왼쪽 칸과 3D 사이의 손잡이(‹)로 왼쪽 칸 전체를 숨겨 3D를 크게 볼 수 있습니다.</li></ul></details>
       <details><summary>2. 선택 항목의 뜻</summary><ul>
         <li><strong>안전 수준(슬라이더) — 어떤 규칙을 반드시 지킬지</strong>: 왼쪽으로 갈수록 많이 싣고, 오른쪽으로 갈수록 안전 조건이 늘어납니다. <em>적재량 우선</em>은 윗 화물 바닥면 70% 이상만 받치면 되고 충돌·하중 같은 기본 조건만 지킵니다. 최대한 많이 싣되, 같은 양이면 높은 탑이나 얹힘처럼 위험해 보이는 자리는 피합니다(위험 판단은 사용자 몫). <em>기본</em>(권장)은 100% 받침, 가느다란 화물 위 적재 금지(같은 규격 드럼은 2단까지), 원통은 바닥이나 원통 위에만, 높은 적층 전도 방지를 지키고 남는 틈과 윗단은 고정재(에어백·래싱 등)로 막습니다. <em>CTU 기준 적용</em>는 기본에 더해 모든 화물의 안쪽·좌·우를 화물이나 벽으로 막고, 다른 크기 화물 위에 따로 얹지 않습니다. 화물끼리 막는 배치가 컨테이너를 더 쓰면 기본 배치를 쓰고, 화물로 막히지 않은 면은 에어백·충전재·래싱으로 막도록 고정재 권고에 화물별로 적습니다(CTU Code는 화물 외 고정재로 막는 것도 인정). 래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다.</li>
         <li><strong>배치 방식 — 같은 대수의 결과 중 무엇을 고를지</strong>: 대수와 미적재는 항상 먼저 줄이고, 그 결과들이 같을 때만 적용합니다. 휴리스틱이라 정답이 하나가 아니므로 목적에 맞게 고릅니다. <em>추천</em>은 무게배분 사전검사 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다. <em>붙여 싣기</em>는 화물을 안쪽으로 바짝 붙여 사용 길이가 가장 짧은 배치(빈틈과 고정재가 가장 적음)를 고릅니다. <em>무게중심</em>은 앞뒤·좌우 편차가 가장 작은 배치를 고릅니다(무게중심을 맞추려고 화물 사이를 벌릴 수 있고, 벌린 만큼 에어백·래싱이 늘어납니다).</li>
@@ -297,7 +298,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.62</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.63</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
@@ -307,7 +308,7 @@
   <script src="solution-validator.js?v=20260927-1"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
   <script src="result-review.js?v=20260927-1"></script>
-  <script src="app.js?v=20260927-5"></script>
+  <script src="app.js?v=20260927-6"></script>
   <script src="project-store.js?v=20260927-1"></script>
 </body>
 </html>
