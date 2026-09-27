@@ -542,3 +542,6 @@ button.collapse-toggle::after,.collapse-state::before,.load-menu>summary::after{
 button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .collapse-state::before,.load-menu[open]>summary::after{border-bottom-width:6px!important}
 .heading-actions{gap:6px}
 .input-card .heading-actions,.product-list-card .collapsible-actions{margin-top:-1.5px}
+
+/* 제품 데이터 제목 줄은 한 줄로: 안내 문구는 수정 중일 때만 보인다(1.1.68). */
+#inputHint:empty{display:none}

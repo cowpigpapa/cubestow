@@ -221,7 +221,7 @@ test('adding clears the form and a listed product can be edited in full',async({
   await page.getByRole('button',{name:'제어반 수정'}).click();await expect(page.locator('#inputHint')).toHaveText('제어반 수정 중');
   await expect(page.getByRole('button',{name:'제어반 삭제'})).toBeVisible();await expect(page.getByRole('button',{name:'펌프 삭제'})).toHaveCount(0);
   await page.getByRole('button',{name:'제어반 수정 취소'}).click();
-  await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#inputHint')).toHaveText('직접 입력하거나 불러옵니다.');await expect(page.getByRole('button',{name:/삭제/})).toHaveCount(0);
+  await expect(page.locator('#productName')).toHaveValue('');await expect(page.locator('#inputHint')).toHaveText('');await expect(page.locator('#inputHint')).toBeHidden();await expect(page.getByRole('button',{name:/삭제/})).toHaveCount(0);
   await page.getByRole('button',{name:'제어반 수정'}).click();await page.getByRole('button',{name:'제어반 삭제'}).click();
   await expect(page.locator('.product-item')).toHaveCount(1);await expect(page.locator('.input-card')).not.toHaveClass(/editing/);
 });
