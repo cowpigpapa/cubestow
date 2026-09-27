@@ -519,3 +519,17 @@ button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .colla
 /* 왼쪽 칸 손잡이: 꺾쇠 유지, 접기 버튼과 구분되게 짙은 바탕 + 흰 꺾쇠 */
 .panel-toggle{background:#24302b!important;border-color:#24302b!important;color:#fff!important;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .panel-toggle:hover{background:#16734f!important;border-color:#16734f!important}
+
+/* 1.1.66 버튼 정리: 접기·펼치기는 중립 회색 + "펼치기" 폭으로 고정(글자가 바뀌어도 옆 버튼이 움직이지 않음), 불러오기는 파란색(제품 데이터 카드와 같은 계열). */
+button.collapse-toggle,.collapse-state{width:88px!important;padding:0 10px!important;justify-content:center!important;background:#f4f5f6!important;border-color:#c5cbd1!important;color:#3a4148!important}
+button.collapse-toggle:hover,.collapsible-card>summary:hover .collapse-state{background:#e8ebee!important;border-color:#8f98a1!important;color:#1f262c!important}
+.load-menu>summary{background:#0066cc!important;border-color:#0066cc!important;color:#fff!important}
+.load-menu>summary:hover,.load-menu[open]>summary{background:#0055aa!important;border-color:#0055aa!important;color:#fff!important}
+/* 제목 줄에 버튼 정렬: 버튼(32px)의 가운데를 제목 글자 줄(27px)의 가운데에 맞춘다. */
+.input-card .control-heading,.product-list-card .collapsible-head{align-items:flex-start!important}
+.input-card .heading-actions,.product-list-card .collapsible-actions{margin-top:-2.5px;align-self:flex-start}
+/* 상단 새 프로젝트·저장 버튼 높이 44 → 38px */
+.project-toolbar #newProjectTop,.project-toolbar #saveProject{min-height:38px!important;height:38px!important;padding-top:0!important;padding-bottom:0!important}
+/* 실행 중: 계산 중… + 도는 표시 */
+.top-simulate.is-running{opacity:1!important;cursor:progress!important;background:#4a6fa5!important}
+.top-simulate.is-running b{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;font-size:0;animation:status-spin .8s linear infinite}
