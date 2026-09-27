@@ -484,3 +484,22 @@ details.menu>summary[aria-label]::after{content:""}
   .workspace.panel-hidden .panel-toggle{left:0;border-radius:0 14px 14px 0;border-left:0}
 }
 @media(max-width:900px){.panel-toggle{display:none}}
+
+/* 접기·펼치기 통일(1.1.64): 모든 접기 버튼은 같은 알약 모양 + 굵은 꺾쇠. 열림이면 위(⌃), 닫힘이면 아래(⌄). */
+button.collapse-toggle,.collapse-state{gap:8px;min-height:34px;padding:6px 12px 6px 14px!important;border:1.5px solid #b9cdbf!important;border-radius:999px!important;background:#fff!important;color:#16734f!important;font-size:13px!important;font-weight:700!important;line-height:1;white-space:nowrap}
+button.collapse-toggle:hover,.collapsible-card>summary:hover .collapse-state{background:#eef6f1!important;border-color:#16734f!important}
+button.collapse-toggle::after,.collapse-state::before{content:"";flex:0 0 auto;width:8px;height:8px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
+button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .collapse-state::before{transform:translateY(2px) rotate(-135deg)}
+.collapse-state::after{content:"펼치기"!important;color:inherit!important;font-size:13px!important;font-weight:700!important}
+details[open]>summary .collapse-state::after{content:"접기"!important}
+.collapse-state::before{order:2}
+button.collapse-toggle.title-toggle{margin-left:10px;vertical-align:middle;min-height:30px;padding:4px 10px 4px 12px!important;font-size:12.5px!important}
+/* 왼쪽 칸 손잡이: 큰 꺾쇠 */
+.panel-toggle{width:30px;height:68px;border:1.5px solid #b9cdbf;color:#16734f}
+.panel-toggle::after{content:"";width:11px;height:11px;border-left:3px solid currentColor;border-bottom:3px solid currentColor;transform:translateX(2px) rotate(45deg)}
+.panel-toggle[aria-expanded="false"]::after{transform:translateX(-2px) rotate(-135deg)}
+@media(min-width:901px){.workspace.panel-hidden::after{display:none}}
+/* 입력칸을 접었을 때 아래 제품 목록 카드와 간격 */
+.input-card.input-collapsed{margin-bottom:18px}
+button.collapse-toggle.title-toggle{width:auto;height:auto}
+button.collapse-toggle::after,.collapse-state::before{width:9px;height:9px;border-right-width:3px;border-bottom-width:3px}
