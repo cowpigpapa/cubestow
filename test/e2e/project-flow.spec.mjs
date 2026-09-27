@@ -343,3 +343,16 @@ test('the sample results preview sits between the header and footer and compares
   await page.locator('.topbar nav a[href="#planner"]').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();
   await page.goto('/sample-results.html');await expect(page).toHaveURL(/#samples$/);await expect(page.locator('#samplesView')).toBeVisible();
 });
+
+test('the header menu stays visible on phones and every item fits the screen',async({page})=>{
+  await page.setViewportSize({width:360,height:780});await page.goto('/');
+  const nav=page.locator('.topbar nav');await expect(nav).toBeVisible();
+  // 다섯 메뉴가 모두 화면 안에 들어오고 가로 스크롤이 생기지 않는다.
+  const fit=await nav.evaluate(el=>({items:[...el.children].map(c=>{const b=c.getBoundingClientRect();return[b.left,b.right]}),width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
+  expect(fit.items).toHaveLength(5);for(const[l,r]of fit.items){expect(l).toBeGreaterThanOrEqual(0);expect(r).toBeLessThanOrEqual(fit.width)}expect(fit.scroll).toBe(fit.width);
+  await page.locator('.topbar nav a[href="#samples"]').click();await expect(page.locator('#samplesView')).toBeVisible();
+  // 샘플 결과의 고정 툴바는 두 줄 헤더 바로 아래에 붙는다.
+  await expect(page.locator('#samplesView section.sv-sample')).toHaveCount(20);
+  await page.evaluate(()=>window.scrollTo(0,1500));
+  await expect.poll(()=>page.evaluate(()=>Math.round(document.querySelector('#svToolbar').getBoundingClientRect().top-document.querySelector('.topbar').getBoundingClientRect().bottom))).toBe(0);
+});

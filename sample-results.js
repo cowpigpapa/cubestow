@@ -50,8 +50,11 @@
     const on=location.hash==='#samples';
     view.hidden=!on;planner.hidden=on;
     document.querySelectorAll('.topbar nav a').forEach(a=>a.classList.toggle('active',on?a.getAttribute('href')==='#samples':a.getAttribute('href')==='#planner'));
-    if(on){render(view);window.scrollTo(0,0)}else window.dispatchEvent(new Event('resize'));
+    if(on){fitTop();render(view);window.scrollTo(0,0)}else window.dispatchEvent(new Event('resize'));
   }
+  // 고정 툴바는 헤더 바로 아래에 붙인다. 모바일에서는 헤더가 두 줄이라 높이를 재서 맞춘다.
+  function fitTop(){const view=document.getElementById('samplesView'),bar=document.querySelector('.topbar');if(view&&bar)view.style.setProperty('--sv-top',bar.offsetHeight+'px')}
+  window.addEventListener('resize',fitTop);
   window.addEventListener('hashchange',route);
   // 샘플 창 안의 미리보기 링크를 누르면 창을 닫고 샘플 결과로 간다.
   document.addEventListener('click',e=>{const a=e.target.closest('a[data-close-dialog]');if(a)a.closest('dialog')?.close()});
