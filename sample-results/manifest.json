@@ -1,0 +1,2199 @@
+{
+ "generatedAt": "2026-09-27T13:16:32.191Z",
+ "appVersion": "1.1.68",
+ "engine": "ep-lex-portfolio-2026.10.28",
+ "modes": [
+  {
+   "key": "standard",
+   "label": "적재량 우선"
+  },
+  {
+   "key": "strict",
+   "label": "기본"
+  },
+  {
+   "key": "secure",
+   "label": "CTU 기준 적용"
+  }
+ ],
+ "samples": [
+  {
+   "id": 1,
+   "name": "혼합 화물",
+   "category": "혼합·기타",
+   "description": "박스·원통·취약 화물이 섞인 종합 검증",
+   "container": "20ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "산업용 펌프",
+     "shape": "box",
+     "qty": 4,
+     "size": "1200×800×900",
+     "weight": 420
+    },
+    {
+     "name": "제어반",
+     "shape": "box",
+     "qty": 6,
+     "size": "900×600×1100",
+     "weight": 180
+    },
+    {
+     "name": "케이블 드럼",
+     "shape": "cylinder",
+     "qty": 10,
+     "size": "900×900×700",
+     "weight": 310
+    },
+    {
+     "name": "필터 박스",
+     "shape": "box",
+     "qty": 16,
+     "size": "600×500×450",
+     "weight": 52
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 36,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 36,
+       "weightKg": 6692,
+       "volumeRate": 45,
+       "ctuLevel": "safe",
+       "airbags": 10,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s01-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 36,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 36,
+       "weightKg": 6692,
+       "volumeRate": 45,
+       "ctuLevel": "safe",
+       "airbags": 10,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s01-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 36,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 36,
+       "weightKg": 6692,
+       "volumeRate": 45,
+       "ctuLevel": "safe",
+       "airbags": 10,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s01-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 2,
+   "name": "단일 규격 반복",
+   "category": "부품·기계",
+   "description": "같은 제품 42개의 정렬·반복 적재 검증",
+   "container": "20ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "표준 수출박스",
+     "shape": "box",
+     "qty": 42,
+     "size": "1000×780×720",
+     "weight": 145
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 42,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 42,
+       "weightKg": 6090,
+       "volumeRate": 71,
+       "ctuLevel": "caution",
+       "airbags": 0,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s02-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 42,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 42,
+       "weightKg": 6090,
+       "volumeRate": 71,
+       "ctuLevel": "caution",
+       "airbags": 0,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s02-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 42,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 42,
+       "weightKg": 6090,
+       "volumeRate": 71,
+       "ctuLevel": "safe",
+       "airbags": 14,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s02-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 3,
+   "name": "크기 차이 비교",
+   "category": "부품·기계",
+   "description": "대·중·소 화물의 빈 공간 활용 검증",
+   "container": "20ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "대형 설비박스",
+     "shape": "box",
+     "qty": 3,
+     "size": "1800×1100×1250",
+     "weight": 780
+    },
+    {
+     "name": "중형 부품박스",
+     "shape": "box",
+     "qty": 10,
+     "size": "1000×720×650",
+     "weight": 165
+    },
+    {
+     "name": "소형 완충박스",
+     "shape": "box",
+     "qty": 24,
+     "size": "480×380×320",
+     "weight": 28
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 37,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 높은 적층 3곳의 면이 열림",
+      "1번 컨테이너 중간 충전재 1곳"
+     ],
+     "containers": [
+      {
+       "placed": 37,
+       "weightKg": 4662,
+       "volumeRate": 41,
+       "ctuLevel": "safe",
+       "airbags": 8,
+       "fillers": 1,
+       "beams": 0,
+       "lashing": 9
+      }
+     ],
+     "images": [
+      "img/s03-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 37,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 37,
+       "weightKg": 4662,
+       "volumeRate": 41,
+       "ctuLevel": "safe",
+       "airbags": 2,
+       "fillers": 1,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s03-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 37,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 37,
+       "weightKg": 4662,
+       "volumeRate": 41,
+       "ctuLevel": "caution",
+       "airbags": 5,
+       "fillers": 1,
+       "beams": 1,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s03-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 4,
+   "name": "양문형 냉장고",
+   "category": "가전",
+   "description": "세워서만 싣고 위에 올리지 않는 대형 가전의 단층 적재",
+   "container": "40ft High Cube",
+   "transport": "해상",
+   "products": [
+    {
+     "name": "양문형 냉장고",
+     "shape": "box",
+     "qty": 36,
+     "size": "920×760×1850",
+     "weight": 135
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 36,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 36,
+       "weightKg": 4860,
+       "volumeRate": 61,
+       "ctuLevel": "safe",
+       "airbags": 12,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s04-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 36,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 36,
+       "weightKg": 4860,
+       "volumeRate": 61,
+       "ctuLevel": "safe",
+       "airbags": 12,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s04-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 36,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 36,
+       "weightKg": 4860,
+       "volumeRate": 61,
+       "ctuLevel": "safe",
+       "airbags": 12,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s04-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 5,
+   "name": "세탁기·건조기 2단",
+   "category": "가전",
+   "description": "같은 바닥 규격 가전의 2단 적재와 상부 허용하중",
+   "container": "40ft High Cube",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "드럼 세탁기",
+     "shape": "box",
+     "qty": 60,
+     "size": "700×740×1020",
+     "weight": 78
+    },
+    {
+     "name": "건조기",
+     "shape": "box",
+     "qty": 36,
+     "size": "700×740×1020",
+     "weight": 48
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 96,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 96,
+       "weightKg": 6408,
+       "volumeRate": 66,
+       "ctuLevel": "safe",
+       "airbags": 16,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s05-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 96,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대",
+     "grade": "양호",
+     "findings": [
+      "컨테이너 2대 (부피·중량 하한 1대)"
+     ],
+     "containers": [
+      {
+       "placed": 51,
+       "weightKg": 3978,
+       "volumeRate": 35,
+       "ctuLevel": "safe",
+       "airbags": 17,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      },
+      {
+       "placed": 45,
+       "weightKg": 2430,
+       "volumeRate": 31,
+       "ctuLevel": "safe",
+       "airbags": 15,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s05-strict-1.jpg",
+      "img/s05-strict-2.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 96,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대 · 시간 제한으로 일부 후보 생략",
+     "grade": "양호",
+     "findings": [
+      "컨테이너 2대 (부피·중량 하한 1대)"
+     ],
+     "containers": [
+      {
+       "placed": 51,
+       "weightKg": 3978,
+       "volumeRate": 35,
+       "ctuLevel": "safe",
+       "airbags": 17,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      },
+      {
+       "placed": 45,
+       "weightKg": 2430,
+       "volumeRate": 31,
+       "ctuLevel": "safe",
+       "airbags": 15,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s05-secure-1.jpg",
+      "img/s05-secure-2.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 6,
+   "name": "TV 세움 포장",
+   "category": "가전",
+   "description": "얇고 높은 박스의 전도·측면 지지 검토",
+   "container": "40ft Dry",
+   "transport": "육상",
+   "products": [
+    {
+     "name": "75형 TV",
+     "shape": "box",
+     "qty": 40,
+     "size": "1850×260×1150",
+     "weight": 42
+    },
+    {
+     "name": "55형 TV",
+     "shape": "box",
+     "qty": 60,
+     "size": "1380×190×860",
+     "weight": 21
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 100,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 높은 적층 1곳의 면이 열림"
+     ],
+     "containers": [
+      {
+       "placed": 100,
+       "weightKg": 2940,
+       "volumeRate": 53,
+       "ctuLevel": "safe",
+       "airbags": 4,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s06-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 100,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대",
+     "grade": "양호",
+     "findings": [
+      "컨테이너 2대 (부피·중량 하한 1대)",
+      "2번 컨테이너 중간 충전재 1곳"
+     ],
+     "containers": [
+      {
+       "placed": 71,
+       "weightKg": 2331,
+       "volumeRate": 43,
+       "ctuLevel": "safe",
+       "airbags": 3,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      },
+      {
+       "placed": 29,
+       "weightKg": 609,
+       "volumeRate": 10,
+       "ctuLevel": "safe",
+       "airbags": 3,
+       "fillers": 1,
+       "beams": 12,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s06-strict-1.jpg",
+      "img/s06-strict-2.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 100,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대 · 시간 제한으로 일부 후보 생략",
+     "grade": "주의",
+     "findings": [
+      "1번 안쪽에 빈 곳 0.9m²",
+      "2번 무게배분 주의",
+      "컨테이너 2대 (부피·중량 하한 1대)",
+      "2번 컨테이너 중간 충전재 1곳"
+     ],
+     "containers": [
+      {
+       "placed": 70,
+       "weightKg": 2310,
+       "volumeRate": 43,
+       "ctuLevel": "safe",
+       "airbags": 3,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      },
+      {
+       "placed": 30,
+       "weightKg": 630,
+       "volumeRate": 10,
+       "ctuLevel": "caution",
+       "airbags": 3,
+       "fillers": 1,
+       "beams": 12,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s06-secure-1.jpg",
+      "img/s06-secure-2.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 7,
+   "name": "소형 가전 혼합",
+   "category": "가전",
+   "description": "회전 가능한 소형 카톤 여러 규격의 빈틈 채움",
+   "container": "20ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "전자레인지",
+     "shape": "box",
+     "qty": 60,
+     "size": "560×460×360",
+     "weight": 16
+    },
+    {
+     "name": "무선청소기",
+     "shape": "box",
+     "qty": 80,
+     "size": "780×300×260",
+     "weight": 7
+    },
+    {
+     "name": "에어프라이어",
+     "shape": "box",
+     "qty": 70,
+     "size": "420×400×420",
+     "weight": 8
+    },
+    {
+     "name": "전기밥솥",
+     "shape": "box",
+     "qty": 60,
+     "size": "400×350×330",
+     "weight": 6
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 270,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "1번 높은 적층 29곳의 면이 열림",
+      "1번 컨테이너 중간 충전재 5곳"
+     ],
+     "containers": [
+      {
+       "placed": 270,
+       "weightKg": 2440,
+       "volumeRate": 55,
+       "ctuLevel": "caution",
+       "airbags": 10,
+       "fillers": 5,
+       "beams": 5,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s07-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 270,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대 · 시간 제한으로 일부 후보 생략",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 5개",
+      "2번 얹힌 화물 4개",
+      "컨테이너 2대 (부피·중량 하한 1대)",
+      "2번 컨테이너 중간 충전재 5곳"
+     ],
+     "containers": [
+      {
+       "placed": 171,
+       "weightKg": 1743,
+       "volumeRate": 37,
+       "ctuLevel": "safe",
+       "airbags": 18,
+       "fillers": 0,
+       "beams": 1,
+       "lashing": 15
+      },
+      {
+       "placed": 99,
+       "weightKg": 697,
+       "volumeRate": 18,
+       "ctuLevel": "safe",
+       "airbags": 5,
+       "fillers": 10,
+       "beams": 2,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s07-strict-1.jpg",
+      "img/s07-strict-2.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 270,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대 · 시간 제한으로 일부 후보 생략",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "컨테이너 2대 (부피·중량 하한 1대)"
+     ],
+     "containers": [
+      {
+       "placed": 141,
+       "weightKg": 1587,
+       "volumeRate": 33,
+       "ctuLevel": "caution",
+       "airbags": 8,
+       "fillers": 0,
+       "beams": 3,
+       "lashing": 3
+      },
+      {
+       "placed": 129,
+       "weightKg": 853,
+       "volumeRate": 21,
+       "ctuLevel": "safe",
+       "airbags": 9,
+       "fillers": 1,
+       "beams": 6,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s07-secure-1.jpg",
+      "img/s07-secure-2.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 8,
+   "name": "소파·매트리스",
+   "category": "가구",
+   "description": "부피가 크고 가벼운 가구와 압축 매트리스 롤",
+   "container": "40ft High Cube",
+   "transport": "해상",
+   "products": [
+    {
+     "name": "3인 소파",
+     "shape": "box",
+     "qty": 12,
+     "size": "2150×950×880",
+     "weight": 85
+    },
+    {
+     "name": "1인 소파",
+     "shape": "box",
+     "qty": 16,
+     "size": "950×900×880",
+     "weight": 38
+    },
+    {
+     "name": "압축 매트리스 롤",
+     "shape": "cylinder",
+     "qty": 40,
+     "size": "450×450×1100",
+     "weight": 32
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 68,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 2개",
+      "1번 높은 적층 1곳의 면이 열림"
+     ],
+     "containers": [
+      {
+       "placed": 68,
+       "weightKg": 2908,
+       "volumeRate": 56,
+       "ctuLevel": "safe",
+       "airbags": 0,
+       "fillers": 1,
+       "beams": 1,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s08-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 68,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 2개",
+      "컨테이너 2대 (부피·중량 하한 1대)"
+     ],
+     "containers": [
+      {
+       "placed": 58,
+       "weightKg": 2588,
+       "volumeRate": 53,
+       "ctuLevel": "safe",
+       "airbags": 0,
+       "fillers": 1,
+       "beams": 1,
+       "lashing": 1
+      },
+      {
+       "placed": 10,
+       "weightKg": 320,
+       "volumeRate": 3,
+       "ctuLevel": "safe",
+       "airbags": 2,
+       "fillers": 0,
+       "beams": 5,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s08-strict-1.jpg",
+      "img/s08-strict-2.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 68,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대",
+     "grade": "주의",
+     "findings": [
+      "1번 안쪽에 빈 곳 1.4m²",
+      "컨테이너 2대 (부피·중량 하한 1대)"
+     ],
+     "containers": [
+      {
+       "placed": 61,
+       "weightKg": 2313,
+       "volumeRate": 39,
+       "ctuLevel": "safe",
+       "airbags": 27,
+       "fillers": 5,
+       "beams": 0,
+       "lashing": 1
+      },
+      {
+       "placed": 7,
+       "weightKg": 595,
+       "volumeRate": 16,
+       "ctuLevel": "safe",
+       "airbags": 4,
+       "fillers": 0,
+       "beams": 1,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s08-secure-1.jpg",
+      "img/s08-secure-2.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 9,
+   "name": "조립식 가구 플랫팩",
+   "category": "가구",
+   "description": "납작하고 긴 박스의 눕힘·세움 회전 조합",
+   "container": "40ft High Cube",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "옷장 패널",
+     "shape": "box",
+     "qty": 60,
+     "size": "2050×620×160",
+     "weight": 58
+    },
+    {
+     "name": "책장",
+     "shape": "box",
+     "qty": 80,
+     "size": "1850×420×120",
+     "weight": 32
+    },
+    {
+     "name": "식탁 상판",
+     "shape": "box",
+     "qty": 40,
+     "size": "1650×950×110",
+     "weight": 38
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 180,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 1개",
+      "1번 컨테이너 중간 충전재 1곳"
+     ],
+     "containers": [
+      {
+       "placed": 180,
+       "weightKg": 7560,
+       "volumeRate": 35,
+       "ctuLevel": "safe",
+       "airbags": 6,
+       "fillers": 1,
+       "beams": 3,
+       "lashing": 6
+      }
+     ],
+     "images": [
+      "img/s09-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 180,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 180,
+       "weightKg": 7560,
+       "volumeRate": 35,
+       "ctuLevel": "safe",
+       "airbags": 1,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s09-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 180,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 180,
+       "weightKg": 7560,
+       "volumeRate": 35,
+       "ctuLevel": "safe",
+       "airbags": 1,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s09-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 10,
+   "name": "사무용 가구",
+   "category": "가구",
+   "description": "철제 캐비닛·책상·의자 혼합과 약한 의자 박스",
+   "container": "40ft Dry",
+   "transport": "육상",
+   "products": [
+    {
+     "name": "철제 캐비닛",
+     "shape": "box",
+     "qty": 20,
+     "size": "900×460×1320",
+     "weight": 72
+    },
+    {
+     "name": "사무용 책상",
+     "shape": "box",
+     "qty": 30,
+     "size": "1620×820×160",
+     "weight": 46
+    },
+    {
+     "name": "사무용 의자",
+     "shape": "box",
+     "qty": 60,
+     "size": "700×680×640",
+     "weight": 17
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 110,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 2개"
+     ],
+     "containers": [
+      {
+       "placed": 110,
+       "weightKg": 3840,
+       "volumeRate": 53,
+       "ctuLevel": "safe",
+       "airbags": 7,
+       "fillers": 0,
+       "beams": 5,
+       "lashing": 8
+      }
+     ],
+     "images": [
+      "img/s10-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 110,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 110,
+       "weightKg": 3840,
+       "volumeRate": 53,
+       "ctuLevel": "safe",
+       "airbags": 9,
+       "fillers": 0,
+       "beams": 4,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s10-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 110,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 110,
+       "weightKg": 3840,
+       "volumeRate": 53,
+       "ctuLevel": "safe",
+       "airbags": 9,
+       "fillers": 0,
+       "beams": 4,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s10-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 11,
+   "name": "자동차 부품 철제 팔레트",
+   "category": "부품·기계",
+   "description": "부피보다 중량이 먼저 한계에 닿는 고밀도 화물",
+   "container": "20ft Dry",
+   "transport": "해상",
+   "products": [
+    {
+     "name": "브레이크 부품 팔레트",
+     "shape": "box",
+     "qty": 24,
+     "size": "1200×1000×750",
+     "weight": 1050
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "1번 바닥 선하중 초과"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 25200,
+       "volumeRate": 65,
+       "ctuLevel": "caution",
+       "airbags": 9,
+       "fillers": 0,
+       "beams": 4,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s11-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "1번 바닥 선하중 초과"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 25200,
+       "volumeRate": 65,
+       "ctuLevel": "caution",
+       "airbags": 9,
+       "fillers": 0,
+       "beams": 4,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s11-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "1번 바닥 선하중 초과"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 25200,
+       "volumeRate": 65,
+       "ctuLevel": "caution",
+       "airbags": 4,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s11-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 12,
+   "name": "엔진 크레이트",
+   "category": "부품·기계",
+   "description": "적층할 수 없는 중량물이라 중량 때문에 2대로 나뉨",
+   "container": "40ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "엔진 크레이트",
+     "shape": "box",
+     "qty": 22,
+     "size": "1500×1050×1150",
+     "weight": 1350
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 22,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 2대 · 부피·중량 하한과 같은 최소 대수",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 11,
+       "weightKg": 14850,
+       "volumeRate": 29,
+       "ctuLevel": "safe",
+       "airbags": 6,
+       "fillers": 11,
+       "beams": 2,
+       "lashing": 0
+      },
+      {
+       "placed": 11,
+       "weightKg": 14850,
+       "volumeRate": 29,
+       "ctuLevel": "safe",
+       "airbags": 6,
+       "fillers": 11,
+       "beams": 2,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s12-standard-1.jpg",
+      "img/s12-standard-2.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 22,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 2대 · 부피·중량 하한과 같은 최소 대수",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 11,
+       "weightKg": 14850,
+       "volumeRate": 29,
+       "ctuLevel": "safe",
+       "airbags": 6,
+       "fillers": 11,
+       "beams": 2,
+       "lashing": 0
+      },
+      {
+       "placed": 11,
+       "weightKg": 14850,
+       "volumeRate": 29,
+       "ctuLevel": "safe",
+       "airbags": 6,
+       "fillers": 11,
+       "beams": 2,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s12-strict-1.jpg",
+      "img/s12-strict-2.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 22,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 2대 · 부피·중량 하한과 같은 최소 대수",
+     "grade": "주의",
+     "findings": [
+      "2번 무게배분 주의",
+      "2번 안쪽에 빈 곳 4.6m²",
+      "1번 에어백 16개"
+     ],
+     "containers": [
+      {
+       "placed": 16,
+       "weightKg": 21600,
+       "volumeRate": 43,
+       "ctuLevel": "safe",
+       "airbags": 16,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      },
+      {
+       "placed": 6,
+       "weightKg": 8100,
+       "volumeRate": 16,
+       "ctuLevel": "caution",
+       "airbags": 3,
+       "fillers": 6,
+       "beams": 2,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s12-secure-1.jpg",
+      "img/s12-secure-2.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 13,
+   "name": "전자 부품 카톤 400개",
+   "category": "부품·기계",
+   "description": "같은 소형 카톤 400개의 계산 속도와 반복 적재",
+   "container": "40ft High Cube",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "전자부품 카톤",
+     "shape": "box",
+     "qty": 400,
+     "size": "600×400×400",
+     "weight": 14
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 400,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 400,
+       "weightKg": 5600,
+       "volumeRate": 50,
+       "ctuLevel": "safe",
+       "airbags": 40,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s13-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 400,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 400,
+       "weightKg": 5600,
+       "volumeRate": 50,
+       "ctuLevel": "safe",
+       "airbags": 40,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s13-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 400,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 400,
+       "weightKg": 5600,
+       "volumeRate": 50,
+       "ctuLevel": "safe",
+       "airbags": 40,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s13-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 14,
+   "name": "대형 케이블 드럼",
+   "category": "원통",
+   "description": "지름이 큰 원통의 2단 중심 정렬과 구름 방지",
+   "container": "20ft Dry",
+   "transport": "해상",
+   "products": [
+    {
+     "name": "대형 케이블 드럼",
+     "shape": "cylinder",
+     "qty": 8,
+     "size": "1400×1400×1000",
+     "weight": 950
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 8,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 8,
+       "weightKg": 7600,
+       "volumeRate": 47,
+       "ctuLevel": "safe",
+       "airbags": 2,
+       "fillers": 8,
+       "beams": 0,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s14-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 8,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 8,
+       "weightKg": 7600,
+       "volumeRate": 47,
+       "ctuLevel": "safe",
+       "airbags": 2,
+       "fillers": 8,
+       "beams": 0,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s14-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 8,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 8,
+       "weightKg": 7600,
+       "volumeRate": 47,
+       "ctuLevel": "safe",
+       "airbags": 2,
+       "fillers": 8,
+       "beams": 1,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s14-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 15,
+   "name": "200L 드럼통",
+   "category": "원통",
+   "description": "표준 드럼 2단 적층과 상부 허용하중",
+   "container": "20ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "200L 드럼",
+     "shape": "cylinder",
+     "qty": 50,
+     "size": "590×590×880",
+     "weight": 215
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 50,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 50,
+       "weightKg": 10750,
+       "volumeRate": 46,
+       "ctuLevel": "safe",
+       "airbags": 17,
+       "fillers": 0,
+       "beams": 5,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s15-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 50,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [],
+     "containers": [
+      {
+       "placed": 50,
+       "weightKg": 10750,
+       "volumeRate": 46,
+       "ctuLevel": "safe",
+       "airbags": 17,
+       "fillers": 0,
+       "beams": 5,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s15-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 50,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 50,
+       "weightKg": 10750,
+       "volumeRate": 46,
+       "ctuLevel": "caution",
+       "airbags": 18,
+       "fillers": 2,
+       "beams": 2,
+       "lashing": 1
+      }
+     ],
+     "images": [
+      "img/s15-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 16,
+   "name": "종이 롤",
+   "category": "원통",
+   "description": "무거운 원통의 단층 배치와 길이 방향 중량 분산",
+   "container": "40ft Dry",
+   "transport": "해상",
+   "products": [
+    {
+     "name": "종이 롤",
+     "shape": "cylinder",
+     "qty": 24,
+     "size": "1000×1000×1300",
+     "weight": 850
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [
+      "1번 에어백 24개"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 20400,
+       "volumeRate": 46,
+       "ctuLevel": "safe",
+       "airbags": 24,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s16-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [
+      "1번 에어백 24개"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 20400,
+       "volumeRate": 46,
+       "ctuLevel": "safe",
+       "airbags": 24,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s16-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "양호",
+     "findings": [
+      "1번 에어백 24개"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 20400,
+       "volumeRate": 46,
+       "ctuLevel": "safe",
+       "airbags": 24,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s16-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 17,
+   "name": "음료 팔레트 2단",
+   "category": "팔레트·건자재",
+   "description": "표준 팔레트 2단 적재와 상부 허용하중",
+   "container": "20ft Dry",
+   "transport": "육상",
+   "products": [
+    {
+     "name": "음료 팔레트",
+     "shape": "box",
+     "qty": 18,
+     "size": "1200×1000×1100",
+     "weight": 780
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 18,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 18,
+       "weightKg": 14040,
+       "volumeRate": 72,
+       "ctuLevel": "caution",
+       "airbags": 5,
+       "fillers": 1,
+       "beams": 0,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s17-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 18,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 18,
+       "weightKg": 14040,
+       "volumeRate": 72,
+       "ctuLevel": "caution",
+       "airbags": 5,
+       "fillers": 1,
+       "beams": 0,
+       "lashing": 2
+      }
+     ],
+     "images": [
+      "img/s17-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 18,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 18,
+       "weightKg": 14040,
+       "volumeRate": 72,
+       "ctuLevel": "caution",
+       "airbags": 4,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 3
+      }
+     ],
+     "images": [
+      "img/s17-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 18,
+   "name": "가정 이사 화물",
+   "category": "혼합·기타",
+   "description": "규격이 제각각인 가구·가전·이삿짐 박스와 취약 화물",
+   "container": "20ft Dry",
+   "transport": "해상",
+   "products": [
+    {
+     "name": "장롱 박스",
+     "shape": "box",
+     "qty": 3,
+     "size": "1200×600×1950",
+     "weight": 95
+    },
+    {
+     "name": "냉장고",
+     "shape": "box",
+     "qty": 1,
+     "size": "700×720×1750",
+     "weight": 80
+    },
+    {
+     "name": "세탁기",
+     "shape": "box",
+     "qty": 1,
+     "size": "600×650×900",
+     "weight": 70
+    },
+    {
+     "name": "이삿짐 박스 대",
+     "shape": "box",
+     "qty": 40,
+     "size": "550×450×450",
+     "weight": 20
+    },
+    {
+     "name": "이삿짐 박스 소",
+     "shape": "box",
+     "qty": 40,
+     "size": "450×350×300",
+     "weight": 12
+    },
+    {
+     "name": "식탁",
+     "shape": "box",
+     "qty": 1,
+     "size": "1500×850×120",
+     "weight": 35
+    },
+    {
+     "name": "식탁 의자",
+     "shape": "box",
+     "qty": 4,
+     "size": "450×450×900",
+     "weight": 6
+    },
+    {
+     "name": "액자·거울",
+     "shape": "box",
+     "qty": 3,
+     "size": "1200×100×900",
+     "weight": 15
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 93,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 4개",
+      "1번 높은 적층 1곳의 면이 열림",
+      "1번 컨테이너 중간 충전재 6곳"
+     ],
+     "containers": [
+      {
+       "placed": 93,
+       "weightKg": 1819,
+       "volumeRate": 39,
+       "ctuLevel": "safe",
+       "airbags": 14,
+       "fillers": 8,
+       "beams": 0,
+       "lashing": 8
+      }
+     ],
+     "images": [
+      "img/s18-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 93,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 얹힌 화물 2개",
+      "1번 컨테이너 중간 충전재 2곳"
+     ],
+     "containers": [
+      {
+       "placed": 93,
+       "weightKg": 1819,
+       "volumeRate": 39,
+       "ctuLevel": "safe",
+       "airbags": 18,
+       "fillers": 5,
+       "beams": 0,
+       "lashing": 5
+      }
+     ],
+     "images": [
+      "img/s18-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 93,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 2대 · 부피·중량 하한 1대 · 다른 크기 화물 위 얹힘 금지 때문에 기본 기준(1대)보다 많음 · 시간 제한으로 일부 후보 생략",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "컨테이너 2대 (부피·중량 하한 1대)",
+      "2번 컨테이너 중간 충전재 2곳"
+     ],
+     "containers": [
+      {
+       "placed": 83,
+       "weightKg": 1532,
+       "volumeRate": 33,
+       "ctuLevel": "caution",
+       "airbags": 9,
+       "fillers": 0,
+       "beams": 5,
+       "lashing": 5
+      },
+      {
+       "placed": 10,
+       "weightKg": 287,
+       "volumeRate": 6,
+       "ctuLevel": "safe",
+       "airbags": 4,
+       "fillers": 2,
+       "beams": 1,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s18-secure-1.jpg",
+      "img/s18-secure-2.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 19,
+   "name": "강관 번들·타일 팔레트",
+   "category": "팔레트·건자재",
+   "description": "5.8m 장척 번들과 고밀도 타일 팔레트의 중량 배분",
+   "container": "40ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "강관 번들",
+     "shape": "box",
+     "qty": 14,
+     "size": "5800×320×320",
+     "weight": 480
+    },
+    {
+     "name": "타일 팔레트",
+     "shape": "box",
+     "qty": 10,
+     "size": "1100×1100×650",
+     "weight": 1250
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "1번 바닥 선하중 초과"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 19220,
+       "volumeRate": 24,
+       "ctuLevel": "caution",
+       "airbags": 3,
+       "fillers": 0,
+       "beams": 9,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s19-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의",
+      "1번 바닥 선하중 초과"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 19220,
+       "volumeRate": 24,
+       "ctuLevel": "caution",
+       "airbags": 3,
+       "fillers": 0,
+       "beams": 9,
+       "lashing": 4
+      }
+     ],
+     "images": [
+      "img/s19-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 0,
+     "total": 24,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 부피·중량 하한과 같은 최소 대수 · 기존 배치 유지",
+     "grade": "주의",
+     "findings": [
+      "1번 무게배분 주의"
+     ],
+     "containers": [
+      {
+       "placed": 24,
+       "weightKg": 19220,
+       "volumeRate": 24,
+       "ctuLevel": "caution",
+       "airbags": 6,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s19-secure-1.jpg"
+     ]
+    }
+   }
+  },
+  {
+   "id": 20,
+   "name": "과대 화물 포함 부분 적재",
+   "category": "혼합·기타",
+   "description": "컨테이너보다 큰 화물이 섞여 미배치 보고를 확인",
+   "container": "20ft Dry",
+   "transport": "복합",
+   "products": [
+    {
+     "name": "표준 박스",
+     "shape": "box",
+     "qty": 12,
+     "size": "1000×800×800",
+     "weight": 150
+    },
+    {
+     "name": "과대 설비",
+     "shape": "box",
+     "qty": 1,
+     "size": "6200×1500×1500",
+     "weight": 2400
+    },
+    {
+     "name": "과높이 기계",
+     "shape": "box",
+     "qty": 1,
+     "size": "1400×1200×2600",
+     "weight": 1800
+    }
+   ],
+   "results": {
+    "standard": {
+     "safety": "standard",
+     "unallocated": 2,
+     "total": 14,
+     "reason": "적재량 우선 기준(상부 지지 70% 이상) · 추천 · 컨테이너 1대 · 미배치 2개",
+     "grade": "재검토 필요",
+     "findings": [
+      "미적재 2개",
+      "1번 에어백 12개"
+     ],
+     "containers": [
+      {
+       "placed": 12,
+       "weightKg": 1800,
+       "volumeRate": 23,
+       "ctuLevel": "safe",
+       "airbags": 12,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s20-standard-1.jpg"
+     ]
+    },
+    "strict": {
+     "safety": "strict",
+     "unallocated": 2,
+     "total": 14,
+     "reason": "기본 기준(상부 지지 100%) · 추천 · 컨테이너 1대 · 미배치 2개",
+     "grade": "재검토 필요",
+     "findings": [
+      "미적재 2개",
+      "1번 에어백 12개"
+     ],
+     "containers": [
+      {
+       "placed": 12,
+       "weightKg": 1800,
+       "volumeRate": 23,
+       "ctuLevel": "safe",
+       "airbags": 12,
+       "fillers": 0,
+       "beams": 0,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s20-strict-1.jpg"
+     ]
+    },
+    "secure": {
+     "safety": "secure",
+     "unallocated": 2,
+     "total": 14,
+     "reason": "CTU 기준 적용 기준(상부 지지 100% · 3면 막힘(화물·고정재)) · 추천 · 컨테이너 1대 · 미배치 2개",
+     "grade": "재검토 필요",
+     "findings": [
+      "미적재 2개",
+      "1번 에어백 13개"
+     ],
+     "containers": [
+      {
+       "placed": 12,
+       "weightKg": 1800,
+       "volumeRate": 23,
+       "ctuLevel": "safe",
+       "airbags": 13,
+       "fillers": 0,
+       "beams": 2,
+       "lashing": 0
+      }
+     ],
+     "images": [
+      "img/s20-secure-1.jpg"
+     ]
+    }
+   }
+  }
+ ]
+}

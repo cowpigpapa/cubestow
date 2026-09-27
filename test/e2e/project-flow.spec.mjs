@@ -311,3 +311,15 @@ test('the product input can be folded and the whole left column hidden to widen 
   await page.reload();await expect(page.locator('#controlPanel')).toBeHidden();
   await page.locator('#togglePanel').click();await expect(page.locator('#controlPanel')).toBeVisible();
 });
+
+test('the sample results preview compares the three safety levels side by side',async({page})=>{
+  await page.goto('/');await expect(page.locator('.topbar nav a[href="sample-results.html"]')).toHaveText('샘플 결과');
+  await page.goto('/sample-results.html');
+  await expect(page.locator('section.sample')).toHaveCount(20);
+  // 샘플마다 적재량 우선·기본·CTU 세 칸의 머리글과 컨테이너 그림이 있다.
+  const first=page.locator('#s1');
+  await expect(first.locator('.col-head')).toHaveCount(3);await expect(first.locator('.col-head').nth(2)).toContainText('CTU 기준 적용');
+  await expect(first.locator('.shot img').first()).toHaveAttribute('src',/sample-results\/img\/s01-standard-1\.jpg/);
+  await page.locator('button[data-cat="원통"]').click();
+  await expect(page.locator('section.sample:not([hidden])')).toHaveCount(3);
+});
