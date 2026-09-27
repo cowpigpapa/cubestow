@@ -4,104 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cubestow 샘플 결과 미리보기</title>
-<meta name="description" content="샘플 20가지를 적재량 우선·기본·CTU 기준 적용으로 계산한 결과를 나란히 비교합니다.">
-<style>
-:root{--ink:#1d1d1f;--muted:#5f6763;--line:rgba(0,0,0,.09);--paper:#f5f5f7;--card:#fff;--green:#16734f;--blue:#0066cc;--amber:#a15c00;--std:#fff3df;--std-ink:#7a4d00;--strict:#e8f1fd;--strict-ink:#1b4f8f;--secure:#e5f5ec;--secure-ink:#145c33}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;line-height:1.5}
-a{color:var(--blue)}
-header.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:12px max(16px,calc((100% - 1320px)/2));background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-header.top strong{font-size:17px}header.top .meta{margin-left:auto;font-size:12px;color:var(--muted);text-align:right}
-header.top a.back{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:999px;background:var(--blue);color:#fff;font-size:12px;font-weight:700;text-decoration:none}
-main{max-width:1320px;margin:0 auto;padding:22px 16px 60px}
-h1{font-size:26px;margin:4px 0 6px}
-.lead{color:var(--muted);margin:0 0 18px;max-width:880px}
-.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.mode{border-radius:12px;padding:12px 14px;border:1px solid var(--line)}
-.mode b{display:block;font-size:14px;margin-bottom:4px}.mode span{font-size:13px}
-.mode.standard{background:var(--std);color:var(--std-ink)}.mode.strict{background:var(--strict);color:var(--strict-ink)}.mode.secure{background:var(--secure);color:var(--secure-ink)}
-.toolbar{position:sticky;top:57px;z-index:15;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 0;background:var(--paper)}
-.toolbar button{height:30px;padding:0 12px;border:1.5px solid #c5cbd1;border-radius:999px;background:#fff;color:#3a4148;font:700 12px/1 inherit;cursor:pointer}
-.toolbar button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.toolbar .jump{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}.toolbar .jump a{font-size:12px;font-weight:700;text-decoration:none;padding:4px 7px;border-radius:7px;background:#fff;border:1px solid var(--line);color:var(--ink)}
-section.sample{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0;scroll-margin-top:110px}
-.s-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
-.s-head h2{margin:0;font-size:19px}.s-head .no{display:inline-grid;place-items:center;min-width:34px;height:26px;border-radius:8px;background:var(--ink);color:#fff;font-size:13px;margin-right:6px}
-.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:#eef1f3;color:#3a4148}
-.desc{margin:6px 0 4px;color:var(--muted);font-size:14px}
-.products{font-size:13px;color:#3a4148;margin:0 0 10px}
-.diff{margin:0 0 12px;padding:8px 12px;border-radius:10px;background:#f6f8f6;font-size:13.5px}
-.diff b{color:var(--green)}
-.compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.col-head{border-radius:12px 12px 0 0;padding:10px 12px;font-size:13px}
-.col-head b{display:block;font-size:14px;margin-bottom:2px}
-.col-head.standard{background:var(--std);color:var(--std-ink)}.col-head.strict{background:var(--strict);color:var(--strict-ink)}.col-head.secure{background:var(--secure);color:var(--secure-ink)}
-.grade{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;background:#fff}
-.grade.bad{color:#b3261e}.grade.warn{color:#9a5b00}.grade.ok{color:#16734f}
-.findings{margin:4px 0 0;padding-left:16px;font-size:12px}
-.shot{position:relative;margin:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f3f5f4}
-.shot img{display:block;width:100%;height:auto;cursor:zoom-in}
-.shot figcaption{padding:6px 10px;font-size:12.5px;color:#3a4148;border-top:1px solid var(--line);background:#fff}
-.shot figcaption b{color:var(--ink)}
-.lvl{font-weight:700}.lvl.safe{color:#16734f}.lvl.caution{color:#9a5b00}.lvl.danger{color:#b3261e}
-.empty-cell{display:grid;place-items:center;min-height:80px;border:1px dashed #cfd5da;border-radius:10px;color:#8a9298;font-size:12.5px}
-dialog.zoom{max-width:min(1200px,96vw);padding:0;border:0;border-radius:12px;background:#111}
-dialog.zoom img{display:block;max-width:100%;max-height:86vh}dialog.zoom p{margin:0;padding:8px 12px;color:#eee;font-size:13px}
-dialog.zoom::backdrop{background:rgba(0,0,0,.72)}
-.loading{padding:40px;text-align:center;color:var(--muted)}
-@media(max-width:760px){
-  header.top .meta{display:none}.modes{grid-template-columns:1fr}.toolbar{top:57px}.toolbar .jump{display:none}
-  .compare{grid-template-columns:repeat(3,82vw);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
-  .compare>*{scroll-snap-align:start}
-}
-</style>
+<meta http-equiv="refresh" content="0; url=./#samples">
+<link rel="canonical" href="./#samples">
 </head>
 <body>
-<header class="top"><strong>Cubestow</strong><span>샘플 결과 미리보기</span><div class="meta" id="meta"></div><a class="back" href="./">적재 플래너로 →</a></header>
-<main>
-  <h1>샘플 20가지, 안전 수준 3가지 비교</h1>
-  <p class="lead">같은 화물을 세 가지 안전 수준으로 계산한 결과를 나란히 놓았습니다. 컨테이너가 여러 대면 줄이 늘어납니다. 그림을 누르면 크게 볼 수 있고, 각 샘플은 적재 플래너의 <b>불러오기 → 샘플</b>에서 직접 계산해 볼 수 있습니다. 결과는 작업 검토용이며 실제 적재 전 현장 확인이 필요합니다.</p>
-  <div class="modes">
-    <div class="mode standard"><b>적재량 우선</b><span>최대한 많이 싣습니다. 윗 화물 바닥면 70% 이상만 받치고 충돌·중량·상부하중 같은 기본 조건만 지킵니다.</span></div>
-    <div class="mode strict"><b>기본 (권장)</b><span>윗 화물을 100% 받치고 높은 적층·원통 규칙을 지킵니다. 남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다.</span></div>
-    <div class="mode secure"><b>CTU 기준 적용</b><span>모든 화물의 안쪽·좌·우를 화물이나 고정재로 막고, 다른 크기 화물 위에 얹지 않습니다. CTU Code 준수를 보증하지는 않습니다.</span></div>
-  </div>
-  <div class="toolbar" id="toolbar"></div>
-  <div id="list"><p class="loading">결과를 불러오는 중입니다…</p></div>
-</main>
-<dialog class="zoom" id="zoom"><img alt=""><p></p></dialog>
-<script>
-(async function(){
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const list=document.getElementById('list');
-  let data;
-  try{const res=await fetch('sample-results/manifest.json',{cache:'no-cache'});if(!res.ok)throw new Error(res.status);data=await res.json()}
-  catch(e){list.innerHTML='<p class="loading">결과 파일을 불러오지 못했습니다.</p>';return}
-  document.getElementById('meta').innerHTML=`v${esc(data.appVersion)} · 엔진 ${esc(data.engine)}<br>캡처 ${esc(new Date(data.generatedAt).toLocaleString('ko-KR'))}`;
-  const levelName={safe:'양호',caution:'주의',danger:'위험'},gradeKey={'양호':'ok','주의':'warn','재검토 필요':'bad'};
-  const categories=[...new Set(data.samples.map(s=>s.category))];
-  const toolbar=document.getElementById('toolbar');
-  toolbar.innerHTML=['전체',...categories].map((c,i)=>`<button type="button" data-cat="${esc(c)}" aria-pressed="${i===0}">${esc(c)}</button>`).join('')+`<div class="jump">${data.samples.map(s=>`<a href="#s${s.id}">${s.id}</a>`).join('')}</div>`;
-  // 세 모드 비교 한 줄: 대수와 고정재 차이
-  const diffLine=s=>{const r=data.modes.map(m=>s.results?.[m.key]);if(r.some(x=>!x))return'';
-    const cont=r.map(x=>x.containers.length),bags=r.map(x=>x.containers.reduce((a,c)=>a+c.airbags,0)),left=r.map(x=>x.unallocated);
-    const parts=[`컨테이너 <b>${cont.join(' / ')}대</b>`,`에어백 ${bags.join(' / ')}개`];
-    if(left.some(Boolean))parts.push(`미적재 ${left.join(' / ')}개`);
-    let note='';if(cont[2]>cont[1])note=' · CTU 기준이 기본보다 대수가 많습니다(3면 막힘·얹힘 금지).';else if(cont[0]<cont[1])note=' · 적재량 우선이 대수를 줄였습니다.';else if(new Set(cont).size===1)note=' · 세 기준 모두 같은 대수입니다.';
-    return `<p class="diff">적재량 우선 / 기본 / CTU: ${parts.join(' · ')}${note}</p>`};
-  const head=(m,r)=>{const cont=r.containers.length,loaded=r.total-r.unallocated;return `<div class="col-head ${m.key}"><b>${esc(m.label)}</b>${cont}대 · ${loaded}/${r.total}개 적재${r.unallocated?` · <b style="display:inline">미적재 ${r.unallocated}</b>`:''}<br><span class="grade ${gradeKey[r.grade]||''}">자동 평가 ${esc(r.grade||'-')}</span>${r.findings?.length?`<ul class="findings">${r.findings.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}</div>`};
-  const cell=(m,r,k)=>{const c=r.containers[k],img=r.images[k];if(!c)return`<div class="empty-cell">컨테이너 ${k+1} 없음</div>`;
-    return `<figure class="shot"><img loading="lazy" src="sample-results/${esc(img)}" alt="${esc(m.label)} 컨테이너 ${k+1}" data-caption="${esc(m.label)} · 컨테이너 ${k+1}"><figcaption><b>${k+1}번</b> · ${c.placed}개 · ${(c.weightKg/1000).toFixed(1)}t · 공간 ${c.volumeRate}% · 무게배분 <span class="lvl ${c.ctuLevel}">${levelName[c.ctuLevel]||'-'}</span><br>에어백 ${c.airbags} · 충전재 ${c.fillers} · 바닥 각재 ${c.beams} · 래싱 ${c.lashing}</figcaption></figure>`};
-  list.innerHTML=data.samples.map(s=>{const rs=data.modes.map(m=>s.results?.[m.key]);const rows=Math.max(...rs.map(r=>r?.containers.length||0));
-    return `<section class="sample" id="s${s.id}" data-cat="${esc(s.category)}"><div class="s-head"><h2><span class="no">${s.id}</span>${esc(s.name)}</h2><span class="tag">${esc(s.category)}</span><span class="tag">${esc(s.container)}</span><span class="tag">${esc(s.transport)}</span></div>
-      <p class="desc">${esc(s.description)}</p><p class="products">${s.products.map(p=>`${esc(p.name)} ${p.qty}개(${esc(p.size)}mm, ${p.weight}kg${p.shape==='cylinder'?', 원통':''})`).join(' · ')}</p>${diffLine(s)}
-      <div class="compare">${data.modes.map((m,i)=>rs[i]?head(m,rs[i]):`<div class="col-head ${m.key}"><b>${esc(m.label)}</b>결과 없음</div>`).join('')}
-      ${Array.from({length:rows},(_,k)=>data.modes.map((m,i)=>rs[i]?cell(m,rs[i],k):'<div></div>').join('')).join('')}</div></section>`}).join('');
-  toolbar.addEventListener('click',e=>{const b=e.target.closest('button[data-cat]');if(!b)return;toolbar.querySelectorAll('button[data-cat]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));const cat=b.dataset.cat;list.querySelectorAll('section.sample').forEach(sec=>sec.hidden=cat!=='전체'&&sec.dataset.cat!==cat)});
-  const zoom=document.getElementById('zoom');
-  list.addEventListener('click',e=>{const img=e.target.closest('.shot img');if(!img)return;zoom.querySelector('img').src=img.src;zoom.querySelector('p').textContent=`${img.closest('section').querySelector('h2').textContent} · ${img.dataset.caption}`;zoom.showModal()});
-  zoom.addEventListener('click',()=>zoom.close());
-})();
-</script>
+<p>샘플 결과 미리보기는 적재 플래너 안으로 옮겼습니다. <a href="./#samples">샘플 결과로 이동</a></p>
+<script>location.replace('./#samples')</script>
 </body>
 </html>

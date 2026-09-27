@@ -1,0 +1,55 @@
+// 샘플 결과 미리보기: 상단 메뉴 "샘플 결과"(#samples)를 누르면 헤더와 푸터 사이에서 적재 플래너 대신 보인다.
+// sample-results/manifest.json(tools/capture-sample-results.mjs, `npm run samples:capture`로 생성)을 읽어
+// 샘플마다 적재량 우선·기본·CTU 기준 적용을 세 칸으로 나란히 보여 주고, 컨테이너가 여러 대면 줄을 늘린다.
+(function(){
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const levelName={safe:'양호',caution:'주의',danger:'위험'},gradeKey={'양호':'ok','주의':'warn','재검토 필요':'bad'};
+  let rendered=false;
+
+  const diffLine=(data,s)=>{const r=data.modes.map(m=>s.results?.[m.key]);if(r.some(x=>!x))return'';
+    const cont=r.map(x=>x.containers.length),bags=r.map(x=>x.containers.reduce((a,c)=>a+c.airbags,0)),left=r.map(x=>x.unallocated);
+    const parts=[`컨테이너 <b>${cont.join(' / ')}대</b>`,`에어백 ${bags.join(' / ')}개`];if(left.some(Boolean))parts.push(`미적재 ${left.join(' / ')}개`);
+    const note=cont[2]>cont[1]?' · CTU 기준이 기본보다 대수가 많습니다(3면 막힘·얹힘 금지).':cont[0]<cont[1]?' · 적재량 우선이 대수를 줄였습니다.':new Set(cont).size===1?' · 세 기준 모두 같은 대수입니다.':'';
+    return `<p class="sv-diff">적재량 우선 / 기본 / CTU: ${parts.join(' · ')}${note}</p>`};
+  const head=(m,r)=>{const loaded=r.total-r.unallocated;return `<div class="sv-col-head ${m.key}"><b>${esc(m.label)}</b>${r.containers.length}대 · ${loaded}/${r.total}개 적재${r.unallocated?` · 미적재 ${r.unallocated}`:''}<br><span class="sv-grade ${gradeKey[r.grade]||''}">자동 평가 ${esc(r.grade||'-')}</span>${r.findings?.length?`<ul class="sv-findings">${r.findings.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}</div>`};
+  const cell=(m,r,k)=>{const c=r.containers[k];if(!c)return`<div class="sv-empty">컨테이너 ${k+1} 없음</div>`;
+    return `<figure class="sv-shot"><img loading="lazy" src="sample-results/${esc(r.images[k])}" alt="${esc(m.label)} 컨테이너 ${k+1}" data-caption="${esc(m.label)} · 컨테이너 ${k+1}"><figcaption><b>${k+1}번</b> · ${c.placed}개 · ${(c.weightKg/1000).toFixed(1)}t · 공간 ${c.volumeRate}% · 무게배분 <span class="sv-lvl ${c.ctuLevel}">${levelName[c.ctuLevel]||'-'}</span><br>에어백 ${c.airbags} · 충전재 ${c.fillers} · 바닥 각재 ${c.beams} · 래싱 ${c.lashing}</figcaption></figure>`};
+
+  async function render(view){
+    if(rendered)return;rendered=true;
+    view.innerHTML=`<div class="sv-head"><div><h2 class="sv-title">샘플 결과 미리보기</h2></div><div class="sv-meta" id="svMeta"></div></div>
+      <p class="sv-lead">샘플 20가지를 세 가지 안전 수준으로 계산한 결과를 나란히 놓았습니다. 컨테이너가 여러 대면 줄이 늘어납니다. 그림을 누르면 크게 볼 수 있고, 각 샘플은 적재 플래너의 <b>불러오기 → 샘플</b>에서 직접 계산해 볼 수 있습니다. 결과는 작업 검토용이며 실제 적재 전 현장 확인이 필요합니다.</p>
+      <div class="sv-modes"><div class="sv-mode standard"><b>적재량 우선</b>최대한 많이 싣습니다. 윗 화물 바닥면 70% 이상만 받치고 충돌·중량·상부하중 같은 기본 조건만 지킵니다.</div><div class="sv-mode strict"><b>기본 (권장)</b>윗 화물을 100% 받치고 높은 적층·원통 규칙을 지킵니다. 남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다.</div><div class="sv-mode secure"><b>CTU 기준 적용</b>모든 화물의 안쪽·좌·우를 화물이나 고정재로 막고, 다른 크기 화물 위에 얹지 않습니다. CTU Code 준수를 보증하지는 않습니다.</div></div>
+      <div class="sv-toolbar" id="svToolbar"></div><div id="svList"><p class="sv-loading">결과를 불러오는 중입니다…</p></div>
+      <dialog class="sv-zoom" id="svZoom"><img alt=""><p></p></dialog>`;
+    const list=view.querySelector('#svList');let data;
+    try{const res=await fetch('sample-results/manifest.json',{cache:'no-cache'});if(!res.ok)throw new Error(res.status);data=await res.json()}
+    catch{list.innerHTML='<p class="sv-loading">결과 파일을 불러오지 못했습니다.</p>';rendered=false;return}
+    view.querySelector('#svMeta').innerHTML=`v${esc(data.appVersion)} · 엔진 ${esc(data.engine)}<br>캡처 ${esc(new Date(data.generatedAt).toLocaleString('ko-KR'))}`;
+    const toolbar=view.querySelector('#svToolbar'),categories=[...new Set(data.samples.map(s=>s.category))];
+    toolbar.innerHTML=['전체',...categories].map((c,i)=>`<button type="button" data-cat="${esc(c)}" aria-pressed="${i===0}">${esc(c)}</button>`).join('')+`<div class="sv-jump">${data.samples.map(s=>`<a href="#samples-${s.id}" data-jump="${s.id}">${s.id}</a>`).join('')}</div>`;
+    list.innerHTML=data.samples.map(s=>{const rs=data.modes.map(m=>s.results?.[m.key]),rows=Math.max(...rs.map(r=>r?.containers.length||0));
+      return `<section class="sv-sample" id="samples-${s.id}" data-cat="${esc(s.category)}"><div class="sv-s-head"><h3><span class="sv-no">${s.id}</span>${esc(s.name)}</h3><span class="sv-tag">${esc(s.category)}</span><span class="sv-tag">${esc(s.container)}</span><span class="sv-tag">${esc(s.transport)}</span></div>
+        <p class="sv-desc">${esc(s.description)}</p><p class="sv-products">${s.products.map(p=>`${esc(p.name)} ${p.qty}개(${esc(p.size)}mm, ${p.weight}kg${p.shape==='cylinder'?', 원통':''})`).join(' · ')}</p>${diffLine(data,s)}
+        <div class="sv-compare">${data.modes.map((m,i)=>rs[i]?head(m,rs[i]):`<div class="sv-col-head ${m.key}"><b>${esc(m.label)}</b>결과 없음</div>`).join('')}${Array.from({length:rows},(_,k)=>data.modes.map((m,i)=>rs[i]?cell(m,rs[i],k):'<div></div>').join('')).join('')}</div></section>`}).join('');
+    toolbar.addEventListener('click',e=>{const b=e.target.closest('button[data-cat]');if(b){toolbar.querySelectorAll('button[data-cat]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));list.querySelectorAll('section.sv-sample').forEach(sec=>sec.hidden=b.dataset.cat!=='전체'&&sec.dataset.cat!==b.dataset.cat);return}
+      // 번호 바로가기는 주소(#samples)를 바꾸지 않고 스크롤만 한다.
+      const a=e.target.closest('a[data-jump]');if(a){e.preventDefault();view.querySelector(`#samples-${a.dataset.jump}`)?.scrollIntoView({behavior:'smooth',block:'start'})}});
+    const zoom=view.querySelector('#svZoom');
+    list.addEventListener('click',e=>{const img=e.target.closest('.sv-shot img');if(!img)return;zoom.querySelector('img').src=img.src;zoom.querySelector('p').textContent=`${img.closest('section').querySelector('h3').textContent} · ${img.dataset.caption}`;zoom.showModal()});
+    zoom.addEventListener('click',()=>zoom.close());
+  }
+
+  // 주소가 #samples이면 샘플 결과, 아니면 적재 플래너를 보여 준다.
+  function route(){
+    const view=document.getElementById('samplesView'),planner=document.getElementById('planner');if(!view||!planner)return;
+    const on=location.hash==='#samples';
+    view.hidden=!on;planner.hidden=on;
+    document.querySelectorAll('.topbar nav a').forEach(a=>a.classList.toggle('active',on?a.getAttribute('href')==='#samples':a.getAttribute('href')==='#planner'));
+    if(on){render(view);window.scrollTo(0,0)}else window.dispatchEvent(new Event('resize'));
+  }
+  window.addEventListener('hashchange',route);
+  // 샘플 창 안의 미리보기 링크를 누르면 창을 닫고 샘플 결과로 간다.
+  document.addEventListener('click',e=>{const a=e.target.closest('a[data-close-dialog]');if(a)a.closest('dialog')?.close()});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',route);else route();
+})();

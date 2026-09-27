@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="styles.css?v=20260815-2">
   <link rel="stylesheet" href="layout-fixes.css?v=20260924-1">
   <link rel="stylesheet" href="v2.css?v=20260804-1">
+  <link rel="stylesheet" href="sample-results.css?v=20260927-1">
   <link rel="stylesheet" href="v3-projects.css?v=20260927-9">
 </head>
 <body>
@@ -30,7 +31,7 @@
       <button id="guideButton" type="button">사용 가이드</button>
       <button id="policyButton" type="button">알고리즘 정책</button>
       <button id="ctuButton" type="button">CTU Code</button>
-      <a class="nav-link" href="sample-results.html">샘플 결과</a>
+      <a class="nav-link" href="#samples">샘플 결과</a>
     </nav>
     <div class="account-actions"><span id="localNotice" class="local-notice">로그인 전에는 이 브라우저에만 저장됩니다.</span><button class="account-button" id="accountButton" hidden>로그인</button><details class="menu account-menu" id="accountMenu" hidden><summary id="accountIdentity" class="account-identity"></summary><div class="menu-list"><button class="admin-button" id="adminButton" type="button" hidden>관리</button><button id="logoutButton" type="button">로그아웃</button></div></details></div>
   </header>
@@ -157,6 +158,7 @@
       </section>
     </section>
 
+    <section class="samples-view" id="samplesView" hidden aria-label="샘플 결과 미리보기"></section>
   </main>
 
   <dialog id="messageDialog" class="project-dialog message-dialog" aria-labelledby="messageTitle" aria-describedby="messageText">
@@ -229,7 +231,7 @@
   <dialog id="sampleDialog" class="project-dialog sample-dialog">
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
     <h2>샘플 시나리오 선택</h2>
-    <p>가전·가구·부품·원통 등 20가지 적재 상황입니다. 불러오면 권장 컨테이너와 운송모드가 함께 선택되고 바로 계산합니다. <a href="sample-results.html" target="_blank" rel="noopener">안전 수준별 결과 미리보기 →</a></p>
+    <p>가전·가구·부품·원통 등 20가지 적재 상황입니다. 불러오면 권장 컨테이너와 운송모드가 함께 선택되고 바로 계산합니다. <a href="#samples" data-close-dialog>안전 수준별 결과 미리보기 →</a></p>
     <div class="sample-filters" id="sampleFilters" role="toolbar" aria-label="샘플 분류"></div>
     <ol class="sample-list" id="sampleList"></ol>
   </dialog>
@@ -299,7 +301,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.69</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.70</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
@@ -309,6 +311,7 @@
   <script src="solution-validator.js?v=20260927-1"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
   <script src="result-review.js?v=20260927-1"></script>
+  <script src="sample-results.js?v=20260927-1"></script>
   <script src="app.js?v=20260927-10"></script>
   <script src="project-store.js?v=20260927-1"></script>
 </body>

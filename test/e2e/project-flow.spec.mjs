@@ -312,14 +312,19 @@ test('the product input can be folded and the whole left column hidden to widen 
   await page.locator('#togglePanel').click();await expect(page.locator('#controlPanel')).toBeVisible();
 });
 
-test('the sample results preview compares the three safety levels side by side',async({page})=>{
-  await page.goto('/');await expect(page.locator('.topbar nav a[href="sample-results.html"]')).toHaveText('샘플 결과');
-  await page.goto('/sample-results.html');
-  await expect(page.locator('section.sample')).toHaveCount(20);
-  // 샘플마다 적재량 우선·기본·CTU 세 칸의 머리글과 컨테이너 그림이 있다.
-  const first=page.locator('#s1');
-  await expect(first.locator('.col-head')).toHaveCount(3);await expect(first.locator('.col-head').nth(2)).toContainText('CTU 기준 적용');
-  await expect(first.locator('.shot img').first()).toHaveAttribute('src',/sample-results\/img\/s01-standard-1\.jpg/);
-  await page.locator('button[data-cat="원통"]').click();
-  await expect(page.locator('section.sample:not([hidden])')).toHaveCount(3);
+test('the sample results preview sits between the header and footer and compares the three safety levels',async({page})=>{
+  await page.goto('/');
+  const link=page.locator('.topbar nav a[href="#samples"]');await expect(link).toHaveText('샘플 결과');
+  await link.click();
+  await expect(page.locator('#samplesView')).toBeVisible();await expect(page.locator('#planner')).toBeHidden();
+  await expect(page.locator('.topbar')).toBeVisible();await expect(page.locator('.site-footer')).toBeVisible();await expect(link).toHaveClass(/active/);
+  await expect(page.locator('#samplesView section.sv-sample')).toHaveCount(20);
+  const first=page.locator('#samples-1');
+  await expect(first.locator('.sv-col-head')).toHaveCount(3);await expect(first.locator('.sv-col-head').nth(2)).toContainText('CTU 기준 적용');
+  await expect(first.locator('.sv-shot img').first()).toHaveAttribute('src',/sample-results\/img\/s01-standard-1\.jpg/);
+  await page.locator('#svToolbar button[data-cat="원통"]').click();
+  await expect(page.locator('#samplesView section.sv-sample:not([hidden])')).toHaveCount(3);
+  // 적재 플래너로 돌아오면 플래너가 다시 보이고, 예전 주소(sample-results.html)는 샘플 결과로 넘어간다.
+  await page.locator('.topbar nav a[href="#planner"]').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();
+  await page.goto('/sample-results.html');await expect(page).toHaveURL(/#samples$/);await expect(page.locator('#samplesView')).toBeVisible();
 });

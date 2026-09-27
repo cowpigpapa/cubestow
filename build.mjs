@@ -12,6 +12,8 @@ await cp("vendor/xlsx.full.min.js", "dist/client/vendor/xlsx.full.min.js");
 await cp("vendor/supabase.js", "dist/client/vendor/supabase.js");
 await cp("public/og.png", "dist/client/og.png");
 await cp("sample-results.html", "dist/client/sample-results.html");
+await cp("sample-results.js", "dist/client/sample-results.js");
+await cp("sample-results.css", "dist/client/sample-results.css");
 await cp("sample-results", "dist/client/sample-results", { recursive: true });
 
 const supabaseConfig = `window.LOADWISE_SUPABASE = ${JSON.stringify({url:process.env.SUPABASE_URL||'',publishableKey:process.env.SUPABASE_PUBLISHABLE_KEY||''})};\n`;
