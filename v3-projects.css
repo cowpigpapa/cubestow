@@ -503,3 +503,19 @@ button.collapse-toggle.title-toggle{margin-left:10px;vertical-align:middle;min-h
 .input-card.input-collapsed{margin-bottom:18px}
 button.collapse-toggle.title-toggle{width:auto;height:auto}
 button.collapse-toggle::after,.collapse-state::before{width:9px;height:9px;border-right-width:3px;border-bottom-width:3px}
+
+/* 접기·펼치기·불러오기 버튼 재구성(1.1.65): 같은 알약(높이 32px, 13px 굵게) + 오른쪽 삼각형(11×7px). 접기류는 흰 바탕·초록 테두리, 불러오기는 초록 채움. */
+.heading-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+button.collapse-toggle,.collapse-state,.load-menu>summary{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;height:32px!important;min-height:32px!important;padding:0 12px 0 14px!important;border:1.5px solid #9fc1ab!important;border-radius:999px!important;background:#fff!important;color:#16734f!important;font:700 13px/1 Inter,"Noto Sans KR",sans-serif!important;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+button.collapse-toggle:hover,.collapsible-card>summary:hover .collapse-state{background:#eef6f1!important;border-color:#16734f!important}
+.load-menu>summary{background:#16734f!important;border-color:#16734f!important;color:#fff!important}
+.load-menu>summary:hover,.load-menu[open]>summary{background:#0f5a3d!important;border-color:#0f5a3d!important;color:#fff!important}
+/* 삼각형: 닫힘 ▼, 열림 ▲ */
+button.collapse-toggle::after,.collapse-state::before,.load-menu>summary::after{content:""!important;flex:0 0 auto;width:0!important;height:0!important;border:0!important;border-left:5.5px solid transparent!important;border-right:5.5px solid transparent!important;border-top:7px solid currentColor!important;border-bottom:0!important;transform:none!important;opacity:1!important;margin:0!important;font-size:0!important}
+button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .collapse-state::before,.load-menu[open]>summary::after{border-top:0!important;border-bottom:7px solid currentColor!important}
+.collapse-state::before{order:2}
+.collapse-state::after{font:700 13px/1 Inter,"Noto Sans KR",sans-serif!important}
+.input-card .control-heading{align-items:center}
+/* 왼쪽 칸 손잡이: 꺾쇠 유지, 접기 버튼과 구분되게 짙은 바탕 + 흰 꺾쇠 */
+.panel-toggle{background:#24302b!important;border-color:#24302b!important;color:#fff!important;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.panel-toggle:hover{background:#16734f!important;border-color:#16734f!important}
