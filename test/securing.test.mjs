@@ -151,3 +151,27 @@ test('heavy cable drums sit in the middle with nailed beams at both ends, and th
   assert.equal(road.loads.length,2);
   assert.ok(road.loads.every(l=>l.totalWeight<=21000));
 });
+
+test('a drum row with gaps to both walls gets a timber spacer on one side and an airbag on the other',()=>{
+  // 사용자 제안(2026-09-27, 샘플 14): 한쪽은 스페이서로 벽과 맞버티고 반대쪽은 에어백으로 민다.
+  const sample=context.__samples[14],container=context.__containers[sample.container];
+  const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const load=context.LoadwiseEngine.packShipment({container,units:items,safety:'secure',transportMode:sample.mode,timeBudgetMs:8000}).loads[0];
+  const plan=context.__plan(load,sample.mode,undefined,'secure');
+  assert.ok(plan.dunnage.some(d=>d.kind==='spacer'&&/맞버팀/.test(d.location)),'timber spacer on one side');
+  const leftBags=plan.airbags.filter(a=>a.y<1),rightBags=plan.airbags.filter(a=>a.y+a.w>container.w-1);
+  assert.equal(leftBags.length,0,'no airbag on the spacer side');
+  assert.ok(rightBags.length>0,'airbags on the opposite side');
+});
+
+test('the half-filled pallet row goes to the door, so no filler or spacer sits in the middle of the container',()=>{
+  // 사용자 지적(2026-09-27, 샘플 17): 컨테이너 중간의 스페이서·충전재를 문쪽으로 빼 달라.
+  const sample=context.__samples[17],container=context.__containers[sample.container];
+  const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  for(const safety of ['strict','standard','secure']){
+    const load=context.LoadwiseEngine.packShipment({container,units:items,safety,transportMode:sample.mode,timeBudgetMs:8000}).loads[0];
+    const plan=context.__plan(load,sample.mode,undefined,safety);
+    const middle=plan.dunnage.filter(d=>(d.kind==='filler'||d.kind==='spacer')&&d.x>1500&&d.x+d.l<container.l-300);
+    assert.equal(middle.length,0,`${safety}: ${middle.map(d=>d.location).join(' | ')}`);
+  }
+});

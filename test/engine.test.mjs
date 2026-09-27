@@ -76,7 +76,8 @@ test('balance preference keeps a uniform load against the inner wall without a d
 
 test('reordering independent slices centers heavy cargo without losing the inner wall',()=>{
   const items=[...units(6,{name:'heavy',l:1200,w:1000,h:1000,weight:1200}),...units(12,{name:'light',l:1000,w:1000,h:1100,weight:40},6)].map((u,i)=>({...u,pi:i<6?0:1}));
-  const result=pack(items,{safety:'standard'}),load=result.loads[0],ctu=context.LoadwiseInsights.ctu(load);
+  // 무게중심 우선에서 확인한다. 추천은 위험이 아니면 빈 곳이 문쪽에 모인 배치를 먼저 고르므로(1.1.61) 주의 수준 편차를 받아들일 수 있다.
+  const result=pack(items,{safety:'standard',preference:'balance'}),load=result.loads[0],ctu=context.LoadwiseInsights.ctu(load);
   assert.equal(result.loads.length,1);assert.equal(result.remaining.length,0);
   // 무거운 화물을 안쪽 벽에 몰아 두면 앞뒤 편차가 15%를 넘는다. 슬라이스 순서를 바꾸면 5% 안으로 들어온다.
   assert.ok(Math.abs(ctu.xOffset)<=5&&Math.abs(ctu.yOffset)<=5,`x ${ctu.xOffset} y ${ctu.yOffset}`);

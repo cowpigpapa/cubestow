@@ -3,7 +3,7 @@
 (function(root){
   'use strict';
 
-  const ENGINE_VERSION='ep-lex-portfolio-2026.10.27';
+  const ENGINE_VERSION='ep-lex-portfolio-2026.10.28';
   const TOL=2;
   const MAX_CONTAINERS=50;
   const ORDER_COUNT=4;
@@ -896,6 +896,9 @@
       // 바닥 화물 옆 틈에 필요한 고정재 양: 열린 옆면마다 에어백 1개 + 에어백 한계(500mm)를 넘는 틈 250mm마다 충전재 1단위.
       // 같은 조건이면 고정재가 적게 드는 배치(보통 벽에 붙은 배치, 틈이 크면 가운데 배치)를 고른다(사용자 결정 2026-09-27).
       sideGaps:(()=>{const c=load.container,floor=load.placed.filter(p=>p.z<=TOL);let need=0;for(const p of floor){let left=p.y,right=c.w-(p.y+p.w);for(const q of floor){if(q===p||Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)<=p.l*.3)continue;if(q.y+q.w<=p.y+TOL)left=Math.min(left,p.y-(q.y+q.w));else if(q.y>=p.y+p.w-TOL)right=Math.min(right,q.y-(p.y+p.w))}for(const g of [left,right])if(g>50)need+=1+Math.max(0,g-500)/250}return Math.round(need)})(),
+      // 안쪽에 갇힌 바닥 빈 곳(문쪽에 화물이 있는 빈 칸)의 넓이, 0.75m² 단위(작은 틈은 무시). 추천은 위험만 피하면 빈 곳이 문쪽에 모인 배치를 먼저 고른다
+      // (현장: 꽉 찬 줄을 안쪽부터, 모자란 줄은 문쪽에. 샘플 17 음료 팔레트 사용자 지적 2026-09-27).
+      innerVoid:(()=>{const c=load.container,cell=100,nx=Math.ceil(c.l/cell),ny=Math.ceil(c.w/cell),cov=new Uint8Array(nx*ny);for(const p of load.placed){if(p.z>TOL)continue;for(let i=Math.floor(p.x/cell),ie=Math.ceil((p.x+p.l)/cell);i<ie;i++)for(let j=Math.floor(p.y/cell),je=Math.ceil((p.y+p.w)/cell);j<je;j++)cov[i*ny+j]=1}let cells=0;for(let j=0;j<ny;j++){let seen=false;for(let i=0;i<nx;i++){if(cov[i*ny+j])seen=true;else if(seen)cells++}}return Math.floor(cells*cell*cell/7.5e5)})(),
       bigDoor:(()=>{let num=0,den=0;for(const p of load.placed){const v=(p.l*p.w*p.h)**2;num+=v*(1-(p.x+p.l/2)/load.container.l);den+=v}return den?Math.round(num/den*50)/50:0})(),
       span
     };
@@ -907,7 +910,7 @@
       case 'density':return[m.span,m.ctuLevel,m.lateralLevel,m.reviews,m.sideGaps,m.maxOffset];
       case 'width':return[m.reviews,m.ctuLevel,m.lateralLevel,m.span,m.maxOffset];
       case 'balance':return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.maxOffset,m.reviews,m.sideGaps,m.span];
-      default:return[m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.bigDoor,m.sideGaps,m.maxOffset,m.span];
+      default:return[m.ctuLevel===2?1:0,m.innerVoid,m.ctuLevel,m.lateralLevel,m.longitudinal,m.reviews,m.ctuExcess,m.bigDoor,m.sideGaps,m.maxOffset,m.span];
     }
   }
 
@@ -1050,6 +1053,7 @@
   function offerLoad(ctx,state,load){
     if(!sidesHold(load))return false;
     const key=containerKey(load,ctx);
+    if(!load.rejected.length&&load.metrics.ctuLevel===0)state.sawSafe=true;
     if(!state.best||compareKeys(key,state.bestKey)<0){state.best=load;state.bestKey=key;return true}
     return false;
   }
@@ -1076,8 +1080,8 @@
       if(best&&volumeOf(raw.placed)<best.volume-1e-6)continue;
       const shifted=rebalanceSlices(ctx,raw),sources=[raw,shifted,mirrorLoad(ctx,raw),shifted&&mirrorLoad(ctx,shifted)].filter(Boolean);
       for(const source of sources)for(const centered of CENTER_VARIANTS)offerLoad(ctx,state,finalizeLoad(ctx.c,source,centered));
-      // 남은 화물을 모두 실었고 CTU 사전검사가 양호하면 다른 배치안이 더 나을 수 없으므로 멈춘다.
-      if(state.best&&!state.best.rejected.length&&state.best.metrics.ctuLevel===0){stats.settled=(stats.settled||0)+1;break}
+      // 남은 화물을 모두 싣고 CTU 사전검사가 양호한 안이 한 번이라도 나오면 멈춘다(계산량은 예전과 같다). 그중 무엇을 쓸지는 비교 키로 고른다.
+      if(state.sawSafe){stats.settled=(stats.settled||0)+1;break}
     }
   }
   // CTU 기준에서 화물이 남으면 기본 기준 배치를 출발점으로 삼는다: 기본 기준으로 가볍게 여러 안을 만들고,
