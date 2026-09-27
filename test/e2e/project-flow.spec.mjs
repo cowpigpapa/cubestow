@@ -324,6 +324,11 @@ test('the sample results preview sits between the header and footer and compares
   await expect(first.locator('.sv-shot img').first()).toHaveAttribute('src',/sample-results\/img\/s01-standard-1\.jpg/);
   await page.locator('#svToolbar button[data-cat="원통"]').click();
   await expect(page.locator('#samplesView section.sv-sample:not([hidden])')).toHaveCount(3);
+  // 고른 분류에 없는 번호 바로가기는 비활성으로 표시된다.
+  await expect(page.locator('#svToolbar a[data-jump]:not(.is-off)')).toHaveCount(3);
+  await expect(page.locator('#svToolbar a[data-jump="1"]')).toHaveAttribute('aria-disabled','true');
+  await page.locator('#svToolbar button[data-cat="전체"]').click();
+  await expect(page.locator('#svToolbar a[data-jump].is-off')).toHaveCount(0);
   // 적재 플래너로 돌아오면 플래너가 다시 보이고, 예전 주소(sample-results.html)는 샘플 결과로 넘어간다.
   await page.locator('.topbar nav a[href="#planner"]').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();
   await page.goto('/sample-results.html');await expect(page).toHaveURL(/#samples$/);await expect(page.locator('#samplesView')).toBeVisible();

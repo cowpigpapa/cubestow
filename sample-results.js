@@ -32,9 +32,11 @@
       return `<section class="sv-sample" id="samples-${s.id}" data-cat="${esc(s.category)}"><div class="sv-s-head"><h3><span class="sv-no">${s.id}</span>${esc(s.name)}</h3><span class="sv-tag">${esc(s.category)}</span><span class="sv-tag">${esc(s.container)}</span><span class="sv-tag">${esc(s.transport)}</span></div>
         <p class="sv-desc">${esc(s.description)}</p><p class="sv-products">${s.products.map(p=>`${esc(p.name)} ${p.qty}개(${esc(p.size)}mm, ${p.weight}kg${p.shape==='cylinder'?', 원통':''})`).join(' · ')}</p>${diffLine(data,s)}
         <div class="sv-compare">${data.modes.map((m,i)=>rs[i]?head(m,rs[i]):`<div class="sv-col-head ${m.key}"><b>${esc(m.label)}</b>결과 없음</div>`).join('')}${Array.from({length:rows},(_,k)=>data.modes.map((m,i)=>rs[i]?cell(m,rs[i],k):'<div></div>').join('')).join('')}</div></section>`}).join('');
-    toolbar.addEventListener('click',e=>{const b=e.target.closest('button[data-cat]');if(b){toolbar.querySelectorAll('button[data-cat]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));list.querySelectorAll('section.sv-sample').forEach(sec=>sec.hidden=b.dataset.cat!=='전체'&&sec.dataset.cat!==b.dataset.cat);return}
+    toolbar.addEventListener('click',e=>{const b=e.target.closest('button[data-cat]');if(b){toolbar.querySelectorAll('button[data-cat]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));list.querySelectorAll('section.sv-sample').forEach(sec=>{sec.hidden=b.dataset.cat!=='전체'&&sec.dataset.cat!==b.dataset.cat;
+        // 고른 분류에 없는 번호는 흐리게 하고 누를 수 없게 한다.
+        const link=toolbar.querySelector(`a[data-jump="${sec.id.replace('samples-','')}"]`);if(link){link.classList.toggle('is-off',sec.hidden);link.setAttribute('aria-disabled',String(sec.hidden));link.tabIndex=sec.hidden?-1:0}});return}
       // 번호 바로가기는 주소(#samples)를 바꾸지 않고 스크롤만 한다.
-      const a=e.target.closest('a[data-jump]');if(a){e.preventDefault();view.querySelector(`#samples-${a.dataset.jump}`)?.scrollIntoView({behavior:'smooth',block:'start'})}});
+      const a=e.target.closest('a[data-jump]');if(a){e.preventDefault();if(a.classList.contains('is-off'))return;view.querySelector(`#samples-${a.dataset.jump}`)?.scrollIntoView({behavior:'smooth',block:'start'})}});
     const zoom=view.querySelector('#svZoom');
     list.addEventListener('click',e=>{const img=e.target.closest('.sv-shot img');if(!img)return;zoom.querySelector('img').src=img.src;zoom.querySelector('p').textContent=`${img.closest('section').querySelector('h3').textContent} · ${img.dataset.caption}`;zoom.showModal()});
     zoom.addEventListener('click',()=>zoom.close());
