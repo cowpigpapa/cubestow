@@ -1,6 +1,6 @@
 {
- "generatedAt": "2026-09-27T13:16:32.191Z",
- "appVersion": "1.1.68",
+ "generatedAt": "2026-09-27T15:25:44.111Z",
+ "appVersion": "1.1.72",
  "engine": "ep-lex-portfolio-2026.10.28",
  "modes": [
   {
@@ -76,6 +76,9 @@
      ],
      "images": [
       "img/s01-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s01-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -99,6 +102,9 @@
      ],
      "images": [
       "img/s01-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s01-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -122,6 +128,9 @@
      ],
      "images": [
       "img/s01-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s01-secure-1-back.jpg"
      ]
     }
    }
@@ -166,6 +175,9 @@
      ],
      "images": [
       "img/s02-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s02-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -191,6 +203,9 @@
      ],
      "images": [
       "img/s02-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s02-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -214,6 +229,9 @@
      ],
      "images": [
       "img/s02-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s02-secure-1-back.jpg"
      ]
     }
    }
@@ -273,6 +291,9 @@
      ],
      "images": [
       "img/s03-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s03-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -296,6 +317,9 @@
      ],
      "images": [
       "img/s03-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s03-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -321,6 +345,9 @@
      ],
      "images": [
       "img/s03-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s03-secure-1-back.jpg"
      ]
     }
    }
@@ -363,6 +390,9 @@
      ],
      "images": [
       "img/s04-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s04-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -386,6 +416,9 @@
      ],
      "images": [
       "img/s04-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s04-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -409,6 +442,9 @@
      ],
      "images": [
       "img/s04-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s04-secure-1-back.jpg"
      ]
     }
    }
@@ -458,6 +494,9 @@
      ],
      "images": [
       "img/s05-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s05-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -494,6 +533,10 @@
      "images": [
       "img/s05-strict-1.jpg",
       "img/s05-strict-2.jpg"
+     ],
+     "backImages": [
+      "img/s05-strict-1-back.jpg",
+      "img/s05-strict-2-back.jpg"
      ]
     },
     "secure": {
@@ -530,6 +573,10 @@
      "images": [
       "img/s05-secure-1.jpg",
       "img/s05-secure-2.jpg"
+     ],
+     "backImages": [
+      "img/s05-secure-1-back.jpg",
+      "img/s05-secure-2-back.jpg"
      ]
     }
    }
@@ -581,6 +628,9 @@
      ],
      "images": [
       "img/s06-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s06-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -618,6 +668,10 @@
      "images": [
       "img/s06-strict-1.jpg",
       "img/s06-strict-2.jpg"
+     ],
+     "backImages": [
+      "img/s06-strict-1-back.jpg",
+      "img/s06-strict-2-back.jpg"
      ]
     },
     "secure": {
@@ -657,6 +711,10 @@
      "images": [
       "img/s06-secure-1.jpg",
       "img/s06-secure-2.jpg"
+     ],
+     "backImages": [
+      "img/s06-secure-1-back.jpg",
+      "img/s06-secure-2-back.jpg"
      ]
     }
    }
@@ -724,6 +782,9 @@
      ],
      "images": [
       "img/s07-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s07-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -763,6 +824,10 @@
      "images": [
       "img/s07-strict-1.jpg",
       "img/s07-strict-2.jpg"
+     ],
+     "backImages": [
+      "img/s07-strict-1-back.jpg",
+      "img/s07-strict-2-back.jpg"
      ]
     },
     "secure": {
@@ -800,6 +865,10 @@
      "images": [
       "img/s07-secure-1.jpg",
       "img/s07-secure-2.jpg"
+     ],
+     "backImages": [
+      "img/s07-secure-1-back.jpg",
+      "img/s07-secure-2-back.jpg"
      ]
     }
    }
@@ -859,6 +928,9 @@
      ],
      "images": [
       "img/s08-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s08-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -896,6 +968,10 @@
      "images": [
       "img/s08-strict-1.jpg",
       "img/s08-strict-2.jpg"
+     ],
+     "backImages": [
+      "img/s08-strict-1-back.jpg",
+      "img/s08-strict-2-back.jpg"
      ]
     },
     "secure": {
@@ -933,6 +1009,10 @@
      "images": [
       "img/s08-secure-1.jpg",
       "img/s08-secure-2.jpg"
+     ],
+     "backImages": [
+      "img/s08-secure-1-back.jpg",
+      "img/s08-secure-2-back.jpg"
      ]
     }
    }
@@ -992,6 +1072,9 @@
      ],
      "images": [
       "img/s09-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s09-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1015,6 +1098,9 @@
      ],
      "images": [
       "img/s09-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s09-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1038,6 +1124,9 @@
      ],
      "images": [
       "img/s09-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s09-secure-1-back.jpg"
      ]
     }
    }
@@ -1096,6 +1185,9 @@
      ],
      "images": [
       "img/s10-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s10-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1119,6 +1211,9 @@
      ],
      "images": [
       "img/s10-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s10-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1142,6 +1237,9 @@
      ],
      "images": [
       "img/s10-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s10-secure-1-back.jpg"
      ]
     }
    }
@@ -1187,6 +1285,9 @@
      ],
      "images": [
       "img/s11-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s11-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1213,6 +1314,9 @@
      ],
      "images": [
       "img/s11-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s11-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1239,6 +1343,9 @@
      ],
      "images": [
       "img/s11-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s11-secure-1-back.jpg"
      ]
     }
    }
@@ -1292,6 +1399,10 @@
      "images": [
       "img/s12-standard-1.jpg",
       "img/s12-standard-2.jpg"
+     ],
+     "backImages": [
+      "img/s12-standard-1-back.jpg",
+      "img/s12-standard-2-back.jpg"
      ]
     },
     "strict": {
@@ -1326,6 +1437,10 @@
      "images": [
       "img/s12-strict-1.jpg",
       "img/s12-strict-2.jpg"
+     ],
+     "backImages": [
+      "img/s12-strict-1-back.jpg",
+      "img/s12-strict-2-back.jpg"
      ]
     },
     "secure": {
@@ -1364,6 +1479,10 @@
      "images": [
       "img/s12-secure-1.jpg",
       "img/s12-secure-2.jpg"
+     ],
+     "backImages": [
+      "img/s12-secure-1-back.jpg",
+      "img/s12-secure-2-back.jpg"
      ]
     }
    }
@@ -1406,6 +1525,9 @@
      ],
      "images": [
       "img/s13-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s13-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1429,6 +1551,9 @@
      ],
      "images": [
       "img/s13-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s13-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1452,6 +1577,9 @@
      ],
      "images": [
       "img/s13-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s13-secure-1-back.jpg"
      ]
     }
    }
@@ -1494,6 +1622,9 @@
      ],
      "images": [
       "img/s14-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s14-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1517,6 +1648,9 @@
      ],
      "images": [
       "img/s14-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s14-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1540,6 +1674,9 @@
      ],
      "images": [
       "img/s14-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s14-secure-1-back.jpg"
      ]
     }
    }
@@ -1582,6 +1719,9 @@
      ],
      "images": [
       "img/s15-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s15-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1605,6 +1745,9 @@
      ],
      "images": [
       "img/s15-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s15-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1630,6 +1773,9 @@
      ],
      "images": [
       "img/s15-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s15-secure-1-back.jpg"
      ]
     }
    }
@@ -1674,6 +1820,9 @@
      ],
      "images": [
       "img/s16-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s16-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1699,6 +1848,9 @@
      ],
      "images": [
       "img/s16-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s16-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1724,6 +1876,9 @@
      ],
      "images": [
       "img/s16-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s16-secure-1-back.jpg"
      ]
     }
    }
@@ -1768,6 +1923,9 @@
      ],
      "images": [
       "img/s17-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s17-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1793,6 +1951,9 @@
      ],
      "images": [
       "img/s17-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s17-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1818,6 +1979,9 @@
      ],
      "images": [
       "img/s17-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s17-secure-1-back.jpg"
      ]
     }
    }
@@ -1913,6 +2077,9 @@
      ],
      "images": [
       "img/s18-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s18-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -1939,6 +2106,9 @@
      ],
      "images": [
       "img/s18-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s18-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -1977,6 +2147,10 @@
      "images": [
       "img/s18-secure-1.jpg",
       "img/s18-secure-2.jpg"
+     ],
+     "backImages": [
+      "img/s18-secure-1-back.jpg",
+      "img/s18-secure-2-back.jpg"
      ]
     }
    }
@@ -2029,6 +2203,9 @@
      ],
      "images": [
       "img/s19-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s19-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -2055,6 +2232,9 @@
      ],
      "images": [
       "img/s19-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s19-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -2080,6 +2260,9 @@
      ],
      "images": [
       "img/s19-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s19-secure-1-back.jpg"
      ]
     }
    }
@@ -2139,6 +2322,9 @@
      ],
      "images": [
       "img/s20-standard-1.jpg"
+     ],
+     "backImages": [
+      "img/s20-standard-1-back.jpg"
      ]
     },
     "strict": {
@@ -2165,6 +2351,9 @@
      ],
      "images": [
       "img/s20-strict-1.jpg"
+     ],
+     "backImages": [
+      "img/s20-strict-1-back.jpg"
      ]
     },
     "secure": {
@@ -2191,6 +2380,9 @@
      ],
      "images": [
       "img/s20-secure-1.jpg"
+     ],
+     "backImages": [
+      "img/s20-secure-1-back.jpg"
      ]
     }
    }

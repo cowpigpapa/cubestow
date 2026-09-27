@@ -1,6 +1,6 @@
 // 샘플 결과 미리보기(상단 메뉴 샘플 결과, #samples)에 쓰는 캡처를 다시 만든다.
 // 샘플 20개 × 안전 수준 3개(적재량 우선·기본·CTU 기준 적용)를 실제 화면으로 계산해 컨테이너마다 3D 화면을 JPEG로 찍고,
-// 결과 요약을 sample-results/manifest.json에 쓴다. 알고리즘이 바뀌면 `npm run samples:capture`로 다시 만든다.
+// 정반대 대각선(카메라를 180° 돌린 방향)에서도 한 장씩 더 찍어 결과 요약을 sample-results/manifest.json에 쓴다. 알고리즘이 바뀌면 `npm run samples:capture`로 다시 만든다.
 import { spawn } from 'node:child_process';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -63,12 +63,19 @@ try {
         };
       });
       if (info.safety !== safety) throw new Error(`sample ${sample.id}: expected ${safety}, got ${info.safety}`);
-      info.images = [];
+      info.images = []; info.backImages = [];
       for (let k = 0; k < info.containers.length; k++) {
         if (k > 0) { await settle(); await page.click('#nextContainerArrow'); await page.waitForTimeout(700); }
         const file = `img/s${String(sample.id).padStart(2, '0')}-${safety}-${k + 1}.jpg`;
         await page.locator('#canvasWrap').screenshot({ path: join(outDir, file), type: 'jpeg', quality: 78 });
         info.images.push(file);
+        // 반대쪽: 카메라를 180° 돌려 찍고 원래 방향으로 되돌린다.
+        const back = file.replace(/.jpg$/, '-back.jpg');
+        await page.evaluate(() => { camera.yaw += Math.PI; drawThree(); });
+        await page.waitForTimeout(250);
+        await page.locator('#canvasWrap').screenshot({ path: join(outDir, back), type: 'jpeg', quality: 78 });
+        await page.evaluate(() => { camera.yaw -= Math.PI; drawThree(); });
+        info.backImages.push(back);
       }
       (sample.results ||= {})[safety] = info;
       console.log(label, sample.id, `${info.containers.length}대`, info.unallocated ? `미적재 ${info.unallocated}` : '');

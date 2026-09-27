@@ -14,7 +14,7 @@
 
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
-- 현재 단계: Vercel 공개 베타 · 버전 1.1.71 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
+- 현재 단계: Vercel 공개 베타 · 버전 1.1.72 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
 - 서비스: https://cubestow.vercel.app/
 - 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
@@ -39,7 +39,7 @@
 - 안쪽부터 진행되는 단계별 적재 재생
 - Three.js 기반 3D·상면·문 기준·좌측면·우측면 보기
 - 전후·좌우 중량 배분, 무게중심 위치와 편차 판정
-- 샘플 결과 미리보기(상단 메뉴 샘플 결과, #samples): 샘플 20개를 적재량 우선·기본·CTU 기준 적용으로 계산한 3D 캡처와 요약을 나란히 비교. 알고리즘이 바뀌면 `npm run samples:capture`로 캡처와 manifest를 다시 만든다(tools/capture-sample-results.mjs)
+- 샘플 결과 미리보기(상단 메뉴 샘플 결과, #samples): 샘플 20개를 적재량 우선·기본·CTU 기준 적용으로 계산한 3D 캡처와 요약을 나란히 비교. 그림을 누르거나 전체 반대쪽 보기를 누르면 정반대 대각선에서 찍은 캡처로 바뀐다. 알고리즘이 바뀌면 `npm run samples:capture`로 캡처와 manifest를 다시 만든다(tools/capture-sample-results.mjs)
 - 규칙 기반 자동 평가(양호·주의·재검토 필요, 항목별 지적·고칠 방법)와 알고리즘 의심 결과의 관리자 점검 기록(Supabase algorithm_flags, 관리자만 열람·삭제)
 - CTU 중량배분 사전검사: 중심 편차, 수직 무게중심, 60-in-50 질량 집중도
 - 제품별 상부 허용하중과 접촉면 기반 누적 압축하중 검증
@@ -171,7 +171,7 @@ npm run samples:capture  # 샘플 결과 미리보기 캡처·요약 다시 만�
 
 ### 샘플 결과 갱신
 
-상단 메뉴 `샘플 결과`(주소 `#samples`)는 샘플 20개를 적재량 우선·기본·CTU 기준 적용으로 계산한 3D 캡처와 요약을 나란히 보여 준다. 화면은 `sample-results/manifest.json`을 읽어 그리므로, 알고리즘을 바꾼 뒤에는 `npm run samples:capture`를 실행하고(로컬 서버를 직접 띄워 몇 분 걸림) `sample-results/`를 함께 커밋·배포하면 된다. 캡처 머리에 앱 버전·엔진·날짜가 기록된다.
+상단 메뉴 `샘플 결과`(주소 `#samples`)는 샘플 20개를 적재량 우선·기본·CTU 기준 적용으로 계산한 3D 캡처와 요약을 나란히 보여 준다. 화면은 `sample-results/manifest.json`을 읽어 그리므로, 알고리즘을 바꾼 뒤에는 `npm run samples:capture`를 실행하고(로컬 서버를 직접 띄워 몇 분 걸림) `sample-results/`를 함께 커밋·배포하면 된다. 컨테이너마다 정면과 정반대 대각선(카메라 180°) 두 장을 찍는다. 캡처 머리에 앱 버전·엔진·날짜가 기록된다.
 
 주요 파일:
 

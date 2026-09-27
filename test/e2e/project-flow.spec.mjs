@@ -322,6 +322,16 @@ test('the sample results preview sits between the header and footer and compares
   const first=page.locator('#samples-1');
   await expect(first.locator('.sv-col-head')).toHaveCount(3);await expect(first.locator('.sv-col-head').nth(2)).toContainText('CTU 기준 적용');
   await expect(first.locator('.sv-shot img').first()).toHaveAttribute('src',/sample-results\/img\/s01-standard-1\.jpg/);
+  // 그림을 누르면 정반대 대각선 캡처로 바뀌고, 다시 누르면 정면으로 돌아온다. 확대 창은 없다.
+  const shot=first.locator('.sv-shot').first();
+  await shot.click();await expect(shot.locator('img')).toHaveAttribute('src',/s01-standard-1-back\.jpg/);await expect(shot.locator('.sv-dir')).toHaveText('반대쪽');
+  await expect(page.locator('dialog[open]')).toHaveCount(0);
+  await shot.click();await expect(shot.locator('img')).toHaveAttribute('src',/s01-standard-1\.jpg/);
+  // 전체 반대쪽 보기는 모든 그림을 한 번에 바꾼다.
+  await page.locator('#svFlipAll').click();
+  await expect(page.locator('#samplesView .sv-shot.can-flip:not(.is-back)')).toHaveCount(0);
+  await page.locator('#svFlipAll').click();
+  await expect(page.locator('#samplesView .sv-shot.is-back')).toHaveCount(0);
   await page.locator('#svToolbar button[data-cat="원통"]').click();
   await expect(page.locator('#samplesView section.sv-sample:not([hidden])')).toHaveCount(3);
   // 고른 분류에 없는 번호 바로가기는 비활성으로 표시된다.
