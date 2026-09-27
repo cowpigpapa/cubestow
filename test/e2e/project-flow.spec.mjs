@@ -350,6 +350,12 @@ test('the header menu stays visible on phones and every item fits the screen',as
   // 다섯 메뉴가 모두 화면 안에 들어오고 가로 스크롤이 생기지 않는다.
   const fit=await nav.evaluate(el=>({items:[...el.children].map(c=>{const b=c.getBoundingClientRect();return[b.left,b.right]}),width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
   expect(fit.items).toHaveLength(5);for(const[l,r]of fit.items){expect(l).toBeGreaterThanOrEqual(0);expect(r).toBeLessThanOrEqual(fit.width)}expect(fit.scroll).toBe(fit.width);
+  // 로그인한 긴 이메일도 헤더 첫 줄에 들어간다: 로고는 왼쪽, 베타 안내는 로고 바로 오른쪽, 계정은 오른쪽 끝.
+  await page.evaluate(()=>{document.getElementById('accountButton').hidden=true;document.getElementById('accountMenu').hidden=false;document.getElementById('accountIdentity').textContent='someone.longname@example.com'});
+  const head=await page.evaluate(()=>{const b=s=>document.querySelector(s).getBoundingClientRect();return{brand:b('.topbar .brand'),beta:b('.header-beta'),ident:b('#accountIdentity'),nav:b('.topbar nav'),width:document.documentElement.clientWidth}});
+  expect(head.brand.left).toBeLessThan(30);expect(head.beta.left).toBeGreaterThan(head.brand.right);expect(head.beta.left-head.brand.right).toBeLessThan(30);
+  expect(head.ident.right).toBeLessThanOrEqual(head.width);expect(head.ident.bottom).toBeLessThanOrEqual(head.nav.top);expect(head.ident.top).toBeLessThan(head.brand.bottom);
+  await expect(page.locator('meta[name="format-detection"]')).toHaveAttribute('content',/email=no/);
   await page.locator('.topbar nav a[href="#samples"]').click();await expect(page.locator('#samplesView')).toBeVisible();
   // 샘플 결과의 고정 툴바는 두 줄 헤더 바로 아래에 붙는다.
   await expect(page.locator('#samplesView section.sv-sample')).toHaveCount(20);

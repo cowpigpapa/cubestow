@@ -558,3 +558,16 @@ button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .colla
 }
 @media(min-width:481px) and (max-width:900px){.topbar nav{justify-content:center;gap:18px}}
 @media(max-width:480px){.topbar nav{justify-content:space-between;gap:0;padding:0 6px}.topbar nav>a,.topbar nav>button{padding:12px 5px;font-size:12px!important;letter-spacing:-.02em}}
+
+/* 모바일 헤더 한 줄 정렬(1.1.74): 로고는 PC처럼 왼쪽, 베타 안내는 로고 바로 오른쪽, 계정은 오른쪽 끝에 한 줄로. */
+@media(max-width:900px){
+  .topbar{column-gap:10px}
+  .topbar .brand{flex:0 0 auto;justify-content:flex-start;transform:none}
+  .topbar .brand-mark{display:flex}
+  .topbar .header-beta{margin:0 auto 0 10px;flex:0 0 auto}
+  .topbar .account-actions{margin-left:auto;min-width:0;flex:0 1 auto}
+  .topbar .account-menu{min-width:0}
+  .topbar .account-identity{display:block;max-width:min(190px,calc(100vw - 222px))}
+}
+/* iOS가 이메일을 자동으로 링크로 바꾸지 않게 한다. */
+.account-identity a,a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;pointer-events:none}
