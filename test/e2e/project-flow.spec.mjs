@@ -287,6 +287,8 @@ test('result summary shows the safety verdict and field results compare with the
   // 결과 요약: 안전 판정·꼭 필요한 고정재·확인할 항목이 지표 아래에 먼저 보인다.
   const summary=page.locator('#resultSummary');
   await expect(summary).toBeVisible();await expect(summary).toContainText('안전 판정');await expect(summary).toContainText('꼭 필요한 고정재');
+  // 자동 평가(규칙 기반): 등급과 항목이 결과 요약 아래에 보인다.
+  const review=page.locator('#autoReview');await expect(review).toBeVisible();await expect(review).toContainText('자동 평가');await expect(review.locator('.auto-review-head strong')).toHaveText(/양호|주의|재검토 필요/);await expect(review.locator('li').first()).toBeVisible();
   // 현장 결과를 기록하면 계획과의 차이를 보여 주고 프로젝트가 저장되지 않음 상태가 된다.
   await page.locator('#fieldPanel').evaluate(panel=>panel.open=true);
   await page.locator('#fieldLoaded').fill('30');await page.locator('#fieldContainers').fill('2');await page.locator('#fieldNotes').fill('문쪽 1열 재배치');

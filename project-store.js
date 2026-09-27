@@ -76,9 +76,26 @@
     $('adminList').innerHTML=admins.map(row=>`<span>${escapeHtml(row.email)}${row.email===user.email.toLowerCase()?' · 나':`<button type="button" data-revoke-admin="${escapeHtml(row.email)}">해제</button>`}</span>`).join('');
     $('accessList').innerHTML=access.length?access.map(row=>`<tr><td>${escapeHtml(row.email)}</td><td>${Number(row.project_count||0).toLocaleString()}</td><td>${Number(row.simulation_count||0).toLocaleString()}</td><td>${formatDate(row.first_seen_at)}</td><td>${formatDate(row.last_seen_at)}</td><td>${Number(row.visit_count).toLocaleString()}</td></tr>`).join(''):'<tr><td class="admin-empty" colspan="6">아직 로그인 사용자 접속 기록이 없습니다.</td></tr>';
     $('adminList').querySelectorAll('[data-revoke-admin]').forEach(button=>button.onclick=()=>revokeAdmin(button.dataset.revokeAdmin));if(!$('adminDialog').open)$('adminDialog').showModal();
+    loadAlgorithmFlags();
   }
   async function grantAdmin(){const email=$('adminEmail').value.trim().toLowerCase();if(!email||!$('adminEmail').checkValidity())return message('관리자로 등록할 올바른 이메일 주소를 입력해 주세요.',{title:'이메일을 확인해 주세요',tone:'warning'});const{error}=await client.rpc('grant_admin',{p_email:email});if(error)return message(error.message,{title:'관리자 권한을 추가하지 못했습니다',tone:'error'});$('adminEmail').value='';await openAdmin();message(`${email}에 관리자 권한을 부여했습니다.`,{title:'관리자 권한 추가 완료',tone:'success'})}
   async function revokeAdmin(email){if(!await message(`${email}의 관리자 권한을 해제합니다.`,{title:'관리자 권한을 해제할까요?',tone:'danger',confirmAction:true,actionLabel:'권한 해제'}))return;const{error}=await client.rpc('revoke_admin',{p_email:email});if(error)return message(error.message,{title:'관리자 권한을 해제하지 못했습니다',tone:'error'});await openAdmin()}
+  // 알고리즘 점검 기록: 자동 평가가 알고리즘을 의심한 결과를 브라우저 대기열에 넣고 Supabase(record_algorithm_flag)로 보낸다.
+  // 보내지 못한 기록(표가 아직 없거나 오프라인)은 대기열에 남겨 다음 계산 때 다시 보낸다. 읽기·삭제는 관리자만 할 수 있다.
+  const FLAG_QUEUE='loadwise.v3.algorithmFlags';
+  function readFlags(){try{const list=JSON.parse(localStorage.getItem(FLAG_QUEUE)||'[]');return Array.isArray(list)?list:[]}catch{return[]}}
+  function writeFlags(list){try{localStorage.setItem(FLAG_QUEUE,JSON.stringify(list.slice(-20)))}catch{}}
+  async function flushFlags(){if(!client)return;const queue=readFlags(),keep=[];for(const entry of queue){const{error}=await client.rpc('record_algorithm_flag',{p_app_version:entry.appVersion,p_engine:entry.engine,p_settings:entry.settings,p_flags:entry.flags,p_input:entry.input,p_fingerprint:entry.fingerprint});if(error){console.warn('algorithm flag not sent',error.message);keep.push(entry)}}writeFlags(keep)}
+  function recordAlgorithmFlag(entry){if(!entry?.fingerprint||!entry.flags?.length)return;const queue=readFlags().filter(e=>e.fingerprint!==entry.fingerprint);queue.push(entry);writeFlags(queue);flushFlags()}
+  const FLAG_NAMES={'validation':'검증 실패','empty-container':'빈 컨테이너','cog-danger':'무게배분 위험','not-flush':'첫 화물 미밀착','perch-in-ctu':'CTU 얹힘','tower-open':'높은 적층 열림','inner-void':'안쪽 빈 곳','filler-inside':'중간 충전재','many-airbags':'에어백 과다','thin-last':'마지막 컨테이너 소량'};
+  async function loadAlgorithmFlags(){
+    const box=$('algorithmFlagList');if(!box)return;
+    const{data,error}=await client.from('algorithm_flags').select('id,created_at,app_version,engine,settings,flags,input').order('created_at',{ascending:false}).limit(50);
+    if(error){box.innerHTML=`<tr><td class="admin-empty" colspan="5">점검 기록을 불러오지 못했습니다(${escapeHtml(error.message)}). Supabase에 algorithm_flags SQL을 적용했는지 확인하세요.</td></tr>`;return}
+    box.innerHTML=data.length?data.map(row=>`<tr><td>${formatDate(row.created_at)}</td><td>v${escapeHtml(row.app_version)}<br><small>${escapeHtml(row.engine)}</small></td><td>${escapeHtml([row.settings?.container,row.settings?.safety,row.settings?.preference,row.settings?.transportMode].filter(Boolean).join(' · '))}</td><td>${(row.flags||[]).map(item=>escapeHtml(FLAG_NAMES[item.code]||item.code)).join(', ')}</td><td><button type="button" data-flag-download="${row.id}">입력 받기</button> <button type="button" data-flag-delete="${row.id}">삭제</button></td></tr>`).join(''):'<tr><td class="admin-empty" colspan="5">아직 점검 기록이 없습니다.</td></tr>';
+    box.querySelectorAll('[data-flag-download]').forEach(button=>button.onclick=()=>{const row=data.find(r=>String(r.id)===button.dataset.flagDownload),blob=new Blob([JSON.stringify(row,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`cubestow-algorithm-flag-${row.id}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
+    box.querySelectorAll('[data-flag-delete]').forEach(button=>button.onclick=async()=>{if(!await message('이 점검 기록을 삭제합니다.',{title:'점검 기록을 삭제할까요?',tone:'danger',confirmAction:true,actionLabel:'삭제'}))return;const{error}=await client.from('algorithm_flags').delete().eq('id',button.dataset.flagDelete);if(error)return message(error.message,{title:'삭제하지 못했습니다',tone:'error'});loadAlgorithmFlags()});
+  }
   async function recordSimulation(){if(!user)return;const{error}=await client.rpc('record_simulation');if(error)console.error(error)}
   function renderAccount(){const signed=Boolean(user),button=$('accountButton'),menu=$('accountMenu');button.hidden=!configured||signed;button.textContent='로그인';menu.hidden=!signed;if(!signed)menu.open=false;$('adminButton').hidden=!isAdmin;$('accountIdentity').textContent=signed?user.email:'';$('accountIdentity').title=signed?(isAdmin?'관리자 계정':'클라우드 저장 계정'):'';$('localNotice').hidden=signed;$('localNotice').textContent=configured?'로그인 전에는 이 브라우저에만 저장됩니다.':'이 브라우저에만 저장됩니다.';if(signed&&$('accountDialog').open)$('accountDialog').close()}
   function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?'저장 날짜 없음':date.toLocaleString('ko-KR')}
@@ -88,5 +105,5 @@
     if(client){const{data}=await client.auth.getSession();user=data.session?.user||null;await syncAdminAccess();client.auth.onAuthStateChange((_event,session)=>{const next=session?.user||null;if(user?.id&&user.id!==next?.id){fresh(true);return}user=next;syncAdminAccess()})}
     renderAccount();showCurrent();state('저장되지 않음');trackVisitors();
   }
-  window.loadwiseStorage={markDirty,suggestName,detach};window.addEventListener('loadwise:simulation-complete',recordSimulation);window.addEventListener('DOMContentLoaded',init);
+  window.loadwiseStorage={markDirty,suggestName,detach,recordAlgorithmFlag};window.addEventListener('loadwise:simulation-complete',recordSimulation);window.addEventListener('DOMContentLoaded',init);
 })();

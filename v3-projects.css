@@ -456,3 +456,15 @@ details.menu>summary[aria-label]::after{content:""}
 .chip-group>button{font-size:13px}
 #inputHint,#productCount,.calc-time{font-size:12.5px}
 @media(max-width:640px){.chip-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.chip-group>button{font-size:12.5px;padding-left:4px;padding-right:4px;justify-content:center;white-space:nowrap;gap:4px}}
+
+/* 자동 평가 카드 */
+.auto-review{margin-top:12px;padding:14px 16px;border:1px solid #d9e4dc;border-left:4px solid #16734f;border-radius:12px;background:#fff}
+.auto-review[data-grade="warn"]{border-left-color:#c77700}.auto-review[data-grade="bad"]{border-left-color:#b3261e}
+.auto-review-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.auto-review-head span{font-size:12.5px;color:#4f5752;font-weight:600}.auto-review-head strong{font-size:16px}.auto-review-head small{font-size:12px;color:#6b736e}
+.auto-review[data-grade="ok"] .auto-review-head strong{color:#16734f}.auto-review[data-grade="warn"] .auto-review-head strong{color:#9a5b00}.auto-review[data-grade="bad"] .auto-review-head strong{color:#b3261e}
+.auto-review ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.auto-review li{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:9px;background:#f6f8f6;font-size:13px;line-height:1.5}
+.auto-review li i{flex:0 0 20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:#16734f}
+.auto-review li[data-level="info"] i{background:#4a6fa5}.auto-review li[data-level="warn"] i{background:#c77700}.auto-review li[data-level="bad"] i{background:#b3261e}
+.auto-review li b{display:block}.auto-review li span{display:block;color:#4f5752}.auto-review li em{display:block;font-style:normal;color:#16734f;font-weight:600}
+.auto-review-flag{margin:10px 0 0;font-size:12px;color:#6b736e}

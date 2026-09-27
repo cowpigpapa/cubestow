@@ -428,8 +428,28 @@ function saveFieldResult(){
   window.loadwiseStorage?.markDirty();renderFieldResult();
 }
 // 결과 요약: 이 컨테이너의 안전 판정, 꼭 필요한 고정재 3가지, 현장에서 확인할 항목. 자세한 내용은 아래 카드에 있다.
+// 자동 평가 카드(규칙 기반, AI 아님). 출하 전체를 점검해 등급과 항목별 지적·고칠 방법을 보여 준다.
+function renderAutoReview(){
+  const el=$('autoReview');if(!el)return;
+  if(!shipment||!window.LoadwiseReview){el.hidden=true;el.innerHTML='';return}
+  const r=LoadwiseReview.review(shipment),icon={ok:'✓',info:'i',warn:'!',bad:'✕'};
+  el.hidden=false;el.dataset.grade=r.grade.key;
+  el.innerHTML=`<div class="auto-review-head"><span>자동 평가</span><strong>${r.grade.label}</strong><small>규칙 기반 점검 · 같은 결과면 같은 평가</small></div>`+
+    `<ul>${r.items.map(it=>`<li data-level="${it.level}"><i aria-hidden="true">${icon[it.level]}</i><div><b>${esc(it.title)}</b>${it.detail?`<span>${esc(it.detail)}</span>`:''}${it.fix?`<em>${esc(it.fix)}</em>`:''}</div></li>`).join('')}</ul>`+
+    (r.anomalies.length?`<p class="auto-review-flag">알고리즘 개선을 위해 이 결과를 점검 기록으로 남겼습니다(${r.anomalies.length}건).</p>`:'');
+}
+// 계산이 끝날 때 한 번: 알고리즘이 의심되는 결과면 입력·조건·지적을 점검 기록으로 보낸다(관리자만 열람).
+function recordReviewFlags(){
+  if(!shipment||!window.LoadwiseReview||!window.loadwiseStorage?.recordAlgorithmFlag)return;
+  const r=LoadwiseReview.review(shipment);if(!r.anomalies.length)return;
+  const settings={container:shipment.containerKey,safety:shipment.safety,preference:shipment.preference,transportMode:shipment.transportMode,securing:{...securingOptions}};
+  const input={products:products.map(p=>({name:p.name,group:p.group,shape:p.shape,l:p.l,w:p.w,h:p.h,weight:p.weight,qty:p.qty,rotate:p.rotate,fragile:p.fragile,maxTopLoadKg:p.maxTopLoadKg}))};
+  const engine=shipment.engine||LoadwiseEngine.ENGINE_VERSION,appVersion=($('appVersion')?.textContent||'').replace(/^v/,'');
+  window.loadwiseStorage.recordAlgorithmFlag({appVersion,engine,settings,flags:r.anomalies,input,fingerprint:LoadwiseReview.fingerprint({engine,settings,input,codes:r.anomalies.map(a=>a.code)})});
+}
+if(typeof window!=='undefined')window.addEventListener('loadwise:simulation-complete',recordReviewFlags);
 function renderResultSummary(){
-  const el=$('resultSummary');if(!el)return;
+  const el=$('resultSummary');if(!el)return;renderAutoReview();
   if(!result||!result.placed.length){el.hidden=true;el.innerHTML='';return}
   const ctu=LoadwiseInsights.ctu(result),plan=result.securing||{dunnage:[],airbags:[],reviews:[]},safety=LoadwiseEngine.SAFETY_LEVELS[shipment?.safety||$('safetyLevel').value]?.label||'기본';
   const level=ctu?.level||'safe',levelText={safe:'양호',caution:'주의',danger:'위험'}[level];

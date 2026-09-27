@@ -34,3 +34,18 @@ test('daily and total visitor counts use one atomic daily visit rule',()=>{
   assert.match(visitorSql,/greatest\(visitor_counts\.count[\s\S]+daily_count\)/i);
   assert.match(visitorSql,/grant execute on function public\.get_visit_counts\(text, boolean\) to anon, authenticated/i);
 });
+
+test('algorithm flags can be recorded by anyone through a checked function but only admins read or delete them',async()=>{
+  const flagSql=await readFile(new URL('../supabase/migrations/20260927090000_add_algorithm_flags.sql',import.meta.url),'utf8');
+  assert.match(flagSql,/alter table public\.algorithm_flags enable row level security/i);
+  assert.match(flagSql,/for select to authenticated using \(\(select public\.is_admin\(\)\)\)/i);
+  assert.match(flagSql,/for delete to authenticated using \(\(select public\.is_admin\(\)\)\)/i);
+  assert.match(flagSql,/create or replace function public\.record_algorithm_flag[\s\S]+security definer/i);
+  assert.match(flagSql,/payload too large/i);
+  assert.match(flagSql,/on conflict \(fingerprint\) do nothing/i);
+  assert.match(flagSql,/grant execute on function public\.record_algorithm_flag\(text, text, jsonb, jsonb, jsonb, text\) to anon, authenticated/i);
+  // 테이블 자체에는 insert 권한을 주지 않는다(함수로만 기록).
+  assert.doesNotMatch(flagSql,/grant[^;]*insert[^;]*algorithm_flags/i);
+  const schema=await readFile(new URL('../supabase-schema.sql',import.meta.url),'utf8');
+  assert.match(schema,/public\.algorithm_flags/);
+});
