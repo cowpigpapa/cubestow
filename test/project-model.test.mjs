@@ -8,7 +8,7 @@ const model=context.LoadwiseProjectModel;
 
 test('manual and file products share one normalized model',()=>{
   const snapshot=model.createSnapshot([{name:'펌프',group:'기계',shape:'box',qty:'2',l:'1000',w:'800',h:'700',weight:'120',source:'excel'}],'40hc',{safety:'strict',preference:'auto'});
-  assert.deepEqual(JSON.parse(JSON.stringify(snapshot)),{schemaVersion:5,algorithmVersion:'legacy',products:[{name:'펌프',group:'기계',shape:'box',qty:2,l:1000,w:800,h:700,weight:120,maxTopLoadKg:null,rotate:false,fragile:false,source:'excel'}],containerType:'40hc',safety:'strict',preference:'auto',transportMode:'combined',securing:{airbag:true,filler:true,nails:true,lashing:true},resultSummary:null,fieldResult:null});
+  assert.deepEqual(JSON.parse(JSON.stringify(snapshot)),{schemaVersion:5,algorithmVersion:'legacy',products:[{name:'펌프',group:'기계',shape:'box',qty:2,l:1000,w:800,h:700,weight:120,maxTopLoadKg:null,rotate:false,fragile:false,source:'excel'}],containerType:'40hc',safety:'strict',preference:'auto',transportMode:'combined',securing:{airbag:true,filler:true,nails:true,lashing:true,friction:'unknown',lashingMsl:2000,anchors:'iso'},resultSummary:null,fieldResult:null});
 });
 
 test('legacy snapshots migrate and current metadata is preserved',()=>{

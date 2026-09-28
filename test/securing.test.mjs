@@ -175,3 +175,32 @@ test('the half-filled pallet row goes to the door, so no filler or spacer sits i
     assert.equal(middle.length,0,`${safety}: ${middle.map(d=>d.location).join(' | ')}`);
   }
 });
+
+test('lashing counts follow the CTU quick lashing guide C table, the lashing MSL and the container lashing points',()=>{
+  vm.runInContext('globalThis.__lash={count:lashingCount,capacity:lashingCapacityKg,pull:doorPull}',context);
+  const {count,capacity,pull}=context.__lash;
+  // 표 값 그대로(마찰 0.3, 웨빙 MSL 2,000daN, 고정점 확인): 스프링 1줄 앞 6.1t, 하프루프 한 쌍 옆 4.3t
+  assert.equal(capacity('long',{anchors:'rated'}),6100);assert.equal(capacity('side',{anchors:'rated'}),4300);
+  // 마찰이 크면 더 많이 막고(0.45 → 8.3t), MSL은 비례한다(4,000daN → 두 배)
+  assert.equal(capacity('long',{anchors:'rated',friction:'wood-pallet'}),8300);
+  assert.equal(capacity('long',{anchors:'rated',lashingMsl:4000}),12200);
+  // 고정점 표시를 확인하지 않으면 ISO 1496-1 최소값: 위쪽 고리 500daN, 바닥 1,000daN까지만 래싱에 맡긴다
+  assert.equal(capacity('long',{},true),1525);assert.equal(capacity('side',{},false),2150);
+  assert.equal(count(6100,'long',{anchors:'rated'}),1);assert.equal(count(6100,'long',{},true),4);
+  // 기름기·슬립시트(마찰 0.1)는 문쪽으로 막아야 할 가속도가 커진다
+  assert.ok(pull('road',.1)>pull('road',.3));
+  const sample=context.__samples[3],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
+  const load=context.LoadwiseEngine.packShipment({container:context.__containers[sample.container],units:items,safety:'strict',transportMode:sample.mode,timeBudgetMs:60000}).loads[0];
+  const base={airbag:true,filler:true,nails:true,lashing:true};
+  const iso=context.__plan(load,sample.mode,{...base,anchors:'iso'}),rated=context.__plan(load,sample.mode,{...base,anchors:'rated'});
+  const straps=plan=>plan.dunnage.filter(d=>d.kind==='lashing').reduce((s,d)=>s+d.straps,0);
+  assert.ok(straps(iso)>=straps(rated));
+  for(const d of iso.dunnage.filter(d=>d.kind==='lashing'))assert.equal(d.straps,count(d.mass,'long',{},d.upperPoint),'ISO 최소 고정점 기준 줄 수');
+  for(const d of rated.dunnage.filter(d=>d.kind==='lashing'))assert.equal(d.straps,count(d.mass,'long',{anchors:'rated'}));
+  // 무거운 윗단(3t)은 표시 확인 1줄, ISO 위쪽 고리 기준 2줄
+  assert.equal(count(3000,'long',{anchors:'rated'}),1);assert.equal(count(3000,'long',{},true),2);
+  // 안내는 운송 안정성 검토(reviews)가 아니라 계산 기준 안내(notes)로 둔다.
+  assert.ok(iso.notes.some(n=>n.product==='래싱 고정점'));assert.ok(!rated.notes.length);assert.ok(!iso.reviews.some(r=>r.product==='래싱 고정점'));
+  assert.match(iso.dunnage.find(d=>d.kind==='lashing').location,/daN 기준/);
+  assert.equal(iso.conditions.friction,.3);assert.equal(rated.conditions.anchors,'rated');
+});

@@ -871,3 +871,22 @@ button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .colla
 }
 /* iOS가 이메일을 자동으로 링크로 바꾸지 않게 한다. */
 .account-identity a,a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;pointer-events:none}
+
+/* 고정 조건(마찰·래싱 MSL·고정점, 1.1.79): 고정재 칩 옆 작은 펼침 메뉴 */
+.securing-conditions{position:relative}
+.securing-conditions>summary{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;padding:5px 10px;border:1px solid var(--v3-line,#dde3e0);border-radius:10px;background:#fff;cursor:pointer;list-style:none;font-size:12.5px;font-weight:600;color:#39413c;white-space:nowrap}
+.securing-conditions>summary::-webkit-details-marker{display:none}
+.securing-conditions>summary small{font-size:11px;font-weight:500;color:#6b736e}
+.securing-conditions[open]>summary{border-color:#0071e3}
+.securing-conditions-panel{position:absolute;z-index:30;top:calc(100% + 6px);right:0;width:min(340px,calc(100vw - 32px));display:grid;gap:10px;padding:14px;border:1px solid var(--v3-line,#dde3e0);border-radius:12px;background:#fff;box-shadow:0 12px 32px rgba(0,0,0,.14)}
+.securing-conditions-panel label{display:grid;gap:5px;font-size:12px;font-weight:600;color:#435047}
+.securing-conditions-panel select{width:100%;padding:8px 10px;border:1px solid var(--v3-line,#dde3e0);border-radius:8px;background:#fafbf9;font-size:13px;color:#1d1d1f}
+.securing-conditions-panel p{margin:0;font-size:11.5px;line-height:1.5;color:#6b736e}
+@media(max-width:900px){.securing-conditions-panel{left:0;right:auto}}
+.securing-field{flex-wrap:wrap;row-gap:8px}
+.securing-field .securing-conditions{flex:1 0 100%}
+.securing-conditions>summary{flex-direction:row;align-items:baseline;gap:8px}
+.securing-conditions>summary::after{content:"";align-self:center;border:4px solid transparent;border-top:5px solid currentColor;border-bottom:0;margin-left:2px}
+.securing-conditions[open]>summary::after{border-top:0;border-bottom:5px solid currentColor}
+.securing-conditions-panel{left:0;right:auto;width:min(360px,calc(100vw - 32px))}
+@media(max-width:480px){.securing-conditions-panel{position:static;width:auto;margin-top:6px;box-shadow:none}.securing-conditions>summary{white-space:normal;flex-wrap:wrap}}

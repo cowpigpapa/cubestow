@@ -8,7 +8,9 @@
   // 스키마 4 이하의 단일 전략(optimization)을 안전 기준 × 우선 기준으로 옮긴다.
   function normalizeStrategy(data){const legacy=legacyOptimizations[data.optimization]||legacyOptimizations.intelligent;return{safety:allowedSafety.has(data.safety)?data.safety:legacy[0],preference:allowedPreferences.has(data.preference)?data.preference:legacy[1]}}
   // 고정재 선택. 없으면 모두 사용.
-  function normalizeSecuring(value){const v=value&&typeof value==='object'?value:{};return{airbag:v.airbag!==false,filler:v.filler!==false,nails:v.nails!==false,lashing:v.lashing!==false}}
+  // 고정 조건: 마찰(CTU 표의 화물 밑면), 래싱 MSL(daN), 고정점(iso: ISO 최소값, rated: 표시 확인). 모르는 값은 기본값.
+  const FRICTION_KEYS=new Set(['unknown','wood-pallet','planed-wood','plastic-pallet','steel-crate','rubber','slip']),LASHING_MSLS=new Set([2000,2500,4000,5000]);
+  function normalizeSecuring(value){const v=value&&typeof value==='object'?value:{};return{airbag:v.airbag!==false,filler:v.filler!==false,nails:v.nails!==false,lashing:v.lashing!==false,friction:FRICTION_KEYS.has(v.friction)?v.friction:'unknown',lashingMsl:LASHING_MSLS.has(Number(v.lashingMsl))?Number(v.lashingMsl):2000,anchors:v.anchors==='rated'?'rated':'iso'}}
   function normalizeSnapshot(data={}){const products=Array.isArray(data.products)?data.products.map(normalizeProduct).filter(p=>p.name&&p.l&&p.w&&p.h&&p.weight):[];return{schemaVersion:CURRENT_SCHEMA_VERSION,algorithmVersion:String(data.algorithmVersion||'legacy'),products,containerType:allowedContainers.has(data.containerType)?data.containerType:'20ft',...normalizeStrategy(data),transportMode:allowedTransportModes.has(data.transportMode)?data.transportMode:'combined',securing:normalizeSecuring(data.securing),resultSummary:normalizeResultSummary(data.resultSummary),fieldResult:normalizeFieldResult(data.fieldResult)}}
   function createSnapshot(products,containerType,strategy={},metadata={}){return normalizeSnapshot({products,containerType,...(typeof strategy==='string'?{optimization:strategy}:strategy),...metadata})}
   root.LoadwiseProjectModel={CURRENT_SCHEMA_VERSION,CURRENT_ALGORITHM_VERSION,normalizeProduct,normalizeSnapshot,createSnapshot};

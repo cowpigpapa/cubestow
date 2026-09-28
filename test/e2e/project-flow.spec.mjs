@@ -383,3 +383,16 @@ test('algorithm flags leave out product names and stop at ten a day per browser'
   // 하루 한도를 넘은 기록은 대기열에 남아 다음 날 보낸다.
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('loadwise.v3.algorithmFlags')).length)).toBe(2);
 });
+
+test('securing conditions set friction, lashing MSL and lashing points for the lashing count',async({page})=>{
+  await page.goto('/');
+  const summary=page.locator('#securingConditionsSummary');
+  await expect(summary).toHaveText('마찰 0.3 · 래싱 2t · 고정점 ISO 최소');
+  await page.locator('#securingConditions>summary').click();
+  await page.locator('#securingFriction').selectOption('wood-pallet');await page.locator('#lashingMsl').selectOption('4000');await page.locator('#anchorRating').selectOption('rated');
+  await expect(summary).toHaveText('마찰 0.45 · 래싱 4t · 고정점 표시 확인');
+  // 계산하면 고정재 계획에 쓴 조건이 기준 문장에 나온다.
+  await loadSample(page,3);
+  await page.locator('#securingPanel').evaluate(panel=>panel.open=true);
+  await expect(page.locator('#securingRecommendation')).toContainText('마찰 0.45');await expect(page.locator('#securingRecommendation')).toContainText('래싱 MSL 4,000daN');await expect(page.locator('#securingRecommendation')).toContainText('고정점 표시 확인');
+});

@@ -8,16 +8,30 @@
 // [CTU 부속서 7] 못 1개 1~4kN → 하한 1kN으로 못 수 계산. 마찰계수 기본 0.3, 가속도는 IMO 빠른 래싱 가이드 표.
 // [Cubestow 설정] 에어백 최소 간극 50mm, 바닥에서 100mm 띄움, 스페이서/에어백 경계 120mm, 10mm 미만 틈은 채울 수 없음.
 const VOID_SUM_LIMIT=150,AIRBAG_MIN_GAP=50,AIRBAG_MAX_GAP=500,AIRBAG_FLOOR_CLEARANCE=100,AIRBAG_LIMIT=40,NAIL_KN=1,CTU_FRICTION=.3;
+// [CTU 정보자료 5(빠른 래싱 가이드) §3.1 표] 합판 바닥 위 화물 밑면별 마찰계수. 확인할 수 없으면 0.3(§3.2), 기름기·슬립시트는 0.1.
+const FRICTION_CHOICES={unknown:{mu:.3,label:'확인 안 됨'},'wood-pallet':{mu:.45,label:'목재 팔레트·각재'},'planed-wood':{mu:.3,label:'대패질 목재'},'plastic-pallet':{mu:.2,label:'플라스틱 팔레트'},'steel-crate':{mu:.45,label:'철제 크레이트'},rubber:{mu:.6,label:'고무 미끄럼 방지 매트'},slip:{mu:.1,label:'기름기·슬립시트'}};
+// [CTU 정보자료 5 §12.2 빠른 래싱 가이드 C(도로·복합철도·해상 C), 웨빙 MSL 2,000daN·사전장력 400daN]
+// 마찰계수별로 스프링 래싱 1줄(앞쪽)과 하프루프 래싱 한 쌍(옆쪽)이 미끄럼을 막는 화물 질량(t). 값은 래싱 MSL에 비례한다(§6).
+const QLG_C_MU=[0,.05,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7];
+const QLG_C_SPRING_FORWARD=[3.6,3.9,4.3,4.7,5.1,5.6,6.1,6.8,7.5,8.3,9.3,11,12,14,15];
+const QLG_C_HALFLOOP_SIDE=[2.5,2.8,3,3.3,3.6,4,4.3,4.8,5.3,5.9,6.6,7.4,8.4,9.7,11];
+// [ISO 1496-1, CTU 정보자료 5 §5.3] 래싱 고정점은 래싱과 같은 MSL 이상이어야 한다. 고정점 표시를 확인하지 않으면
+// ISO 최소값(바닥·하부 고정점 1,000daN, 위쪽 래싱 고리 500daN)을 넘는 힘을 래싱에 맡기지 않는다.
+const ANCHOR_MSL_FLOOR=1000,ANCHOR_MSL_UPPER=500,LASHING_MSL_CHOICES=[2000,2500,4000,5000];
+const frictionOf=options=>(FRICTION_CHOICES[options?.friction]||FRICTION_CHOICES.unknown).mu;
+const lashingMslOf=options=>LASHING_MSL_CHOICES.includes(Number(options?.lashingMsl))?Number(options.lashingMsl):2000;
+// 래싱 1줄(한 쌍)이 실제로 쓸 수 있는 MSL: 래싱 MSL과 고정점 허용하중 중 작은 값.
+const anchorMslOf=(options,upper)=>options?.anchors==='rated'?lashingMslOf(options):upper?ANCHOR_MSL_UPPER:ANCHOR_MSL_FLOOR;
 const DOOR_FREE_GAP=VOID_SUM_LIMIT,FENCE_DEPTH=50,SPACER_MIN_GAP=10,SPACER_MAX_GAP=120;
 // 문쪽(후방) 방향 필요 억제 가속도(g): 운송모드별 CTU 가속도 c에서 마찰 μ·v를 뺀 값의 최댓값.
 // 안쪽(전방·급정거) 방향으로 막아야 할 가속도: CTU 가속도 c − 마찰 × v, 운송모드 중 불리한 값.
-function innerPull(mode){const acc=LoadwiseInsights.CTU_ACCELERATIONS,profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'];return Math.max(0,...profiles.map(k=>acc[k].forward.c-CTU_FRICTION*acc[k].forward.v))}
-function doorPull(mode){const acc=LoadwiseInsights.CTU_ACCELERATIONS,profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'];return Math.max(0,...profiles.map(k=>acc[k].backward.c-CTU_FRICTION*acc[k].backward.v))}
+function innerPull(mode,mu=CTU_FRICTION){const acc=LoadwiseInsights.CTU_ACCELERATIONS,profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'];return Math.max(0,...profiles.map(k=>acc[k].forward.c-mu*acc[k].forward.v))}
+function doorPull(mode,mu=CTU_FRICTION){const acc=LoadwiseInsights.CTU_ACCELERATIONS,profiles=mode==='road'?['road']:mode==='sea'?['seaC']:['road','seaC'];return Math.max(0,...profiles.map(k=>acc[k].backward.c-mu*acc[k].backward.v))}
 const airbagSize=gap=>gap<=200?'600×1200':gap<=300?'900×1800':gap<=400?'1200×1800':'1500×2400';
 // 화물마다 네 옆면을 보고, 가장 가까운 화물·벽·고정재와의 틈을 크기별로 채운다.
 // 30mm 미만은 무시, 120mm 미만은 스페이서(골판지·목재), 120~600mm는 에어백(높은 곳이면 그 높이에), 안쪽 벽 쪽은 에어백 대신 충전재.
 // 높은 곳 화물의 틈이 600mm를 넘거나 문쪽이 비면 에어백·충전재를 세울 수 없으므로 화물 위로 넘기는 상단 래싱(측벽 고정점)을 권고한다.
-function fillRemainingVoids(load,airbags,dunnage){
+function fillRemainingVoids(load,airbags,dunnage,options=securingOptions){
   const c=load.container,placed=load.placed,solid=[...placed,...airbags,...dunnage];
   const hit=(a,b)=>Math.min(a.x+a.l,b.x+b.l)-Math.max(a.x,b.x)>1&&Math.min(a.y+a.w,b.y+b.w)-Math.max(a.y,b.y)>1&&Math.min(a.z+a.h,b.z+b.h)-Math.max(a.z,b.z)>1;
   const ov=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0);
@@ -76,14 +90,18 @@ function fillRemainingVoids(load,airbags,dunnage){
     // 측벽까지 걸 수 없으면(다른 화물이 가로막으면) 윗단 폭만큼만 두고 가까운 고정점에 건다.
     if(solid.some(q=>hit(q,band)))band={...band,y:y0,w:y1-y0};
     if(band.z+band.h>c.h||solid.some(q=>hit(q,band)))continue;
-    const straps=lashingCount(mass,'long'),names=[...new Set(g.items.map(p=>p.name))].map(esc).join('·');
-    const item={type:'dunnage',kind:'lashing',axis:'y',side:'min',...band,straps,product:names,location:`${names} 윗단 ${g.dir==='back'?'안쪽':'문쪽'} 면 되잡기 래싱 · 높이 ${(g.z/1000).toFixed(1)}m · 웨빙(MSL 2t) ${straps}줄 · 측벽 고정점`};
+    // 측벽 고정점: 컨테이너 높이의 절반보다 위면 위쪽 래싱 고리, 아니면 하부 고정점에 건다.
+    const upperPoint=band.z>=c.h/2,straps=lashingCount(mass,'long',options,upperPoint),names=[...new Set(g.items.map(p=>p.name))].map(esc).join('·');
+    const item={type:'dunnage',kind:'lashing',axis:'y',side:'min',...band,straps,mass,upperPoint,product:names,location:`${names} 윗단 ${g.dir==='back'?'안쪽':'문쪽'} 면 되잡기 래싱 · 높이 ${(g.z/1000).toFixed(1)}m · 웨빙(MSL ${lashingMslOf(options)/1000}t) ${straps}줄 · 측벽 ${upperPoint?'위쪽 고리':'하부 고정점'} ${anchorMslOf(options,upperPoint).toLocaleString()}daN 기준`};
     dunnage.push(item);solid.push(item);
   }
-  if(sides.length){const mass=sides.reduce((sum,p)=>sum+p.weight,0),pairs=lashingCount(mass,'side');dunnage.push({type:'dunnage',kind:'note',x:0,y:0,z:0,l:0,w:0,h:0,straps:pairs,product:[...new Set(sides.map(p=>p.name))].map(esc).join('·'),location:`옆이 빈 윗단 ${sides.length}개 · 하프루프 래싱 ${pairs}쌍(바닥 고정점, 좌우 전도·미끄럼 방지)`})}
+  if(sides.length){const mass=sides.reduce((sum,p)=>sum+p.weight,0),pairs=lashingCount(mass,'side',options,false);dunnage.push({type:'dunnage',kind:'note',x:0,y:0,z:0,l:0,w:0,h:0,straps:pairs,product:[...new Set(sides.map(p=>p.name))].map(esc).join('·'),location:`옆이 빈 윗단 ${sides.length}개 · 하프루프 래싱 ${pairs}쌍(바닥 고정점 ${anchorMslOf(options,false).toLocaleString()}daN 기준, 좌우 전도·미끄럼 방지)`})}
 }
-// 빠른 래싱 가이드(해상 C, 웨빙 MSL 2,000daN, 마찰 0.3) 표: 스프링 래싱 1줄당 앞뒤 6.1t, 하프루프 한 쌍당 좌우 4.3t. 최소 1.
-function lashingCount(massKg,kind){return Math.max(1,Math.ceil(massKg/(kind==='side'?4300:6100)))}
+// 빠른 래싱 가이드 C 표를 마찰계수로 보간한다(표 사이는 직선, 0.7 넘으면 0.7 값).
+function qlgMass(table,mu){const m=Math.max(0,Math.min(.7,mu));let i=0;while(i<QLG_C_MU.length-2&&m>QLG_C_MU[i+1]+1e-9)i++;const t=(m-QLG_C_MU[i])/(QLG_C_MU[i+1]-QLG_C_MU[i]);return table[i]+(table[i+1]-table[i])*t}
+// 래싱 1줄(옆쪽은 한 쌍)이 막는 화물 질량(kg): 표 값 × 쓸 수 있는 MSL/2,000. 기본(마찰 0.3, MSL 2t, 고정점 확인): 앞뒤 6.1t, 옆 4.3t.
+function lashingCapacityKg(kind,options,upper){return qlgMass(kind==='side'?QLG_C_HALFLOOP_SIDE:QLG_C_SPRING_FORWARD,frictionOf(options))*1000*Math.min(lashingMslOf(options),anchorMslOf(options,upper))/2000}
+function lashingCount(massKg,kind,options={anchors:'rated'},upper=false){return Math.max(1,Math.ceil(massKg/lashingCapacityKg(kind,options,upper)))}
 function buildSecuringPlan(load,transportMode=currentTransportMode(),options=securingOptions,safety){
   const dunnage=[],airbags=[],reviews=[],floorItems=load.placed.filter(p=>p.z===0),c=load.container;
   // 문쪽: 앞에 화물이 없는 문쪽 화물이 문에서 150mm 넘게 떨어져 있으면 뒤 기둥 사이에 가로 각재 펜스를 세우고, 펜스와 화물 사이를 충전재로 채운다.
@@ -93,7 +111,7 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
   if(recessed.length){
     // 바닥 화물: 문쪽 면 바로 앞 바닥에 가로 각재를 대고 못으로 고정한다. 틈이 크면 각재 앞에 쐐기 부목을 더 박는다.
     // 못 수 = 필요 억제력(화물 + 그 위 적층 질량 × g × 문쪽 가속도) ÷ 1kN(CTU 못 1개 하한). 못은 바닥 두께의 2/3 이상 박는다.
-    const pull=doorPull(transportMode),inCargo=f=>load.placed.some(q=>f.x<q.x+q.l&&f.x+f.l>q.x&&f.y<q.y+q.w&&f.y+f.w>q.y&&f.z<q.z+q.h&&f.z+f.h>q.z);
+    const pull=doorPull(transportMode,frictionOf(options)),inCargo=f=>load.placed.some(q=>f.x<q.x+q.l&&f.x+f.l>q.x&&f.y<q.y+q.w&&f.y+f.w>q.y&&f.z<q.z+q.h&&f.z+f.h>q.z);
     recessed.filter(p=>p.z===0&&options.nails).forEach(p=>{
       const mass=load.placed.filter(q=>q===p||q.z>=p.z+p.h-2&&Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)>q.l*.5&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>q.w*.5).reduce((sum,q)=>sum+q.weight,0);
       const force=mass*9.81*pull/1000,nails=Math.max(2,Math.ceil(force/NAIL_KN)),beamL=Math.min(100,p.x-2);
@@ -120,7 +138,7 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
   // 못 수는 안쪽 방향(급정거) 가속도로 계산한다. 못을 쓰지 않으면 각재 버팀을 검토 항목으로 남긴다.
   {
     const innerExposed=load.placed.filter(p=>p.z===0&&c.l-(p.x+p.l)>DOOR_FREE_GAP&&!load.placed.some(q=>q!==p&&q.x>=p.x+p.l-2&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>40));
-    const pull=innerPull(transportMode);
+    const pull=innerPull(transportMode,frictionOf(options));
     if(innerExposed.length&&options.nails)innerExposed.forEach(p=>{
       const mass=load.placed.filter(q=>q===p||q.z>=p.z+p.h-2&&Math.min(p.x+p.l,q.x+q.l)-Math.max(p.x,q.x)>q.l*.5&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>q.w*.5).reduce((sum,q)=>sum+q.weight,0);
       const force=mass*9.81*pull/1000,nails=Math.max(2,Math.ceil(force/NAIL_KN)),beamL=Math.min(100,c.l-(p.x+p.l)-2);
@@ -167,7 +185,7 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
     // 벽 간극이 에어백 한계를 넘으면 백과 벽 사이를 충전재로 채운다(화물·에어백·다른 고정재와 겹치지 않을 때만 표시).
     airbags.filter(a=>a.filler>0&&(a.zone==='left'||a.zone==='right')).forEach(a=>{const f={type:'dunnage',kind:'filler',axis:'y',side:a.zone==='left'?'min':'max',x:a.x,y:a.zone==='left'?a.y-a.filler:a.y+a.w,z:a.z,l:a.l,w:a.filler,h:a.h,product:a.product,location:`${a.zone==='left'?'좌측':'우측'} 벽 충전재 ${a.filler}mm(세운 빈 팔레트·골판지)`};if(f.y>=0&&f.y+f.w<=c.w+1&&free(f)&&!airbags.some(o=>intersects(o,f))&&!dunnage.some(d=>intersects(d,f)))dunnage.push(f)});
   }
-  fillRemainingVoids(load,airbags,dunnage);
+  fillRemainingVoids(load,airbags,dunnage,options);
   // 바닥 선하중(길이 1m당 화물 중량): 20ft 4.5t/m, 40ft·45ft 3.0t/m(TIS-GDV 컨테이너 적재 지침, CTU Code는 운영사 협의로 둠).
   // 넘으면 화물 밑에 길이 방향 받침목(20ft 폭 0.10m·40ft 0.15m 이상)을 깔아 하중을 나누도록 검토 항목으로 알린다.
   {const limit=c.l<=7000?4500:3000;let worst=0,at=0;for(let x0=0;x0+1000<=c.l;x0+=100){const kg=load.placed.reduce((sum,p)=>sum+p.weight*Math.max(0,Math.min(x0+1000,p.x+p.l)-Math.max(x0,p.x))/p.l,0);if(kg>worst){worst=kg;at=x0}}
@@ -182,5 +200,8 @@ function buildSecuringPlan(load,transportMode=currentTransportMode(),options=sec
   if(!options.lashing){const skipped=dunnage.filter(d=>d.kind==='lashing'||d.kind==='strap');if(skipped.length)reviews.push({product:'고정재 선택',severity:'rearrange',location:`래싱 미사용 · 상단·문쪽 고정이 필요한 곳 ${skipped.length}곳(재배치 검토)`,axes:'',count:skipped.length});for(let i=dunnage.length-1;i>=0;i--)if(dunnage[i].kind==='lashing'||dunnage[i].kind==='strap')dunnage.splice(i,1)}
   // CTU 기준: 화물로 막히지 않은 옆면을 화물별로 적고, 켜 둔 고정재 중 맞는 것으로 막게 한다(래싱 → 에어백·충전재 순).
   if(safety==='secure'){const method=options.lashing?'래싱으로 묶기':options.airbag?'에어백·충전재로 막기':options.filler?'충전재로 막기':'';const innerBeamed=p=>options.nails&&p.z===0&&load.container.l-(p.x+p.l)>DOOR_FREE_GAP&&!load.placed.some(q=>q!==p&&q.x>=p.x+p.l-2&&Math.min(p.y+p.w,q.y+q.w)-Math.max(p.y,q.y)>40);if(method)for(const v of LoadwiseValidator.openFaces(load,options).map(v=>({...v,faces:v.faces.filter(f=>f!=='안쪽'||!innerBeamed(v.item))})).filter(v=>v.faces.length))reviews.push({product:v.item.name,severity:'review',location:`${v.item.order||v.index+1}번 · ${v.faces.join('·')} 면이 화물로 막히지 않음 → ${method}`,axes:'',count:1,ctuFace:true})}
-  return{dunnage,airbags,reviews,transportMode,options:{...options},ctu:LoadwiseInsights.securing(load,{mode:transportMode})};
+  // 고정점 표시를 확인하지 않았고 래싱이 고정점보다 강하면, 줄 수를 고정점 기준으로 늘렸다고 알린다(운송 안정성 검토가 아닌 계산 기준 안내).
+  const notes=[];
+  if(options.lashing&&options.anchors!=='rated'&&dunnage.some(d=>d.kind==='lashing'||(d.kind==='note'&&d.straps))&&lashingMslOf(options)>ANCHOR_MSL_UPPER)notes.push({product:'래싱 고정점',text:`고정점 표시를 확인하지 않아 ISO 1496-1 최소값(바닥 ${ANCHOR_MSL_FLOOR.toLocaleString()}daN·위쪽 고리 ${ANCHOR_MSL_UPPER}daN)으로 래싱 줄 수를 계산했습니다. 고정점 MSL이 래싱(${lashingMslOf(options).toLocaleString()}daN) 이상이면 고정 조건에서 '표시 확인'을 고르세요`});
+  return{dunnage,airbags,reviews,notes,transportMode,options:{...options},conditions:{friction:frictionOf(options),frictionLabel:(FRICTION_CHOICES[options.friction]||FRICTION_CHOICES.unknown).label,lashingMsl:lashingMslOf(options),anchors:options.anchors==='rated'?'rated':'iso'},ctu:LoadwiseInsights.securing(load,{mode:transportMode,friction:frictionOf(options)})};
 }
