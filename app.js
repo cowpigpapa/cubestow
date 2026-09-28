@@ -76,7 +76,7 @@ function syncSelects(){selectRenderers.forEach(render=>render())}
 const SAFETY_STEPS=['standard','strict','secure'];
 // 세 단계 모두 3줄. 설명칸 높이를 고정해 슬라이더를 움직여도 화면이 흔들리지 않게 한다.
 const SAFETY_HINTS={standard:['윗 화물 바닥면 70% 이상만 받치면 됩니다','충돌·중량·상부하중 같은 기본 조건만 지킵니다','컨테이너 대수를 가장 적게 씁니다'],strict:['윗 화물 바닥면을 100% 받칩니다','높은 적층·원통 규칙을 지킵니다','남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다'],secure:['모든 화물의 안쪽·좌·우를 화물이나 고정재로 막습니다','다른 크기 화물 위에 따로 얹지 않습니다','래싱을 끄면 CTU 전도 기준을 모든 화물에 적용합니다']};
-const PREFERENCE_HINTS={auto:'무게배분 등급 → 좌우·앞뒤 편차 → 운송 안정성 순으로 고릅니다',density:'안쪽으로 바짝 붙여 사용 길이가 가장 짧고 빈틈이 적은 배치를 고릅니다',balance:'앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'};
+const PREFERENCE_HINTS={auto:'무게 배분이 좋은 배치를 먼저 고르고, 좌우·앞뒤 편차와 운송 안정성을 차례로 비교합니다',density:'안쪽으로 바짝 붙여 사용 길이가 가장 짧고 빈틈이 적은 배치를 고릅니다',balance:'앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'};
 const TRANSPORT_HINTS={road:'도로 기준으로 계산합니다 · 좌우 0.5g, 급정거 0.8g',combined:'도로와 해상 중 불리한 값을 씁니다(권장)',sea:'거친 해역 기준으로 계산합니다 · 좌우 0.8g, 앞뒤 0.4g'};
 let ctuNoticeShown=false;
 const CTU_NOTICE='화물끼리 서로 막히는 배치를 먼저 찾고, 그 때문에 컨테이너가 늘면 기본 배치를 쓰되 화물로 막히지 않은 면을 고정재 권고에 화물별로 적습니다. 계산이 20~40초 걸릴 수 있습니다. 이 모드는 CTU Code의 배치 규칙을 적용한 검토용 결과이며 준수를 보증하지 않습니다. 화물 강도·마찰·래싱 용량은 현장에서 따로 확인하세요.';
@@ -120,6 +120,9 @@ function bindEvents(){
   $('dropzone').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click()}};
   $('addProduct').onclick=addProduct;
   $('loadDemo').onclick=()=>$('sampleDialog').showModal();
+  // 첫 화면 두 갈래: 샘플 창 열기 / 제품명 입력란으로 이동
+  if($('emptySample'))$('emptySample').onclick=()=>$('sampleDialog').showModal();
+  if($('emptyInput'))$('emptyInput').onclick=()=>{if(typeof setInputCollapsed==='function')setInputCollapsed(false);if(typeof setPanelHidden==='function')setPanelHidden(false);const el=$('productName');el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})};
   renderSampleList();
   // 드롭다운 메뉴는 항목을 누르거나 바깥을 누르면 닫는다.
   document.addEventListener('click',event=>document.querySelectorAll('details.menu[open]').forEach(menu=>{if(!menu.contains(event.target)||event.target.closest('.menu-list button'))menu.open=false}));

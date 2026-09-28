@@ -425,3 +425,16 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await page.click('#ctuButton');await page.locator('#ctuDialog a[href="#library"]').click();
   await expect(page.locator('#ctuDialog')).not.toBeVisible();await expect(page.locator('#libraryView')).toBeVisible();
 });
+
+test('the empty planner offers two starts: a sample or my own products',async({page})=>{
+  await page.goto('/');await page.evaluate(()=>localStorage.clear());await page.reload();
+  const empty=page.locator('#emptyState');await expect(empty).toBeVisible();
+  // "최적의" 같은 보장할 수 없는 표현은 쓰지 않는다.
+  await expect(empty).toContainText('제품을 추가하면 적재 배치를 계산합니다');await expect(empty).not.toContainText('최적');
+  await page.locator('#emptyInput').click();await expect(page.locator('#productName')).toBeFocused();
+  await page.locator('#emptySample').click();await expect(page.locator('#sampleDialog')).toBeVisible();
+  await page.locator('[data-sample="1"]').click();await expect(page.locator('#loadedCount')).not.toHaveText('—',{timeout:20000});
+  await expect(empty).toBeHidden();
+  // 선택 입력 표시
+  await expect(page.locator('.form-grid label',{hasText:'제품군'})).toContainText('(선택)');
+});

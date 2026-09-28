@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="styles.css?v=20260928-1">
   <link rel="stylesheet" href="sample-results.css?v=20260928-2">
   <link rel="stylesheet" href="library.css?v=20260928-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260929-1">
+  <link rel="stylesheet" href="v3-projects.css?v=20260929-2">
 </head>
 <body>
   <header class="topbar">
@@ -53,11 +53,11 @@
           <div id="manualPane">
             <div class="form-grid">
               <label class="third">제품명<input id="productName" autocomplete="off" placeholder="예: 산업용 펌프"></label>
-              <label class="third">제품군<input id="productGroup" autocomplete="off" placeholder="예: 기계류"></label>
+              <label class="third">제품군 <small class="optional">(선택)</small><input id="productGroup" autocomplete="off" placeholder="예: 기계류"></label>
               <label class="third">제품 형상<select id="productShape"><option value="box">박스형</option><option value="cylinder">원통형</option></select></label>
               <label class="third">수량<input id="productQty" autocomplete="off" type="number" min="1" value="1"></label>
               <label class="third">개당 중량 (kg)<input id="productWeight" autocomplete="off" type="number" min="0.1" step="0.1" placeholder="예: 420"></label>
-              <label class="third">상부 허용하중 (kg)<input id="productMaxTopLoad" autocomplete="off" type="number" min="0" step="1" placeholder="선택 입력"></label>
+              <label class="third">상부 허용하중 (kg) <small class="optional">(선택)</small><input id="productMaxTopLoad" autocomplete="off" type="number" min="0" step="1" placeholder="선택 입력"></label>
               <label class="third">길이 (mm)<input id="productLength" autocomplete="off" type="number" min="1" placeholder="예: 1200"></label>
               <label class="third">너비 (mm)<input id="productWidth" autocomplete="off" type="number" min="1" placeholder="예: 800"></label>
               <label class="third">높이 (mm)<input id="productHeight" autocomplete="off" type="number" min="1" placeholder="예: 900"></label>
@@ -124,8 +124,13 @@
           <div id="threeMount" aria-label="WebGL 컨테이너 적재 3D 시각화"></div>
           <div class="empty-state" id="emptyState">
             <div class="empty-cube"><i></i><i></i><i></i></div>
-            <strong>시뮬레이션을 시작해 보세요</strong>
-            <span>제품을 추가한 후 실행 버튼을 누르면<br>최적의 적재 배치를 보여드립니다.</span>
+            <strong>제품을 추가하면 적재 배치를 계산합니다</strong>
+            <span>3D 배치, 공간 활용률, 무게 배분과 적재 순서를 함께 볼 수 있습니다.</span>
+            <div class="empty-actions">
+              <button type="button" id="emptySample" class="empty-primary"><b>샘플로 먼저 보기</b><small>입력 없이 샘플 20가지 중 하나를 계산합니다</small></button>
+              <button type="button" id="emptyInput"><b>내 제품 직접 입력</b><small>치수·중량·수량으로 새 계획을 만듭니다</small></button>
+            </div>
+            <a class="empty-link" href="#samples">샘플 결과 미리보기 보기 →</a>
           </div>
           <div class="result-control-row"><div class="securing-visibility" aria-label="3D 표시 항목"><button id="toggleDunnage" class="active dunnage-toggle" aria-pressed="true" title="각재·부목·충전재·도어 스트랩"><i class="securing-icon" data-icon="timber"></i><span>부목</span><b>ON</b></button><button id="toggleAirbags" class="active airbag-toggle" aria-pressed="true" title="에어백(더니지 백)"><i class="securing-icon" data-icon="airbag"></i><span>에어백</span><b>ON</b></button><button id="viewCog" class="cog-toggle" aria-pressed="false" aria-label="무게중심"><i></i><span>무게중심</span><b>OFF</b></button><button id="viewAxes" class="active axes-toggle" aria-pressed="true" aria-label="XYZ" title="좌표축 표시"><i></i><span>XYZ</span><b>ON</b></button></div><div class="view-actions" aria-label="보기 방향"><button id="viewIso" class="active">3D</button><button id="viewTop">상면</button><button id="viewDoor">문 기준</button><button id="viewLeft">좌측면</button><button id="viewRight">우측면</button><button id="resetView" aria-label="보기 초기화">↻</button></div><div class="container-nav-slot"><div class="container-tabs" id="containerTabs" aria-label="컨테이너별 적재 결과"></div></div></div>
           <div id="simulationStatus" class="simulation-status" hidden aria-live="polite"></div>
@@ -138,11 +143,11 @@
         </div>
 
         <div class="stats" id="stats">
-          <div><span>공간 활용률</span><strong id="volumeRate">—</strong><div class="meter"><i id="volumeBar"></i></div></div>
-          <div><span>중량 활용률</span><strong id="weightRate">—</strong><div class="meter"><i id="weightBar"></i></div></div>
+          <div><span>컨테이너</span><strong id="containerCount">—</strong><small id="containerDetail">시뮬레이션 전</small></div>
           <div><span>적재 수량</span><strong id="loadedCount">—</strong><small id="loadedDetail">시뮬레이션 전</small></div>
           <div><span>총 적재 중량</span><strong id="totalWeight">—</strong><small id="weightDetail">허용 중량 —</small></div>
-          <div><span>컨테이너</span><strong id="containerCount">—</strong><small id="containerDetail">시뮬레이션 전</small></div>
+          <div><span>공간 활용률</span><strong id="volumeRate">—</strong><div class="meter"><i id="volumeBar"></i></div></div>
+          <div><span>중량 활용률</span><strong id="weightRate">—</strong><div class="meter"><i id="weightBar"></i></div></div>
         </div>
         <section class="result-summary" id="resultSummary" hidden aria-label="결과 요약"></section>
         <section class="auto-review" id="autoReview" hidden aria-label="자동 평가"></section>
@@ -313,7 +318,7 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.82</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.83</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
@@ -324,9 +329,9 @@
   <script src="sample-scenarios.js?v=20260924-3"></script>
   <script src="result-review.js?v=20260927-1"></script>
   <script src="library.js?v=20260929-1"></script>
-  <script src="sample-results.js?v=20260928-4"></script>
+  <script src="sample-results.js?v=20260929-1"></script>
   <script src="securing-plan.js?v=20260928-2"></script>
-  <script src="app.js?v=20260929-1"></script>
+  <script src="app.js?v=20260929-2"></script>
   <script src="project-store.js?v=20260928-1"></script>
 </body>
 </html>

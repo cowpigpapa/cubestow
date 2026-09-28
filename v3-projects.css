@@ -905,3 +905,20 @@ details.account-menu[open]>summary::after{border-top:0;border-bottom:6px solid c
 .result-summary .summary-axle em.axle.caution{background:#fff3df;color:#7a4d00}
 .result-summary .summary-axle em.axle.danger{background:#fde7e5;color:#b42318}
 .result-summary .axle-note{font-size:11.5px;color:#6b736e;line-height:1.5}
+
+/* 첫 화면 두 갈래(1.1.83): 샘플로 먼저 보기 / 내 제품 직접 입력 */
+.empty-state .empty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px}
+.empty-state .empty-actions button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:200px;padding:12px 16px;border:1.5px solid #c5cbd1;border-radius:12px;background:#fff;color:#1d1d1f;text-align:left;cursor:pointer}
+.empty-state .empty-actions button b{font-size:14px}
+.empty-state .empty-actions button small{font-size:12px;color:#6b736e}
+.empty-state .empty-actions button:hover{border-color:#0071e3}
+.empty-state .empty-actions .empty-primary{background:#0071e3;border-color:#0071e3;color:#fff}
+.empty-state .empty-actions .empty-primary small{color:rgba(255,255,255,.85)}
+.empty-state .empty-actions .empty-primary:hover{background:#0062c4}
+.empty-state .empty-link{margin-top:4px;font-size:12.5px;font-weight:600;color:#0071e3;text-decoration:none}
+.form-grid label small.optional{font-weight:500;color:#8a938e}
+/* 새 프로젝트 버튼: 분홍 대신 중립색(행동색은 파란 저장·실행 버튼 하나로) */
+#newProjectTop{background:#fff!important;border-color:#c5cbd1!important;color:#1d1d1f!important}
+#newProjectTop:hover{background:#f2f5fa!important;border-color:#8d969e!important}
+@media(max-width:640px){.empty-state .empty-actions button{min-width:0;width:100%}}
+@media(max-width:640px){.empty-state .empty-cube{display:none}.empty-state{justify-content:flex-start;padding:88px 14px 10px}}

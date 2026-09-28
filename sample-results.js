@@ -19,7 +19,7 @@
   async function render(view){
     if(rendered)return;rendered=true;
     view.innerHTML=`<div class="sv-head"><div><h2 class="sv-title">샘플 결과 미리보기</h2></div><div class="sv-meta" id="svMeta"></div></div>
-      <p class="sv-lead">샘플 20가지를 세 가지 안전 수준으로 계산한 결과를 나란히 놓았습니다. 컨테이너가 여러 대면 줄이 늘어납니다. 그림을 누르면 정반대 대각선에서 본 모습(가려진 안쪽 벽·반대편 고정재)으로 바뀌고, 위의 <b>전체 반대쪽 보기</b>로 모든 그림을 한 번에 바꿀 수 있습니다. 각 샘플은 적재 플래너의 <b>불러오기 → 샘플</b>에서 직접 계산해 볼 수 있습니다. 결과는 작업 검토용이며 실제 적재 전 현장 확인이 필요합니다.</p>
+      <p class="sv-lead">샘플 20가지를 세 가지 안전 수준으로 계산했습니다. 그림을 누르면 반대쪽에서 본 배치로 바뀝니다. 직접 계산해 보려면 플래너에서 <b>불러오기 → 샘플</b>을 고르세요.<br>결과는 작업 검토용입니다. 실제 적재 전에는 현장 조건을 확인해야 합니다.</p>
       <div class="sv-modes"><div class="sv-mode standard"><b>적재량 우선</b>최대한 많이 싣습니다. 윗 화물 바닥면 70% 이상만 받치고 충돌·중량·상부하중 같은 기본 조건만 지킵니다.</div><div class="sv-mode strict"><b>기본 (권장)</b>윗 화물을 100% 받치고 높은 적층·원통 규칙을 지킵니다. 남는 틈과 윗단은 고정재(에어백·래싱)로 막습니다.</div><div class="sv-mode secure"><b>CTU 기준 적용</b>모든 화물의 안쪽·좌·우를 화물이나 고정재로 막고, 다른 크기 화물 위에 얹지 않습니다. CTU Code 준수를 보증하지는 않습니다.</div></div>
       <div class="sv-toolbar" id="svToolbar"></div><div id="svList"><p class="sv-loading">결과를 불러오는 중입니다…</p></div>`;
     const list=view.querySelector('#svList');let data;
