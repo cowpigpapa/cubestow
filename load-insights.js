@@ -94,5 +94,34 @@
     }));
     return{friction,profiles:profiles.map(p=>p.label),doorBlocking:Boolean(options.doorBlocking),directions,needsRestraint:directions.some(d=>d.forceKN>0||d.tipping>0)};
   }
-  root.LoadwiseInsights={balance,ctu,tareOf,securing,CTU_ACCELERATIONS};
+  // 도로 축하중 추정. 한도는 도로법 시행령 제79조의 축하중 10t·총중량 40t이고, 단속은 측정 오차 10%를 두어 11t·44t까지 본다.
+  // 방법은 CTU 정보자료 IM6(하중 분포도)와 같다: 컨테이너(화물+자체중량)와 샤시의 무게를 킹핀과 샤시 축 사이에 지렛대로 나누고,
+  // 킹핀 하중을 트랙터 앞축과 뒤축에 다시 나눈다. 차량 치수·자체중량은 차마다 다르므로 아래 일반 제원(Cubestow 설정)으로 추정한다.
+  const ROAD_LIMITS={axle:10000,axleTolerance:11000,total:40000,totalTolerance:44000};
+  const ROAD_VEHICLE={
+    tractor:{label:'3축 트랙터(6×4)',tare:9000,frontTare:5400,rearTare:3600,rearAxles:2,wheelbase:3.9,fifthWheelLead:.45},
+    chassis20:{label:'20ft 컨테이너 샤시(2축)',tare:3800,axles:2,kingpinFromFront:1.0,axleFromRear:1.3},
+    chassis40:{label:'40ft 컨테이너 샤시(3축)',tare:5000,axles:3,kingpinFromFront:1.0,axleFromRear:1.9}
+  };
+  function axleLoads(load){
+    const c=load?.container,placed=load?.placed||[];if(!c||!Number.isFinite(c.maxWeight))return null;
+    const cargo=placed.reduce((s,p)=>s+Number(p.weight||0),0),tare=tareOf(c),chassis=c.l<=6100?ROAD_VEHICLE.chassis20:ROAD_VEHICLE.chassis40,tr=ROAD_VEHICLE.tractor;
+    // 길이는 컨테이너 바깥 기준(안 길이 + 벽 두께 약 0.16m). 컨테이너 앞(안쪽 벽)은 트랙터 쪽, 문은 뒤쪽이다. 적재 좌표 x는 문 쪽이 0.
+    const L=c.l/1000+.16,cargoX=cargo?placed.reduce((s,p)=>s+(c.l-(p.x+p.l/2))*p.weight,0)/cargo/1000+.08:L/2;
+    const k=chassis.kingpinFromFront,axle=L-chassis.axleFromRear,lever=axle-k;
+    const parts=[{m:cargo,x:cargoX},{m:tare,x:L/2},{m:chassis.tare,x:L/2}];
+    const chassisGroup=parts.reduce((s,q)=>s+q.m*(q.x-k)/lever,0),kingpin=parts.reduce((s,q)=>s+q.m,0)-chassisGroup;
+    const front=tr.frontTare+kingpin*tr.fifthWheelLead/tr.wheelbase,rear=tr.rearTare+kingpin*(1-tr.fifthWheelLead/tr.wheelbase);
+    const total=cargo+tare+chassis.tare+tr.tare;
+    const rate=(v,limit,tol)=>v>tol?'danger':v>limit?'caution':'safe';
+    const axles=[
+      {key:'front',label:'트랙터 앞축',perAxle:front,level:rate(front,ROAD_LIMITS.axle,ROAD_LIMITS.axleTolerance)},
+      {key:'drive',label:`트랙터 뒤축(${tr.rearAxles}축)`,perAxle:rear/tr.rearAxles,level:rate(rear/tr.rearAxles,ROAD_LIMITS.axle,ROAD_LIMITS.axleTolerance)},
+      {key:'chassis',label:`샤시 축(${chassis.axles}축)`,perAxle:chassisGroup/chassis.axles,level:rate(chassisGroup/chassis.axles,ROAD_LIMITS.axle,ROAD_LIMITS.axleTolerance)}
+    ];
+    const totalLevel=rate(total,ROAD_LIMITS.total,ROAD_LIMITS.totalTolerance),order={safe:0,caution:1,danger:2};
+    const level=[totalLevel,...axles.map(a=>a.level)].reduce((w,l)=>order[l]>order[w]?l:w,'safe');
+    return{cargo,tare,kingpin,chassisGroup,total,totalLevel,axles,level,vehicle:{tractor:tr.label,chassis:chassis.label,tractorTare:tr.tare,chassisTare:chassis.tare},limits:ROAD_LIMITS,cargoFromFront:cargoX};
+  }
+  root.LoadwiseInsights={balance,ctu,tareOf,securing,axleLoads,ROAD_VEHICLE,ROAD_LIMITS,CTU_ACCELERATIONS};
 })(globalThis);

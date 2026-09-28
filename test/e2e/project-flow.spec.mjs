@@ -290,6 +290,9 @@ test('result summary shows the safety verdict and field results compare with the
   // 결과 요약: 안전 판정·꼭 필요한 고정재·확인할 항목이 지표 아래에 먼저 보인다.
   const summary=page.locator('#resultSummary');
   await expect(summary).toBeVisible();await expect(summary).toContainText('안전 판정');await expect(summary).toContainText('꼭 필요한 고정재');
+  // 도로·복합 운송이면 축하중 추정(트랙터 앞축·뒤축·샤시 축·총중량)과 일반 제원 가정을 함께 보여 준다.
+  const axle=summary.locator('.summary-axle');await expect(axle).toBeVisible();
+  await expect(axle).toContainText('트랙터 앞축');await expect(axle).toContainText('샤시 축(2축)');await expect(axle).toContainText('차량 총중량');await expect(axle).toContainText('일반 제원 가정');
   // 자동 평가(규칙 기반): 등급과 항목이 결과 요약 아래에 보인다.
   const review=page.locator('#autoReview');await expect(review).toBeVisible();await expect(review).toContainText('자동 평가');await expect(review.locator('.auto-review-head strong')).toHaveText(/양호|주의|재검토 필요/);await expect(review.locator('li').first()).toBeVisible();
   // 판정 범위: 사전 검토용이며 CTU·도로 법규 적합 판정이 아니라고 적는다.

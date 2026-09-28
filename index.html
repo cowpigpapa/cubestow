@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="styles.css?v=20260928-1">
   <link rel="stylesheet" href="sample-results.css?v=20260928-2">
   <link rel="stylesheet" href="library.css?v=20260928-1">
-  <link rel="stylesheet" href="v3-projects.css?v=20260928-9">
+  <link rel="stylesheet" href="v3-projects.css?v=20260929-1">
 </head>
 <body>
   <header class="topbar">
@@ -147,7 +147,7 @@
         <section class="result-summary" id="resultSummary" hidden aria-label="결과 요약"></section>
         <section class="auto-review" id="autoReview" hidden aria-label="자동 평가"></section>
         <div class="recommendation" id="recommendation" hidden></div>
-        <section class="balance-card" id="balanceCard" hidden><div class="balance-title"><h3>무게중심·중량배분·압축하중</h3><small class="cog-position">무게중심 위치 <b id="cogPosition">—</b></small></div><strong id="balanceStatus">—</strong><div class="balance-grid"><span>문쪽 / 안쪽<b id="frontRearBalance">—</b></span><span>좌측 / 우측<b id="leftRightBalance">—</b></span><span>중심 편차<b id="cogOffset">—</b></span><span>50% 길이 최대 질량<b id="ctuConcentration">—</b></span><span>수직 무게중심<b id="ctuVertical">—</b></span><span>압축하중 검증<b id="compressionStatus">—</b></span></div><p>CTU Code의 중량배분 권고를 이용한 사전검사입니다. 중심 편차와 50% 길이 질량은 스프레더·차량이 실제로 드는 총중량(화물 + 컨테이너 자체중량 표준값) 기준으로 판정합니다. 축하중·바닥 집중하중·마찰·운송 중 동하중과 래싱 용량은 별도 검증이 필요합니다.</p></section>
+        <section class="balance-card" id="balanceCard" hidden><div class="balance-title"><h3>무게중심·중량배분·압축하중</h3><small class="cog-position">무게중심 위치 <b id="cogPosition">—</b></small></div><strong id="balanceStatus">—</strong><div class="balance-grid"><span>문쪽 / 안쪽<b id="frontRearBalance">—</b></span><span>좌측 / 우측<b id="leftRightBalance">—</b></span><span>중심 편차<b id="cogOffset">—</b></span><span>50% 길이 최대 질량<b id="ctuConcentration">—</b></span><span>수직 무게중심<b id="ctuVertical">—</b></span><span>압축하중 검증<b id="compressionStatus">—</b></span></div><p>CTU Code의 중량배분 권고를 이용한 사전검사입니다. 중심 편차와 50% 길이 질량은 스프레더·차량이 실제로 드는 총중량(화물 + 컨테이너 자체중량 표준값) 기준으로 판정합니다. 실제 차량 축하중·바닥 집중하중·마찰·운송 중 동하중과 래싱 용량은 별도 검증이 필요합니다.</p></section>
 
         <div class="loading-plan">
           <div class="plan-head"><div><h2>적재 순서</h2><p class="coordinate-note">위치: 문·좌측·바닥을 기준으로 한 시작점 · 크기: 회전 후 실제 배치 방향</p></div><div class="plan-actions"><button class="collapse-toggle" id="toggleSequence" type="button" aria-expanded="false">펼치기</button><button id="exportPdf" disabled>PDF 작업지시서</button><button id="exportPlan" disabled>Excel 계획</button></div></div>
@@ -275,7 +275,7 @@
       <details><summary>절대 우회하지 않는 안전 조건</summary><ul><li>컨테이너 경계, 제품 충돌과 최대 중량 준수</li><li>상부 적재 금지 화물 위 배치 금지</li><li>상부 화물 중심이 실제 지지 영역 안에 존재</li><li>원통 위 박스 금지, 원통 적층 정렬 조건 적용</li><li>첫 화물은 예외 없이 컨테이너 안쪽 벽에 밀착</li><li>입력 수량 = 적재 수량 + 미배치 수량</li></ul></details>
       <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>래싱은 위치와 대략 수량(스트랩 1줄 6.1t 기준)만 권고하고 3D 경로·각도·앵커 강도는 계산하지 않습니다. 재배치 또는 현장 고정이 필요한 이유를 함께 표시합니다.</li></ul></details>
       <details><summary>CTU Code 반영 범위</summary><ul><li>모든 기준값은 CTU Code를 기본으로 하고, CTU가 정하지 않은 값은 제조사 값 또는 Cubestow 설정으로 구분해 표시합니다(알고리즘 정책 문서 5장).</li><li>안전 수준 "CTU 기준 적용"은 CTU Code의 배치 규칙(3면 막힘·얹힘 금지·전도 한계)을 적용한 검토용 결과입니다.</li><li>운송모드별 가속도 계수(IMO Quick Lashing Guide)로 막히지 않은 방향의 미끄럼 억제력과 전도 위험을 참고 계산합니다. 마찰계수는 재질을 확인하지 못했을 때의 최대값 0.3을 쓰고, 문은 막힌 경계로 보지 않습니다.</li><li>본 결과는 CTU Code 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
-      <details><summary>현재 계산하지 않는 한계</summary><ul><li>허용하중 미입력 제품의 압축강도, 면압과 포장재 열화</li><li>바닥 집중하중과 차량 축하중</li><li>화물별로 다른 마찰계수(지금은 고정 조건에서 하나를 고름), 충격·진동, 래싱 STF·각도와 벽 자체 허용하중</li><li>위험물 격리, 냉동 공기 순환과 법규 적합성</li><li>모든 조합을 탐색하는 전역 최적화</li></ul></details>
+      <details><summary>현재 계산하지 않는 한계</summary><ul><li>허용하중 미입력 제품의 압축강도, 면압과 포장재 열화</li><li>바닥 집중하중과 실제 차량 제원에 따른 축하중(결과 요약의 축하중은 일반 20ft·40ft 샤시 제원으로 추정한 값)</li><li>화물별로 다른 마찰계수(지금은 고정 조건에서 하나를 고름), 충격·진동, 래싱 STF·각도와 벽 자체 허용하중</li><li>위험물 격리, 냉동 공기 순환과 법규 적합성</li><li>모든 조합을 탐색하는 전역 최적화</li></ul></details>
       <details><summary>데이터 저장과 수집</summary><ul><li>로그인하지 않으면 프로젝트는 이 브라우저에만 저장됩니다.</li><li>로그인하면 프로젝트를 계정에 저장하며, 본인만 열 수 있습니다.</li><li>방문자 수는 날짜별 합계만 셉니다. 개인을 구분하는 정보는 남기지 않습니다.</li><li>자동 평가가 알고리즘 이상을 발견하면 개선을 위해 점검 기록을 익명으로 보냅니다. 제품명·제품군은 보내지 않고 치수·무게·수량·형상과 계산 조건, 지적 내용만 보내며, 한 브라우저에서 하루 최대 10건입니다. 기록은 관리자만 볼 수 있습니다.</li></ul></details>
       <details><summary>알고리즘 변경 원칙</summary><ul><li>공통 안전 조건을 우회하지 않습니다.</li><li>기존 전략과 같은 입력으로 결과를 비교합니다.</li><li>경계·충돌·중량·지지 회귀 테스트를 통과해야 합니다.</li><li>미배치와 실패 이유를 숨기지 않고 정책 버전과 변경 이력을 갱신합니다.</li></ul></details>
     </div>
@@ -313,20 +313,20 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.81</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.82</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
   <script src="project-model.js?v=20260928-1"></script>
   <script src="packing-engine.js?v=20260927-4"></script>
-  <script src="load-insights.js?v=20260925-1"></script>
+  <script src="load-insights.js?v=20260929-1"></script>
   <script src="solution-validator.js?v=20260927-1"></script>
   <script src="sample-scenarios.js?v=20260924-3"></script>
   <script src="result-review.js?v=20260927-1"></script>
-  <script src="library.js?v=20260928-1"></script>
+  <script src="library.js?v=20260929-1"></script>
   <script src="sample-results.js?v=20260928-4"></script>
   <script src="securing-plan.js?v=20260928-2"></script>
-  <script src="app.js?v=20260928-3"></script>
+  <script src="app.js?v=20260929-1"></script>
   <script src="project-store.js?v=20260928-1"></script>
 </body>
 </html>
