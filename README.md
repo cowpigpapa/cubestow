@@ -14,7 +14,7 @@
 
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
-- 현재 단계: Vercel 공개 베타 · 버전 1.1.77 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
+- 현재 단계: Vercel 공개 베타 · 버전 1.1.78 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
 - 서비스: https://cubestow.vercel.app/
 - 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
@@ -170,6 +170,10 @@ npm run test:e2e
 npm run samples:capture  # 샘플 결과 미리보기 캡처·요약 다시 만들기
 ```
 
+### CSS를 고칠 때
+
+스타일은 styles.css(기본), sample-results.css(샘플 결과 화면), v3-projects.css(현재 화면) 세 파일이며 이 순서로 불러온다. 고치기 전에 `node tools/visual-snapshots.mjs before`, 고친 뒤 `node tools/visual-snapshots.mjs after`로 4개 폭 × 10여 개 상태의 전체 화면을 찍고 `node tools/visual-snapshots.mjs --compare before after`로 비교한다. 의도한 곳만 달라져야 한다. `node tools/css-tidy.cjs`는 쓰이지 않는 선택자와 뒤에서 덮어쓴 선언을 찾아 주고, `--apply`를 붙이면 지운다(주석은 남김).
+
 ### 샘플 결과 갱신
 
 상단 메뉴 `샘플 결과`(주소 `#samples`)는 샘플 20개를 적재량 우선·기본·CTU 기준 적용으로 계산한 3D 캡처와 요약을 나란히 보여 준다. 화면은 `sample-results/manifest.json`을 읽어 그리므로, 알고리즘을 바꾼 뒤에는 `npm run samples:capture`를 실행하고(로컬 서버를 직접 띄워 몇 분 걸림) `sample-results/`를 함께 커밋·배포하면 된다. 컨테이너마다 정면과 정반대 대각선(카메라 180°) 두 장을 찍는다. 캡처 머리에 앱 버전·엔진·날짜가 기록된다.
@@ -178,8 +182,7 @@ npm run samples:capture  # 샘플 결과 미리보기 캡처·요약 다시 만�
 
 ```text
 index.html          화면 구조
-styles.css          기본 스타일
-layout-fixes.css    반응형 레이아웃 보정
+styles.css          기본 스타일(예전 layout-fixes.css·v2.css 포함)
 app.js              입력, 화면, 3D, 내보내기
 securing-plan.js    고정재 계획(에어백·스페이서·충전재·각재·래싱·검토 항목, CTU 기준)
 packing-engine.js   DOM과 분리된 적재 엔진
@@ -198,6 +201,8 @@ result-review.js    규칙 기반 자동 평가와 알고리즘 점검 기록 �
 sample-results.js   샘플 결과 미리보기 화면(#samples)
 sample-results/     샘플 결과 캡처(img)와 요약(manifest.json)
 tools/capture-sample-results.mjs  샘플 결과 캡처 도구(npm run samples:capture)
+tools/css-tidy.cjs  쓰이지 않는 CSS 선택자와 덮어써진 선언 정리
+tools/visual-snapshots.mjs  화면 회귀 확인(여러 폭·상태 전체 화면 캡처와 비교)
 benchmark.mjs       안전 기준 × 우선 기준별 품질·안전·시간 회귀 게이트
 scenario-benchmark.mjs  10개 CSV 회귀 검사
 ```
