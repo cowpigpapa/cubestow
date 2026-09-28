@@ -51,7 +51,8 @@
     const view=document.getElementById('samplesView'),planner=document.getElementById('planner');if(!view||!planner)return;
     const key=location.hash.split('/')[0],views=[...document.querySelectorAll('[data-route]')],active=views.find(v=>v.dataset.route===key)||null;
     views.forEach(v=>v.hidden=v!==active);planner.hidden=Boolean(active);
-    document.querySelectorAll('.topbar nav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')===(active?key:'#planner')));
+    // 적재 플래너는 메뉴가 아니라 로고(Cubestow)로 돌아간다.
+    document.querySelectorAll('.topbar nav a').forEach(a=>a.classList.toggle('active',Boolean(active)&&a.getAttribute('href')===key));
     if(!active){window.dispatchEvent(new Event('resize'));return}
     if(active===view){fitTop();render(view)}
     document.dispatchEvent(new CustomEvent('cubestow:view',{detail:key}));window.scrollTo(0,0);

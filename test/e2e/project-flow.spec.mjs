@@ -345,16 +345,16 @@ test('the sample results preview sits between the header and footer and compares
   await page.locator('#svToolbar button[data-cat="전체"]').click();
   await expect(page.locator('#svToolbar a[data-jump].is-off')).toHaveCount(0);
   // 적재 플래너로 돌아오면 플래너가 다시 보이고, 예전 주소(sample-results.html)는 샘플 결과로 넘어간다.
-  await page.locator('.topbar nav a[href="#planner"]').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();
+  await page.locator('.topbar .brand').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();
   await page.goto('/sample-results.html');await expect(page).toHaveURL(/#samples$/);await expect(page.locator('#samplesView')).toBeVisible();
 });
 
 test('the header menu stays visible on phones and every item fits the screen',async({page})=>{
   await page.setViewportSize({width:360,height:780});await page.goto('/');
   const nav=page.locator('.topbar nav');await expect(nav).toBeVisible();
-  // 여섯 메뉴가 모두 화면 안에 들어오고(좁은 화면은 '플래너·가이드·정책'으로 줄임) 가로 스크롤이 생기지 않는다.
+  // 다섯 메뉴가 모두 화면 안에 들어오고 가로 스크롤이 생기지 않는다(적재 플래너는 로고로 간다).
   const fit=await nav.evaluate(el=>({items:[...el.children].map(c=>{const b=c.getBoundingClientRect();return[b.left,b.right]}),width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
-  expect(fit.items).toHaveLength(6);for(const[l,r]of fit.items){expect(l).toBeGreaterThanOrEqual(0);expect(r).toBeLessThanOrEqual(fit.width)}expect(fit.scroll).toBe(fit.width);
+  expect(fit.items).toHaveLength(5);for(const[l,r]of fit.items){expect(l).toBeGreaterThanOrEqual(0);expect(r).toBeLessThanOrEqual(fit.width)}expect(fit.scroll).toBe(fit.width);
   // 로그인한 긴 이메일도 헤더 첫 줄에 들어간다: 로고는 왼쪽, 베타 안내는 로고 바로 오른쪽, 계정은 오른쪽 끝.
   await page.evaluate(()=>{document.getElementById('accountButton').hidden=true;document.getElementById('accountMenu').hidden=false;document.getElementById('accountIdentity').textContent='someone.longname@example.com'});
   const head=await page.evaluate(()=>{const b=s=>document.querySelector(s).getBoundingClientRect();return{brand:b('.topbar .brand'),beta:b('.header-beta'),ident:b('#accountIdentity'),nav:b('.topbar nav'),width:document.documentElement.clientWidth}});
@@ -363,6 +363,10 @@ test('the header menu stays visible on phones and every item fits the screen',as
   // 이메일 글자는 계정 칸의 위아래 가운데에 있다.
   const pad=await page.locator('#accountIdentity').evaluate(el=>{const b=el.getBoundingClientRect(),r=document.createRange();r.selectNodeContents(el);const t=r.getBoundingClientRect();return[t.top-b.top,b.bottom-t.bottom]});
   expect(Math.abs(pad[0]-pad[1])).toBeLessThanOrEqual(2);
+  // 계정 버튼 삼각형은 불러오기와 같은 CSS 삼각형이고, 말줄임된 이메일에 가리지 않게 오른쪽에 붙는다.
+  const tri=sel=>page.locator(sel).evaluate(el=>{const s=getComputedStyle(el,'::after');return[s.borderLeftWidth,s.borderTopWidth,s.content]});
+  expect(await tri('#accountIdentity')).toEqual(await tri('.load-menu>summary'));
+  expect(await page.locator('#accountIdentity').evaluate(el=>getComputedStyle(el,'::after').position)).toBe('absolute');
   await expect(page.locator('meta[name="format-detection"]')).toHaveAttribute('content',/email=no/);
   await page.locator('.topbar nav a[href="#samples"]').click();await expect(page.locator('#samplesView')).toBeVisible();
   // 샘플 결과의 고정 툴바는 두 줄 헤더 바로 아래에 붙는다.
@@ -413,7 +417,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   // 주소로 바로 열어도 되고, 샘플 결과·플래너와 서로 바뀐다.
   await page.goto('/#library/anchor-points');await expect(page.locator('.lib-article h2')).toContainText('고정점');
   await page.locator('.topbar nav a[href="#samples"]').click();await expect(page.locator('#samplesView')).toBeVisible();await expect(page.locator('#libraryView')).toBeHidden();
-  await page.locator('.topbar nav a[href="#planner"]').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();await expect(page.locator('#libraryView')).toBeHidden();
+  await page.locator('.topbar .brand').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();await expect(page.locator('#libraryView')).toBeHidden();
   // CTU Code 창에서도 자료실로 간다.
   await page.click('#ctuButton');await page.locator('#ctuDialog a[href="#library"]').click();
   await expect(page.locator('#ctuDialog')).not.toBeVisible();await expect(page.locator('#libraryView')).toBeVisible();
