@@ -182,7 +182,7 @@ test('run de-duplication does not rely on unit ids',()=>{
   assert.equal(withoutIds.stats.runs,withIds.stats.runs);assert.equal(withoutIds.stats.skipped,withIds.stats.skipped);
 });
 
-test('later containers ignore widths of cargo already loaded in earlier containers',()=>{
+test('later containers ignore widths of cargo already loaded in earlier containers @slow',()=>{
   const types=[[1200,1000,900,300],[1000,800,700,150],[800,600,500,80],[600,400,400,40]];
   const items=Array.from({length:200},(_,i)=>{const [l,w,h,weight]=types[i%4];return{...base,name:`T${i%4}`,l,w,h,weight,rotate:true,pi:i%4,unit:i+1}});
   const container=CONTAINERS[2],result=engine.packShipment({container,units:items,safety:'strict',timeBudgetMs:60000});
@@ -286,7 +286,7 @@ test('incremental stack balance check sums converging loads before passing them 
 });
 
 // 첫 적재는 예외 없이 안쪽 벽에 붙인다. 앞쪽이 무거워도 문 쪽으로 옮기지 않고 사전검사 경고로만 알린다.
-test('every sample starts loading against the inner end wall in every container',async()=>{
+test('every sample starts loading against the inner end wall in every container @slow',async()=>{
   vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
   const containers={'20ft':C20,'40ft':CONTAINERS[1],'40hc':CONTAINERS[2]};
   for(const [id,sample] of Object.entries(context.__samples))for(const safety of ['strict','standard']){
@@ -336,7 +336,7 @@ test('strict safety never stands a cylinder on top of a box',async()=>{
   assertValidShipment(result,items);
 });
 
-test('highest safety blocks the inner, left and right faces of every item in every sample',async()=>{
+test('highest safety blocks the inner, left and right faces of every item in every sample @slow',async()=>{
   if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
   const containers={'20ft':C20,'40ft':CONTAINERS[1],'40hc':CONTAINERS[2]};
   for(const id of ['1','3','9','18']){
@@ -383,7 +383,7 @@ test('CTU safety builds full-width walls so the size-comparison sample keeps mos
   assertValidShipment(result,items);
 });
 
-test('CTU safety repairs a strict layout when its own search leaves cargo over: small appliances fit two containers',async()=>{
+test('CTU safety repairs a strict layout when its own search leaves cargo over: small appliances fit two containers @slow',async()=>{
   if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
   const sample=context.__samples[7],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
   // 화면과 같은 예산(8초)으로 계산한다. 배치안 수는 예산과 화물 수로 정해지므로 결과는 기기와 관계없이 같다.
@@ -395,7 +395,7 @@ test('CTU safety repairs a strict layout when its own search leaves cargo over: 
   assert.equal(validation.valid,true,validation.errors.slice(0,3).join('; '));
 });
 
-test('results do not depend on how fast the machine runs',async()=>{
+test('results do not depend on how fast the machine runs @slow',async()=>{
   // 시간을 재는 함수가 부를 때마다 1초씩 흐르는(아주 느린 컴퓨터) 환경에서도 보통 실행과 같은 배치가 나와야 한다.
   const slow=vm.createContext({console,performance:{now:(()=>{let t=0;return()=>t+=1000})()}});
   for(const file of ['../load-insights.js','../solution-validator.js','../packing-engine.js'])vm.runInContext(await readFile(new URL(file,import.meta.url),'utf8'),slow);
@@ -433,7 +433,7 @@ test('unloaded items say why when the 50-container cap is reached or CTU has no 
   assert.ok(bare.remaining.every(u=>/에어백이나 충전재를 켜세요/.test(u.reason)),bare.remaining.map(u=>u.reason).join(','));
 });
 
-test('CTU explains when the perch ban alone makes it use more containers than the basic mode',async()=>{
+test('CTU explains when the perch ban alone makes it use more containers than the basic mode @slow',async()=>{
   if(!context.__samples)vm.runInContext((await readFile(new URL('../sample-scenarios.js',import.meta.url),'utf8'))+';globalThis.__samples=SAMPLE_SETS;',context);
   const sample=context.__samples[18],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
   // 가정 이사 화물: 기본 기준은 1대지만 작은 이삿짐 박스가 큰 박스 위에 문쪽이 열린 채 얹혀 있어, 얹힘을 금지하는 CTU 기준은 2대가 된다.

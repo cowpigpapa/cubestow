@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const source = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const context = vm.createContext({ console, setTimeout, clearTimeout, performance });
-for (const file of ["../load-insights.js", "../solution-validator.js", "../packing-engine.js"]) vm.runInContext(await readFile(new URL(file, import.meta.url), "utf8"), context);
+for (const file of ["../load-insights.js", "../solution-validator.js", "../packing-engine.js", "../securing-plan.js"]) vm.runInContext(await readFile(new URL(file, import.meta.url), "utf8"), context);
 vm.runInContext(source, context);
 const run = code => vm.runInContext(code, context);
 const base = { name:"box", group:"기타", shape:"box", l:1000, w:800, h:700, weight:100, qty:1, rotate:false, fragile:false, color:"#000", volume:560000000 };

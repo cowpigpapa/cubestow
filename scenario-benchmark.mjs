@@ -3,7 +3,7 @@ import {readdir,readFile,writeFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
 const context=vm.createContext({console,setTimeout,clearTimeout,performance});
-for(const file of ['load-insights.js','solution-validator.js','packing-engine.js','app.js'])vm.runInContext(await readFile(file,'utf8'),context);
+for(const file of ['load-insights.js','solution-validator.js','packing-engine.js','securing-plan.js','app.js'])vm.runInContext(await readFile(file,'utf8'),context);
 const files=(await readdir('test-projects')).filter(name=>name.endsWith('.csv')).sort(),expected={
   '01-single-small.csv':[1,0],'02-single-medium.csv':[1,0],'03-single-large.csv':[2,0],'04-mixed-heavy.csv':[1,0],'05-mixed-sizes.csv':[1,0],
   '06-cylinders.csv':[1,0],'07-tall-stability.csv':[1,0],'08-fragile-topload.csv':[1,0],'09-width-combination.csv':[1,0],'10-partial-unloadable.csv':[1,2]

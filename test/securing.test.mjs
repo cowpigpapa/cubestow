@@ -3,13 +3,13 @@ import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
 
-// 고정재 계획은 app.js에 있으므로 벤치마크처럼 화면 코드와 함께 불러와 검사한다.
+// 고정재 계획(securing-plan.js)은 app.js의 esc 등을 쓰므로 벤치마크처럼 화면 코드와 함께 불러와 검사한다.
 const context=vm.createContext({console,performance,setTimeout,clearTimeout});
-for(const file of ['load-insights.js','solution-validator.js','packing-engine.js','sample-scenarios.js','app.js'])vm.runInContext(await readFile(new URL(`../${file}`,import.meta.url),'utf8'),context);
+for(const file of ['load-insights.js','solution-validator.js','packing-engine.js','sample-scenarios.js','securing-plan.js','app.js'])vm.runInContext(await readFile(new URL(`../${file}`,import.meta.url),'utf8'),context);
 vm.runInContext('globalThis.__samples=SAMPLE_SETS;globalThis.__containers=CONTAINERS;globalThis.__plan=buildSecuringPlan;',context);
 const overlap=(a,b)=>Math.min(a.x+a.l,b.x+b.l)-Math.max(a.x,b.x)>1&&Math.min(a.y+a.w,b.y+b.w)-Math.max(a.y,b.y)>1&&Math.min(a.z+a.h,b.z+b.h)-Math.max(a.z,b.z)>1;
 
-test('airbags never overlap each other, cargo or dunnage, and never sit at a container end',()=>{
+test('airbags never overlap each other, cargo or dunnage, and never sit at a container end @slow',()=>{
   let checked=0;
   for(const [id,sample] of Object.entries(context.__samples)){
     const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
@@ -29,7 +29,7 @@ test('airbags never overlap each other, cargo or dunnage, and never sit at a con
   assert.ok(checked>50,`only ${checked} airbags checked`);
 });
 
-test('airbags fill at most a 600 mm gap off the floor, and other securing items never overlap cargo or airbags',()=>{
+test('airbags fill at most a 600 mm gap off the floor, and other securing items never overlap cargo or airbags @slow',()=>{
   let fillers=0;
   for(const [id,sample] of Object.entries(context.__samples)){
     const items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));
@@ -86,7 +86,7 @@ test('gaps collect at the door side: sample 6 has no airbag in a gap near the in
   }
 });
 
-test('CTU mode uses no more containers than the basic mode and names each face that securing must close',()=>{
+test('CTU mode uses no more containers than the basic mode and names each face that securing must close @slow',()=>{
   // 사용자 결정(2026-09-26): 화물끼리 막는 배치가 대수를 늘리면 기본 배치를 쓰고, 화물로 막히지 않은 옆면은 고정재 권고에 화물별로 적는다.
   for(const id of ['1','10']){
     const sample=context.__samples[id],container=context.__containers[sample.container];

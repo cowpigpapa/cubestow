@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 // 규칙 기반 자동 평가(result-review.js)를 엔진·검증기·고정재 계획과 함께 불러와 검사한다.
 const context=vm.createContext({console,performance,setTimeout,clearTimeout});
-for(const file of ['load-insights.js','solution-validator.js','packing-engine.js','sample-scenarios.js','app.js','result-review.js'])vm.runInContext(await readFile(new URL(`../${file}`,import.meta.url),'utf8'),context);
+for(const file of ['load-insights.js','solution-validator.js','packing-engine.js','sample-scenarios.js','securing-plan.js','app.js','result-review.js'])vm.runInContext(await readFile(new URL(`../${file}`,import.meta.url),'utf8'),context);
 vm.runInContext('globalThis.__samples=SAMPLE_SETS;globalThis.__containers=CONTAINERS;globalThis.__plan=buildSecuringPlan;',context);
 const run=(id,safety)=>{
   const sample=context.__samples[id],container=context.__containers[sample.container],items=sample.products.flatMap((p,pi)=>Array.from({length:p.qty},(_,n)=>({...p,pi,unit:n+1})));

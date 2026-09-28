@@ -1,6 +1,6 @@
 {
   "name": "cubestow",
-  "version": "1.1.76",
+  "version": "1.1.77",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,7 @@
     "benchmark:write": "node benchmark.mjs --write && node scenario-benchmark.mjs --write",
     "benchmark:scenarios": "node scenario-benchmark.mjs",
     "test": "node --test test/*.test.mjs",
+    "test:quick": "node --test --test-skip-pattern=@slow test/*.test.mjs",
     "test:e2e": "playwright test",
     "samples:capture": "node tools/capture-sample-results.mjs"
   },
