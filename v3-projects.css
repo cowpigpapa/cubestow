@@ -567,7 +567,8 @@ button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .colla
   .topbar .header-beta{margin:0 auto 0 10px;flex:0 0 auto}
   .topbar .account-actions{margin-left:auto;min-width:0;flex:0 1 auto}
   .topbar .account-menu{min-width:0}
-  .topbar .account-identity{display:block;max-width:min(190px,calc(100vw - 222px))}
+  .topbar .account-identity{display:block;max-width:min(190px,calc(100vw - 222px));height:36px;min-height:0;padding:0 12px;line-height:34px}
+  .topbar .account-menu>summary::before{display:inline-block;width:8px;vertical-align:middle;position:relative;top:-1px}
 }
 /* iOS가 이메일을 자동으로 링크로 바꾸지 않게 한다. */
 .account-identity a,a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;pointer-events:none}

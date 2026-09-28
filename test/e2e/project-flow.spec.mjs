@@ -355,6 +355,9 @@ test('the header menu stays visible on phones and every item fits the screen',as
   const head=await page.evaluate(()=>{const b=s=>document.querySelector(s).getBoundingClientRect();return{brand:b('.topbar .brand'),beta:b('.header-beta'),ident:b('#accountIdentity'),nav:b('.topbar nav'),width:document.documentElement.clientWidth}});
   expect(head.brand.left).toBeLessThan(30);expect(head.beta.left).toBeGreaterThan(head.brand.right);expect(head.beta.left-head.brand.right).toBeLessThan(30);
   expect(head.ident.right).toBeLessThanOrEqual(head.width);expect(head.ident.bottom).toBeLessThanOrEqual(head.nav.top);expect(head.ident.top).toBeLessThan(head.brand.bottom);
+  // 이메일 글자는 계정 칸의 위아래 가운데에 있다.
+  const pad=await page.locator('#accountIdentity').evaluate(el=>{const b=el.getBoundingClientRect(),r=document.createRange();r.selectNodeContents(el);const t=r.getBoundingClientRect();return[t.top-b.top,b.bottom-t.bottom]});
+  expect(Math.abs(pad[0]-pad[1])).toBeLessThanOrEqual(2);
   await expect(page.locator('meta[name="format-detection"]')).toHaveAttribute('content',/email=no/);
   await page.locator('.topbar nav a[href="#samples"]').click();await expect(page.locator('#samplesView')).toBeVisible();
   // 샘플 결과의 고정 툴바는 두 줄 헤더 바로 아래에 붙는다.
