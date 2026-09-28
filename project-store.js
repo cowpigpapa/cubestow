@@ -85,7 +85,18 @@
   const FLAG_QUEUE='loadwise.v3.algorithmFlags';
   function readFlags(){try{const list=JSON.parse(localStorage.getItem(FLAG_QUEUE)||'[]');return Array.isArray(list)?list:[]}catch{return[]}}
   function writeFlags(list){try{localStorage.setItem(FLAG_QUEUE,JSON.stringify(list.slice(-20)))}catch{}}
-  async function flushFlags(){if(!client)return;const queue=readFlags(),keep=[];for(const entry of queue){const{error}=await client.rpc('record_algorithm_flag',{p_app_version:entry.appVersion,p_engine:entry.engine,p_settings:entry.settings,p_flags:entry.flags,p_input:entry.input,p_fingerprint:entry.fingerprint});if(error){console.warn('algorithm flag not sent',error.message);keep.push(entry)}}writeFlags(keep)}
+  // 한 브라우저가 하루에 보내는 기록은 FLAG_DAILY_LIMIT건까지(서버의 전체 하루 한도를 한 사람이 다 쓰지 않게).
+  const FLAG_SENT='loadwise.v3.algorithmFlagsSent',FLAG_DAILY_LIMIT=10;
+  function sentToday(){const day=new Date().toISOString().slice(0,10);try{const v=JSON.parse(localStorage.getItem(FLAG_SENT)||'{}');return v.day===day?{day,count:Number(v.count)||0}:{day,count:0}}catch{return{day,count:0}}}
+  // 예전 대기열에 남은 제품명·제품군도 보내기 전에 지운다.
+  const stripNames=input=>({...input,products:(input?.products||[]).map(({name,group,...rest})=>rest)});
+  // 한 번에 하나만 보낸다. 보내는 중에 새 기록이 들어오면 끝난 뒤 한 번 더 돈다.
+  let flushing=false,flushAgain=false;
+  async function flushFlags(){if(!client)return;if(flushing){flushAgain=true;return}flushing=true;try{do{flushAgain=false;await flushOnce()}while(flushAgain)}finally{flushing=false}}
+  async function flushOnce(){const sentOk=new Set(),sent=sentToday();for(const entry of readFlags()){if(sent.count>=FLAG_DAILY_LIMIT)break;const{error}=await client.rpc('record_algorithm_flag',{p_app_version:entry.appVersion,p_engine:entry.engine,p_settings:entry.settings,p_flags:entry.flags,p_input:stripNames(entry.input),p_fingerprint:entry.fingerprint});if(error)console.warn('algorithm flag not sent',error.message);else{sent.count++;sentOk.add(entry.fingerprint)}}
+    try{localStorage.setItem(FLAG_SENT,JSON.stringify(sent))}catch{}
+    // 보내는 동안 새로 들어온 기록은 지우지 않고, 보낸 기록만 대기열에서 뺀다.
+    writeFlags(readFlags().filter(e=>!sentOk.has(e.fingerprint)))}
   function recordAlgorithmFlag(entry){if(!entry?.fingerprint||!entry.flags?.length)return;const queue=readFlags().filter(e=>e.fingerprint!==entry.fingerprint);queue.push(entry);writeFlags(queue);flushFlags()}
   const FLAG_NAMES={'validation':'검증 실패','empty-container':'빈 컨테이너','cog-danger':'무게배분 위험','not-flush':'첫 화물 미밀착','perch-in-ctu':'CTU 얹힘','tower-open':'높은 적층 열림','inner-void':'안쪽 빈 곳','filler-inside':'중간 충전재','many-airbags':'에어백 과다','thin-last':'마지막 컨테이너 소량'};
   async function loadAlgorithmFlags(){

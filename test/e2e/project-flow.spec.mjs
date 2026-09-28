@@ -1,5 +1,8 @@
 import {test,expect} from '@playwright/test';
 
+// 테스트는 운영 Supabase(방문자 수·알고리즘 점검 기록)에 쓰지 않는다.
+test.beforeEach(async({page})=>{await page.route(/^https:\/\/[a-z0-9]+\.supabase\.co\//,route=>route.abort())});
+
 const openMenu=(page,name)=>page.locator('details.menu>summary',{hasText:name}).click();
 async function loadSample(page,number=1){
   await openMenu(page,'불러오기');await page.getByRole('button',{name:'샘플',exact:true}).click();
@@ -289,6 +292,8 @@ test('result summary shows the safety verdict and field results compare with the
   await expect(summary).toBeVisible();await expect(summary).toContainText('안전 판정');await expect(summary).toContainText('꼭 필요한 고정재');
   // 자동 평가(규칙 기반): 등급과 항목이 결과 요약 아래에 보인다.
   const review=page.locator('#autoReview');await expect(review).toBeVisible();await expect(review).toContainText('자동 평가');await expect(review.locator('.auto-review-head strong')).toHaveText(/양호|주의|재검토 필요/);await expect(review.locator('li').first()).toBeVisible();
+  // 판정 범위: 사전 검토용이며 CTU·도로 법규 적합 판정이 아니라고 적는다.
+  await expect(review.locator('.auto-review-scope')).toContainText('사전 검토용');
   // 현장 결과를 기록하면 계획과의 차이를 보여 주고 프로젝트가 저장되지 않음 상태가 된다.
   await page.locator('#fieldPanel').evaluate(panel=>panel.open=true);
   await page.locator('#fieldLoaded').fill('30');await page.locator('#fieldContainers').fill('2');await page.locator('#fieldNotes').fill('문쪽 1열 재배치');
@@ -364,4 +369,17 @@ test('the header menu stays visible on phones and every item fits the screen',as
   await expect(page.locator('#samplesView section.sv-sample')).toHaveCount(20);
   await page.evaluate(()=>window.scrollTo(0,1500));
   await expect.poll(()=>page.evaluate(()=>Math.round(document.querySelector('#svToolbar').getBoundingClientRect().top-document.querySelector('.topbar').getBoundingClientRect().bottom))).toBe(0);
+});
+
+test('algorithm flags leave out product names and stop at ten a day per browser',async({page})=>{
+  const bodies=[];
+  await page.route(/record_algorithm_flag/,async route=>{bodies.push(route.request().postDataJSON());await route.fulfill({status:200,contentType:'application/json',body:'null'})});
+  await page.goto('/');await page.evaluate(()=>{localStorage.removeItem('loadwise.v3.algorithmFlags');localStorage.removeItem('loadwise.v3.algorithmFlagsSent')});
+  // 예전 대기열처럼 제품명·제품군이 들어간 기록 12건을 넣는다.
+  await page.evaluate(async()=>{for(let i=0;i<12;i++){window.loadwiseStorage.recordAlgorithmFlag({appVersion:'test',engine:'test',settings:{},flags:[{code:'inner-void'}],input:{products:[{name:'비밀 제품',group:'영업',shape:'box',l:1000,w:800,h:600,weight:100,qty:3}]},fingerprint:`e2e${String(i).padStart(13,'0')}`});await new Promise(r=>setTimeout(r,120))}});
+  await expect.poll(()=>bodies.length).toBe(10);
+  await page.waitForTimeout(500);expect(bodies).toHaveLength(10);
+  for(const body of bodies){const product=body.p_input.products[0];expect(product.name).toBeUndefined();expect(product.group).toBeUndefined();expect(product.weight).toBe(100)}
+  // 하루 한도를 넘은 기록은 대기열에 남아 다음 날 보낸다.
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('loadwise.v3.algorithmFlags')).length)).toBe(2);
 });

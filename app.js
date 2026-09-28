@@ -439,14 +439,16 @@ function renderAutoReview(){
   el.hidden=false;el.dataset.grade=r.grade.key;
   el.innerHTML=`<div class="auto-review-head"><span>자동 평가</span><strong>${r.grade.label}</strong><small>규칙 기반 점검 · 같은 결과면 같은 평가</small></div>`+
     `<ul>${r.items.map(it=>`<li data-level="${it.level}"><i aria-hidden="true">${icon[it.level]}</i><div><b>${esc(it.title)}</b>${it.detail?`<span>${esc(it.detail)}</span>`:''}${it.fix?`<em>${esc(it.fix)}</em>`:''}</div></li>`).join('')}</ul>`+
-    (r.anomalies.length?`<p class="auto-review-flag">알고리즘 개선을 위해 이 결과를 점검 기록으로 남겼습니다(${r.anomalies.length}건).</p>`:'');
+    `<p class="auto-review-scope">사전 검토용 평가입니다. CTU Code나 도로 법규 적합 판정이 아니며, 실제 적입 전 현장 책임자가 확인해야 합니다.${/-kr$/.test(shipment.containerKey||'')?' 한국 도로 한도는 적재중량 기준 값이며 축하중·트랙터·샤시 조합은 계산하지 않습니다.':''}</p>`+
+    (r.anomalies.length?`<p class="auto-review-flag">알고리즘 개선을 위해 이 결과를 점검 기록으로 남겼습니다(${r.anomalies.length}건, 제품명 없이 치수·무게·조건만).</p>`:'');
 }
 // 계산이 끝날 때 한 번: 알고리즘이 의심되는 결과면 입력·조건·지적을 점검 기록으로 보낸다(관리자만 열람).
 function recordReviewFlags(){
   if(!shipment||!window.LoadwiseReview||!window.loadwiseStorage?.recordAlgorithmFlag)return;
   const r=LoadwiseReview.review(shipment);if(!r.anomalies.length)return;
   const settings={container:shipment.containerKey,safety:shipment.safety,preference:shipment.preference,transportMode:shipment.transportMode,securing:{...securingOptions}};
-  const input={products:products.map(p=>({name:p.name,group:p.group,shape:p.shape,l:p.l,w:p.w,h:p.h,weight:p.weight,qty:p.qty,rotate:p.rotate,fragile:p.fragile,maxTopLoadKg:p.maxTopLoadKg}))};
+  // 제품명·제품군은 영업 정보일 수 있어 보내지 않는다. 재현에는 치수·무게·수량·형상·조건이면 충분하다.
+  const input={products:products.map(p=>({shape:p.shape,l:p.l,w:p.w,h:p.h,weight:p.weight,qty:p.qty,rotate:p.rotate,fragile:p.fragile,maxTopLoadKg:p.maxTopLoadKg}))};
   const engine=shipment.engine||LoadwiseEngine.ENGINE_VERSION,appVersion=($('appVersion')?.textContent||'').replace(/^v/,'');
   window.loadwiseStorage.recordAlgorithmFlag({appVersion,engine,settings,flags:r.anomalies,input,fingerprint:LoadwiseReview.fingerprint({engine,settings,input,codes:r.anomalies.map(a=>a.code)})});
 }

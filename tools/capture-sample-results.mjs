@@ -28,6 +28,8 @@ try {
   await mkdir(imgDir, { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
+  // 캡처는 운영 Supabase(방문자 수·알고리즘 점검 기록)에 쓰지 않는다.
+  await page.route(/^https:\/\/[a-z0-9]+\.supabase\.co\//, route => route.abort());
   await page.goto(BASE);
   await page.evaluate(() => localStorage.clear());
   await page.reload();
