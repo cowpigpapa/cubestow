@@ -1,0 +1,33 @@
+/* 자료실(#library): 헤더와 푸터 사이에서 적재 플래너 대신 보인다. */
+.library-view{--lib-muted:#5f6763;--lib-line:rgba(0,0,0,.09);max-width:1100px;margin:0 auto;padding:22px 16px 56px;color:#1d1d1f;line-height:1.6}
+.library-view[hidden]{display:none}
+.library-view .lib-head h2{font-size:26px;margin:4px 0 6px}
+.library-view .lib-head p{margin:0 0 8px;color:var(--lib-muted);font-size:14px;max-width:760px}
+.library-view .lib-section{margin-top:26px}
+.library-view .lib-section>h3{font-size:18px;margin:0 0 12px}
+.library-view .lib-section>h3 small{margin-left:6px;font-size:12px;font-weight:500;color:var(--lib-muted)}
+.library-view .lib-docs,.library-view .lib-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.library-view .lib-doc,.library-view .lib-card{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--lib-line);border-radius:14px;background:#fff;color:inherit;text-decoration:none;font-size:13.5px}
+.library-view .lib-doc:hover,.library-view .lib-card:hover{border-color:#0071e3;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.library-view .lib-doc b,.library-view .lib-card b{font-size:15px}
+.library-view .lib-doc>span:last-child,.library-view .lib-card>span{color:#3a4148}
+.library-view .lib-meta{font-size:12px;color:var(--lib-muted)!important}
+.library-view .lib-open{margin-top:auto;font-size:12.5px;font-weight:700;color:#0071e3!important}
+.library-view .lib-tag{align-self:flex-start;padding:2px 9px;border-radius:999px;background:#e8f1fd;color:#1b4f8f;font-size:12px;font-weight:700}
+.library-view .lib-disclaimer{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#f6f7f5;color:var(--lib-muted);font-size:12.5px}
+.library-view .lib-plan{margin:0;padding-left:22px;display:grid;gap:6px;font-size:14px}
+.library-view .lib-plan li span{margin-left:8px;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;background:#eef1f3;color:#5f6763}
+.library-view .lib-plan li[data-state="done"] span{background:#e5f5ec;color:#145c33}
+.library-view .lib-plan a{color:#0071e3}
+.library-view .lib-crumb a{font-size:14px;font-weight:700;color:#0071e3;text-decoration:none}
+.library-view .lib-article{margin-top:12px;padding:22px;border:1px solid var(--lib-line);border-radius:16px;background:#fff;font-size:15px}
+.library-view .lib-article h2{font-size:24px;margin:8px 0 12px}
+.library-view .lib-article h3{font-size:17px;margin:22px 0 8px}
+.library-view .lib-article p,.library-view .lib-article li{color:#2b3230}
+.library-view .lib-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0}
+.library-view .lib-table th,.library-view .lib-table td{padding:7px 9px;border-bottom:1px solid var(--lib-line);text-align:left;vertical-align:top}
+.library-view .lib-table th{background:#f6f7f5;font-weight:700}
+@media(max-width:640px){
+  .library-view .lib-article{padding:16px;font-size:14.5px}
+  .library-view .lib-table{display:block;overflow-x:auto}
+}

@@ -352,9 +352,9 @@ test('the sample results preview sits between the header and footer and compares
 test('the header menu stays visible on phones and every item fits the screen',async({page})=>{
   await page.setViewportSize({width:360,height:780});await page.goto('/');
   const nav=page.locator('.topbar nav');await expect(nav).toBeVisible();
-  // 다섯 메뉴가 모두 화면 안에 들어오고 가로 스크롤이 생기지 않는다.
+  // 여섯 메뉴가 모두 화면 안에 들어오고(좁은 화면은 '플래너·가이드·정책'으로 줄임) 가로 스크롤이 생기지 않는다.
   const fit=await nav.evaluate(el=>({items:[...el.children].map(c=>{const b=c.getBoundingClientRect();return[b.left,b.right]}),width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
-  expect(fit.items).toHaveLength(5);for(const[l,r]of fit.items){expect(l).toBeGreaterThanOrEqual(0);expect(r).toBeLessThanOrEqual(fit.width)}expect(fit.scroll).toBe(fit.width);
+  expect(fit.items).toHaveLength(6);for(const[l,r]of fit.items){expect(l).toBeGreaterThanOrEqual(0);expect(r).toBeLessThanOrEqual(fit.width)}expect(fit.scroll).toBe(fit.width);
   // 로그인한 긴 이메일도 헤더 첫 줄에 들어간다: 로고는 왼쪽, 베타 안내는 로고 바로 오른쪽, 계정은 오른쪽 끝.
   await page.evaluate(()=>{document.getElementById('accountButton').hidden=true;document.getElementById('accountMenu').hidden=false;document.getElementById('accountIdentity').textContent='someone.longname@example.com'});
   const head=await page.evaluate(()=>{const b=s=>document.querySelector(s).getBoundingClientRect();return{brand:b('.topbar .brand'),beta:b('.header-beta'),ident:b('#accountIdentity'),nav:b('.topbar nav'),width:document.documentElement.clientWidth}});
@@ -395,4 +395,26 @@ test('securing conditions set friction, lashing MSL and lashing points for the l
   await loadSample(page,3);
   await page.locator('#securingPanel').evaluate(panel=>panel.open=true);
   await expect(page.locator('#securingRecommendation')).toContainText('마찰 0.45');await expect(page.locator('#securingRecommendation')).toContainText('래싱 MSL 4,000daN');await expect(page.locator('#securingRecommendation')).toContainText('고정점 표시 확인');
+});
+
+test('the library links the official CTU Code sources and opens Korean commentaries between the header and footer',async({page})=>{
+  await page.goto('/');
+  await page.locator('.topbar nav a[href="#library"]').click();
+  await expect(page.locator('#libraryView')).toBeVisible();await expect(page.locator('#planner')).toBeHidden();
+  await expect(page.locator('.topbar nav a[href="#library"]')).toHaveClass(/active/);
+  // 공식 원문은 IMO 배포 링크로만 건다(파일을 다시 올리지 않음).
+  await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(4);
+  await expect(page.locator('#libraryView')).toContainText('사전 서면 허가 없이 복제할 수 없습니다');
+  // 해설을 열고 자료실로 돌아온다.
+  await page.locator('a.lib-doc[href="#library/qlg-c"]').click();
+  await expect(page).toHaveURL(/#library\/qlg-c$/);
+  await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');await expect(page.locator('.lib-article')).toContainText('6.1t');
+  await page.locator('.lib-crumb a').click();await expect(page.locator('.lib-doc')).toHaveCount(4);
+  // 주소로 바로 열어도 되고, 샘플 결과·플래너와 서로 바뀐다.
+  await page.goto('/#library/anchor-points');await expect(page.locator('.lib-article h2')).toContainText('고정점');
+  await page.locator('.topbar nav a[href="#samples"]').click();await expect(page.locator('#samplesView')).toBeVisible();await expect(page.locator('#libraryView')).toBeHidden();
+  await page.locator('.topbar nav a[href="#planner"]').click();await expect(page.locator('#planner')).toBeVisible();await expect(page.locator('#samplesView')).toBeHidden();await expect(page.locator('#libraryView')).toBeHidden();
+  // CTU Code 창에서도 자료실로 간다.
+  await page.click('#ctuButton');await page.locator('#ctuDialog a[href="#library"]').click();
+  await expect(page.locator('#ctuDialog')).not.toBeVisible();await expect(page.locator('#libraryView')).toBeVisible();
 });

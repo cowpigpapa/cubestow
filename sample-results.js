@@ -45,12 +45,16 @@
   }
 
   // 주소가 #samples이면 샘플 결과, 아니면 적재 플래너를 보여 준다.
+  // 헤더와 푸터 사이 화면 전환: data-route가 주소(#samples, #library, #library/<해설>)의 첫 부분과 맞는 화면만 보이고,
+  // 맞는 화면이 없으면 적재 플래너를 보인다. 보인 화면에는 cubestow:view 이벤트(detail=주소 첫 부분)를 보낸다.
   function route(){
     const view=document.getElementById('samplesView'),planner=document.getElementById('planner');if(!view||!planner)return;
-    const on=location.hash==='#samples';
-    view.hidden=!on;planner.hidden=on;
-    document.querySelectorAll('.topbar nav a').forEach(a=>a.classList.toggle('active',on?a.getAttribute('href')==='#samples':a.getAttribute('href')==='#planner'));
-    if(on){fitTop();render(view);window.scrollTo(0,0)}else window.dispatchEvent(new Event('resize'));
+    const key=location.hash.split('/')[0],views=[...document.querySelectorAll('[data-route]')],active=views.find(v=>v.dataset.route===key)||null;
+    views.forEach(v=>v.hidden=v!==active);planner.hidden=Boolean(active);
+    document.querySelectorAll('.topbar nav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')===(active?key:'#planner')));
+    if(!active){window.dispatchEvent(new Event('resize'));return}
+    if(active===view){fitTop();render(view)}
+    document.dispatchEvent(new CustomEvent('cubestow:view',{detail:key}));window.scrollTo(0,0);
   }
   // 고정 툴바는 헤더 바로 아래에 붙인다. 모바일에서는 헤더가 두 줄이라 높이를 재서 맞춘다.
   function fitTop(){const view=document.getElementById('samplesView'),bar=document.querySelector('.topbar');if(view&&bar)view.style.setProperty('--sv-top',bar.offsetHeight+'px')}

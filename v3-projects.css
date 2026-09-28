@@ -890,3 +890,5 @@ button.collapse-toggle[aria-expanded="true"]::after,details[open]>summary .colla
 .securing-conditions[open]>summary::after{border-top:0;border-bottom:5px solid currentColor}
 .securing-conditions-panel{left:0;right:auto;width:min(360px,calc(100vw - 32px))}
 @media(max-width:480px){.securing-conditions-panel{position:static;width:auto;margin-top:6px;box-shadow:none}.securing-conditions>summary{white-space:normal;flex-wrap:wrap}}
+/* 아주 좁은 화면(480px 이하)에서는 메뉴 여섯 개가 한 줄에 들어가게 앞 낱말을 줄인다: 적재 플래너 → 플래너 등(1.1.80). */
+@media(max-width:480px){.topbar nav .nav-extra{display:none}}

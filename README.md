@@ -14,7 +14,7 @@
 
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
-- 현재 단계: Vercel 공개 베타 · 버전 1.1.79 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
+- 현재 단계: Vercel 공개 베타 · 버전 1.1.80 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
 - 서비스: https://cubestow.vercel.app/
 - 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
@@ -174,6 +174,10 @@ npm run samples:capture  # 샘플 결과 미리보기 캡처·요약 다시 만�
 
 스타일은 styles.css(기본), sample-results.css(샘플 결과 화면), v3-projects.css(현재 화면) 세 파일이며 이 순서로 불러온다. 고치기 전에 `node tools/visual-snapshots.mjs before`, 고친 뒤 `node tools/visual-snapshots.mjs after`로 4개 폭 × 10여 개 상태의 전체 화면을 찍고 `node tools/visual-snapshots.mjs --compare before after`로 비교한다. 의도한 곳만 달라져야 한다. `node tools/css-tidy.cjs`는 쓰이지 않는 선택자와 뒤에서 덮어쓴 선언을 찾아 주고, `--apply`를 붙이면 지운다(주석은 남김).
 
+### 자료실 해설 추가
+
+상단 메뉴 `자료실`(`#library`)은 CTU Code 등 공식 원문을 배포처 링크로 걸고, Cubestow가 직접 쓴 한국어 해설을 보여 준다. CTU Code와 정보자료는 IMO 저작권(사전 서면 허가 없이 복제 금지)이라 파일을 올리지 않는다. 해설을 추가할 때는 library.js의 `DOCS`에 항목을 넣고 `PLAN`의 상태를 `done`으로 바꾼다. 해설은 원문 번역이 아니라 요약이며, 표 숫자는 원문과 대조한다.
+
 ### 샘플 결과 갱신
 
 상단 메뉴 `샘플 결과`(주소 `#samples`)는 샘플 20개를 적재량 우선·기본·CTU 기준 적용으로 계산한 3D 캡처와 요약을 나란히 보여 준다. 화면은 `sample-results/manifest.json`을 읽어 그리므로, 알고리즘을 바꾼 뒤에는 `npm run samples:capture`를 실행하고(로컬 서버를 직접 띄워 몇 분 걸림) `sample-results/`를 함께 커밋·배포하면 된다. 컨테이너마다 정면과 정반대 대각선(카메라 180°) 두 장을 찍는다. 캡처 머리에 앱 버전·엔진·날짜가 기록된다.
@@ -198,7 +202,8 @@ SIMULATION-FEEDBACK.md 시뮬레이션 질문·판정·개선 이력
 test-projects/      반복 검토용 CSV 화물 10종
 solution-validator.js 독립 결과 검증기
 result-review.js    규칙 기반 자동 평가와 알고리즘 점검 기록 판단
-sample-results.js   샘플 결과 미리보기 화면(#samples)
+sample-results.js   샘플 결과 미리보기 화면(#samples)과 헤더·푸터 사이 화면 전환
+library.js          자료실(#library): 공식 원문 링크, 한국어 해설, 해설 진행표
 sample-results/     샘플 결과 캡처(img)와 요약(manifest.json)
 tools/capture-sample-results.mjs  샘플 결과 캡처 도구(npm run samples:capture)
 tools/css-tidy.cjs  쓰이지 않는 CSS 선택자와 덮어써진 선언 정리
