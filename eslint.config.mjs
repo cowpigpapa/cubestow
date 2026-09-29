@@ -12,7 +12,8 @@ export default [
       'test-results/',
       'playwright-report/',
       'outputs/',
-      'research/'
+      'research/',
+      'engine/'
     ]
   },
   js.configs.recommended,

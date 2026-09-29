@@ -225,6 +225,11 @@ test('weight balance, view presets and printable work instruction work together'
   await expect(report.getByRole('button', { name: '인쇄 / PDF 저장' })).toBeVisible();
   await expect(report.getByText('현장 작업 기록')).toBeVisible();
   await expect(report.getByText('실제 적재 수량')).toBeVisible();
+  // 화면 결과 요약과 같은 안전 판정·자동 평가·축하중 추정이 PDF에도 들어간다
+  await expect(report.getByRole('heading', { name: '안전 판정과 자동 평가' })).toBeVisible();
+  await expect(report.locator('.verdict')).toContainText(/자동 평가 (양호|주의|재검토 필요)/);
+  await expect(report.getByRole('heading', { name: '도로 축하중 추정' })).toBeVisible();
+  await expect(report.getByText('차량 총중량')).toBeVisible();
   await report.close();
 });
 

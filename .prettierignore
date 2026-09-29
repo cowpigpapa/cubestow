@@ -17,3 +17,4 @@ research/
 # 줄바꿈만 바뀐 채 커밋하지 않는 파일
 dev-server.mjs
 playwright.config.mjs
+engine/
