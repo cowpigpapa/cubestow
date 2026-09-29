@@ -832,7 +832,7 @@ function reviewFloorLineLoad(load, c, reviews) {
 }
 
 // 문쪽 윗단 화물의 도어 스트랩(되잡기 래싱).
-function planDoorStrap(load, c, floorItems, dunnage, airbags) {
+function planDoorStrap(load, c, floorItems, dunnage, airbags, options) {
   // 문쪽 줄에 윗단 화물이 있으면 문을 열 때 떨어지지 않게 상단을 도어 스트랩(웹 래싱)으로 측면·바닥 고정점에 묶는다.
   // 에어백은 문쪽에 쓰지 않는다(CTU Code 부속서 7 §2.3.8). 문은 충격하중이 없을 때만 경계로 본다(§4.2.5).
   if (floorItems.length) {
@@ -841,9 +841,13 @@ function planDoorStrap(load, c, floorItems, dunnage, airbags) {
     if (upper.length) {
       const top = Math.max(...upper.map(p => p.z + p.h)),
         z = Math.max(...upper.map(p => p.z)) + (Math.min(...upper.map(p => p.h)) * 2) / 3,
+        strapZ = Math.min(top - 60, z),
+        // 다른 래싱과 같이 고른 고정 조건(마찰·MSL·고정점)으로 센다. 높이 절반 위면 위쪽 래싱 고리에 건다.
         straps = lashingCount(
           upper.reduce((sum, p) => sum + p.weight, 0),
-          'long'
+          'long',
+          options,
+          strapZ >= c.h / 2
         ),
         strap = {
           type: 'dunnage',
@@ -852,13 +856,13 @@ function planDoorStrap(load, c, floorItems, dunnage, airbags) {
           side: 'min',
           x: Math.max(0, front - 22),
           y: 0,
-          z: Math.min(top - 60, z),
+          z: strapZ,
           l: 18,
           w: c.w,
           h: 50,
           straps,
           product: '문쪽 윗단 화물',
-          location: `문쪽 윗단 되잡기 래싱(도어 스트랩) · 높이 ${(z / 1000).toFixed(1)}m · 웨빙(MSL 2t) ${straps}줄 · 측벽 고정점`
+          location: `문쪽 윗단 되잡기 래싱(도어 스트랩) · 높이 ${(z / 1000).toFixed(1)}m · 웨빙(MSL ${lashingMslOf(options) / 1000}t) ${straps}줄 · 측벽 고정점`
         };
       if (
         !airbags.some(
@@ -985,7 +989,7 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
   fillRemainingVoids(load, airbags, dunnage, options);
   reviewFloorLineLoad(load, c, reviews);
   reviews.push(...LoadwiseEngine.transportReviews(load, transportMode));
-  planDoorStrap(load, c, floorItems, dunnage, airbags);
+  planDoorStrap(load, c, floorItems, dunnage, airbags, options);
   applySecuringOptions(options, dunnage, airbags, reviews);
   reviewCtuOpenFaces(load, options, safety, reviews);
   const notes = anchorNotes(options, dunnage);

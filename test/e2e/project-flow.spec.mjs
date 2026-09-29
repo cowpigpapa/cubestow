@@ -762,7 +762,19 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
-  await expect(page.locator('.lib-doc')).toHaveCount(4);
+  await expect(page.locator('.lib-doc')).toHaveCount(16);
+  // 진행표는 해설이 있는 항목을 완료로 센다.
+  await expect(page.locator('.lib-plan li')).toHaveCount(16);
+  await expect(page.locator('.lib-plan li[data-state="done"]')).toHaveCount(16);
+  // 구조 안내: 1497·1498·1531 비교와, 참조 항목마다 해설 링크가 있는 지도
+  await page.locator('.lib-head a[href="#library/structure"]').click();
+  await expect(page.locator('.lib-article h2')).toContainText('1497·1498·1531');
+  const map = page.locator('.lib-article table').filter({ hasText: 'Cubestow 반영' });
+  await expect(map.locator('tbody tr')).toHaveCount(16);
+  await expect(map.locator('a[href="#library/ch5-accel"]')).toHaveText('완료');
+  await map.locator('a[href="#library/a7-securing"]').click();
+  await expect(page.locator('.lib-article')).toContainText('cx,y · d ≥ cz · b');
+  await page.locator('.lib-crumb a').click();
   // 주소로 바로 열어도 되고, 샘플 결과·플래너와 서로 바뀐다.
   await page.goto('/#library/anchor-points');
   await expect(page.locator('.lib-article h2')).toContainText('고정점');

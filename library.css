@@ -169,3 +169,11 @@
     overflow-x: auto;
   }
 }
+.library-view .lib-head a {
+  color: #0071e3;
+  font-weight: 700;
+}
+.library-view .lib-article ol,
+.library-view .lib-article ul {
+  padding-left: 22px;
+}
