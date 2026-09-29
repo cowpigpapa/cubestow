@@ -103,6 +103,7 @@ function init() {
     .join('');
   ['productShape', 'containerType'].forEach(id => enhanceSelect($(id)));
   enhanceSafetySlider();
+  enhanceUnitFields();
   enhanceSegmented($('preference'), PREFERENCE_HINTS);
   enhanceSegmented($('transportMode'), TRANSPORT_HINTS);
   suggestFromHistory($('productName'), 'names');
@@ -220,6 +221,40 @@ const TRANSPORT_HINTS = {
 let ctuNoticeShown = false;
 const CTU_NOTICE =
   '화물끼리 서로 막히는 배치를 먼저 찾고, 그 때문에 컨테이너가 늘면 기본 배치를 쓰되 화물로 막히지 않은 면을 고정재 권고에 화물별로 적습니다. 계산이 20~40초 걸릴 수 있습니다. 이 모드는 CTU Code의 배치 규칙을 적용한 검토용 결과이며 준수를 보증하지 않습니다. 화물 강도·마찰·래싱 용량은 현장에서 따로 확인하세요.';
+// 단위(kg·mm)를 입력칸 안, 입력한 숫자(비어 있으면 예시 숫자) 바로 뒤에 붙여 보여 준다(예: 100kg). 값은 숫자 그대로 둔다.
+// 코드에서 value를 바꿀 때(편집·초기화·기록 제안)도 위치가 맞도록 value 설정을 감싼다.
+function enhanceUnitFields() {
+  const measure = document.createElement('canvas').getContext('2d'),
+    native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const fields = [...document.querySelectorAll('.unit-field')].map(field => {
+    const input = field.querySelector('input'),
+      suffix = field.querySelector('.unit-suffix');
+    const place = () => {
+      const value = native.get.call(input),
+        text = value || input.placeholder;
+      field.classList.toggle('has-value', value !== '');
+      field.classList.toggle('is-empty', value === '');
+      if (text === '') return;
+      const style = getComputedStyle(input);
+      measure.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      const left = parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth) - input.scrollLeft;
+      suffix.style.left = `${left + measure.measureText(text).width + 1}px`;
+    };
+    Object.defineProperty(input, 'value', {
+      configurable: true,
+      get: () => native.get.call(input),
+      set: v => {
+        native.set.call(input, v);
+        place();
+      }
+    });
+    input.addEventListener('input', place);
+    input.addEventListener('change', place);
+    place();
+    return place;
+  });
+  document.fonts?.ready.then(() => fields.forEach(place => place()));
+}
 function enhanceSafetySlider() {
   const select = $('safetyLevel'),
     slider = $('safetySlider');
@@ -811,7 +846,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260929-4');
+      engineWorker = new Worker('engine-worker.js?v=20260929-5');
     } catch {
       engineWorker = null;
     }

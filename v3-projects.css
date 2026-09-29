@@ -4186,3 +4186,63 @@ details.account-menu[open] > summary::after {
     padding: 88px 14px 10px;
   }
 }
+/* 제품 입력: (선택)은 제목 옆에, 단위(kg·mm)는 입력칸 안 숫자 바로 뒤에 */
+.form-grid .field-title {
+  display: block;
+}
+.form-grid .field-title small.optional {
+  font-size: 10.5px;
+}
+/* 좁은 폭에서 제목이 두 줄이 되어도 같은 줄의 입력칸 높이를 맞춘다 */
+.form-grid label.third > :last-child {
+  margin-top: auto;
+}
+.unit-field {
+  position: relative;
+  display: block;
+}
+.unit-field .unit-suffix {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6e6e73;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.unit-field.has-value .unit-suffix,
+.unit-field.is-empty .unit-suffix {
+  display: block;
+}
+.unit-field.is-empty .unit-suffix {
+  color: #a1a1a6;
+}
+/* 중간 폭(약 920~1240px): 상단 메뉴가 세로로 쌓이지 않게 한 줄로 두고, 부가 문구(표어·로컬 저장 안내)를 먼저 숨긴다 */
+.topbar nav > * {
+  white-space: nowrap;
+}
+@media (max-width: 1240px) {
+  .topbar .brand small,
+  .topbar .local-notice {
+    display: none;
+  }
+}
+/* 제품 데이터 제목과 불러오기·접기 버튼이 겹치지 않게, 자리가 모자라면 버튼을 다음 줄로 */
+.input-card .control-heading {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.input-card .control-heading > .step-heading {
+  min-width: max-content;
+}
+/* 03 제목과 컨테이너·실행 버튼: 자리가 모자라면 버튼 묶음을 다음 줄로(가로 스크롤 방지) */
+.result-header {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+.result-header > .step-heading {
+  min-width: max-content;
+}

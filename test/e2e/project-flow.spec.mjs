@@ -787,3 +787,33 @@ test('the empty planner offers two starts: a sample or my own products', async (
   // 선택 입력 표시
   await expect(page.locator('.form-grid label', { hasText: '제품군' })).toContainText('(선택)');
 });
+
+test('units sit inside the inputs right after the number and optional marks sit beside the titles', async ({
+  page
+}) => {
+  await page.goto('/');
+  const weight = page.getByLabel('개당 중량 (kg)'),
+    suffix = page.locator('#productWeight + .unit-suffix');
+  // 비어 있으면 예시 숫자 뒤에 흐린 단위, 입력하면 입력한 숫자 바로 뒤에 단위(100kg)
+  await expect(suffix).toBeVisible();
+  await weight.fill('100');
+  await expect(suffix).toHaveText('kg');
+  const gap = async () => {
+    const [box, unit] = await Promise.all([weight.boundingBox(), suffix.boundingBox()]);
+    return unit.x - box.x;
+  };
+  const short = await gap();
+  await weight.fill('100000');
+  expect(await gap()).toBeGreaterThan(short + 10);
+  // 코드로 값을 넣을 때(제품 편집·초기화)도 단위가 따라간다
+  await page.evaluate(() => {
+    document.getElementById('productLength').value = 1200;
+  });
+  await expect(page.locator('#productLength').locator('xpath=..')).toHaveClass(/has-value/);
+  await expect(page.getByLabel('길이 (mm)')).toHaveValue('1200');
+  // (선택)은 제목과 같은 줄
+  const title = page.locator('.field-title', { hasText: '제품군' });
+  const [t, s] = await Promise.all([title.boundingBox(), title.locator('small').boundingBox()]);
+  expect(s.y + s.height).toBeLessThanOrEqual(t.y + t.height + 1);
+  expect(t.height).toBeLessThan(24);
+});

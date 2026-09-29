@@ -14,10 +14,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260929-4">
-  <link rel="stylesheet" href="sample-results.css?v=20260929-4">
-  <link rel="stylesheet" href="library.css?v=20260929-4">
-  <link rel="stylesheet" href="v3-projects.css?v=20260929-4">
+  <link rel="stylesheet" href="styles.css?v=20260929-5">
+  <link rel="stylesheet" href="sample-results.css?v=20260929-5">
+  <link rel="stylesheet" href="library.css?v=20260929-5">
+  <link rel="stylesheet" href="v3-projects.css?v=20260929-5">
 </head>
 <body>
   <header class="topbar">
@@ -53,14 +53,14 @@
           <div id="manualPane">
             <div class="form-grid">
               <label class="third">제품명<input id="productName" autocomplete="off" placeholder="예: 산업용 펌프"></label>
-              <label class="third">제품군 <small class="optional">(선택)</small><input id="productGroup" autocomplete="off" placeholder="예: 기계류"></label>
+              <label class="third"><span class="field-title">제품군 <small class="optional">(선택)</small></span><input id="productGroup" autocomplete="off" placeholder="예: 기계류"></label>
               <label class="third">제품 형상<select id="productShape"><option value="box">박스형</option><option value="cylinder">원통형</option></select></label>
               <label class="third">수량<input id="productQty" autocomplete="off" type="number" min="1" value="1"></label>
-              <label class="third">개당 중량 (kg)<input id="productWeight" autocomplete="off" type="number" min="0.1" step="0.1" placeholder="예: 420"></label>
-              <label class="third">상부 허용하중 (kg) <small class="optional">(선택)</small><input id="productMaxTopLoad" autocomplete="off" type="number" min="0" step="1" placeholder="선택 입력"></label>
-              <label class="third">길이 (mm)<input id="productLength" autocomplete="off" type="number" min="1" placeholder="예: 1200"></label>
-              <label class="third">너비 (mm)<input id="productWidth" autocomplete="off" type="number" min="1" placeholder="예: 800"></label>
-              <label class="third">높이 (mm)<input id="productHeight" autocomplete="off" type="number" min="1" placeholder="예: 900"></label>
+              <label class="third"><span class="field-title">개당 중량<span class="sr-only"> (kg)</span></span><span class="unit-field"><input id="productWeight" autocomplete="off" type="number" min="0.1" step="0.1" placeholder="420"><i class="unit-suffix" aria-hidden="true">kg</i></span></label>
+              <label class="third"><span class="field-title">상부 허용하중<span class="sr-only"> (kg)</span> <small class="optional">(선택)</small></span><span class="unit-field"><input id="productMaxTopLoad" autocomplete="off" type="number" min="0" step="1" placeholder="2000"><i class="unit-suffix" aria-hidden="true">kg</i></span></label>
+              <label class="third"><span class="field-title">길이<span class="sr-only"> (mm)</span></span><span class="unit-field"><input id="productLength" autocomplete="off" type="number" min="1" placeholder="1200"><i class="unit-suffix" aria-hidden="true">mm</i></span></label>
+              <label class="third"><span class="field-title">너비<span class="sr-only"> (mm)</span></span><span class="unit-field"><input id="productWidth" autocomplete="off" type="number" min="1" placeholder="800"><i class="unit-suffix" aria-hidden="true">mm</i></span></label>
+              <label class="third"><span class="field-title">높이<span class="sr-only"> (mm)</span></span><span class="unit-field"><input id="productHeight" autocomplete="off" type="number" min="1" placeholder="900"><i class="unit-suffix" aria-hidden="true">mm</i></span></label>
             </div>
             <div class="option-row">
               <label><input id="allowRotation" type="checkbox"> 눕혀서 적재 가능</label>
@@ -318,22 +318,22 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.85</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.86</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
-  <script src="project-model.js?v=20260929-4"></script>
-  <script src="packing-engine.js?v=20260929-4"></script>
-  <script src="load-insights.js?v=20260929-4"></script>
-  <script src="solution-validator.js?v=20260929-4"></script>
-  <script src="sample-scenarios.js?v=20260929-4"></script>
-  <script src="result-review.js?v=20260929-4"></script>
-  <script src="library.js?v=20260929-4"></script>
-  <script src="sample-results.js?v=20260929-4"></script>
-  <script src="securing-plan.js?v=20260929-4"></script>
-  <script src="view-3d.js?v=20260929-4"></script>
-  <script src="import-export.js?v=20260929-4"></script>
-  <script src="app.js?v=20260929-4"></script>
-  <script src="project-store.js?v=20260929-4"></script>
+  <script src="project-model.js?v=20260929-5"></script>
+  <script src="packing-engine.js?v=20260929-5"></script>
+  <script src="load-insights.js?v=20260929-5"></script>
+  <script src="solution-validator.js?v=20260929-5"></script>
+  <script src="sample-scenarios.js?v=20260929-5"></script>
+  <script src="result-review.js?v=20260929-5"></script>
+  <script src="library.js?v=20260929-5"></script>
+  <script src="sample-results.js?v=20260929-5"></script>
+  <script src="securing-plan.js?v=20260929-5"></script>
+  <script src="view-3d.js?v=20260929-5"></script>
+  <script src="import-export.js?v=20260929-5"></script>
+  <script src="app.js?v=20260929-5"></script>
+  <script src="project-store.js?v=20260929-5"></script>
 </body>
 </html>
