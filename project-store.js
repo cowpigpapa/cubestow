@@ -357,7 +357,7 @@
       todayEl.textContent = Number(data.today).toLocaleString();
       totalEl.textContent = Number(data.total).toLocaleString();
     } catch (error) {
-      console.error(error);
+      console.warn(error);
       todayEl.textContent = '—';
       totalEl.textContent = '—';
     }

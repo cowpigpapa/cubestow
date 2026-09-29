@@ -603,15 +603,25 @@ function addProduct() {
       rotate: $('allowRotation').checked,
       fragile: $('fragile').checked
     };
-  if (
-    !p.name ||
-    [p.qty, p.l, p.w, p.h, p.weight].some(v => !v || v <= 0) ||
-    (p.maxTopLoadKg != null && (!Number.isFinite(p.maxTopLoadKg) || p.maxTopLoadKg < 0))
-  ) {
-    showAppMessage('제품명과 수량, 규격, 중량, 상부 허용하중을 올바르게 입력해 주세요.', {
+  // 틀린 칸을 하나씩 짚어 주고 첫 번째 칸에 커서를 둔다.
+  const problems = [
+    !p.name && ['productName', '제품명을 입력하세요'],
+    !(Number.isInteger(p.qty) && p.qty >= 1) && ['productQty', '수량은 1 이상의 정수여야 합니다'],
+    !(p.weight > 0) && ['productWeight', '개당 중량은 0보다 커야 합니다'],
+    !(p.l > 0) && ['productLength', '길이는 0보다 커야 합니다'],
+    !(p.w > 0) && ['productWidth', '너비는 0보다 커야 합니다'],
+    !(p.h > 0) && ['productHeight', '높이는 0보다 커야 합니다'],
+    p.maxTopLoadKg != null &&
+      !(Number.isFinite(p.maxTopLoadKg) && p.maxTopLoadKg >= 0) && [
+        'productMaxTopLoad',
+        '상부 허용하중은 0 이상이어야 합니다'
+      ]
+  ].filter(Boolean);
+  if (problems.length) {
+    showAppMessage(problems.map(([, text]) => text).join('\n'), {
       title: '제품 정보를 확인해 주세요',
       tone: 'warning'
-    });
+    }).then(() => $(problems[0][0]).focus());
     return;
   }
   const fit = productFitIssue(p, CONTAINERS[$('containerType').value]);
@@ -876,7 +886,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260929-7');
+      engineWorker = new Worker('engine-worker.js?v=20260929-8');
     } catch {
       engineWorker = null;
     }
@@ -1143,18 +1153,24 @@ function updateResults() {
   $('weightDetail').textContent = many
     ? `${loads.length}대 합계 ${(weightAll / 1000).toFixed(1)} t · 대당 허용 ${(r.container.maxWeight / 1000).toFixed(1)} t`
     : `허용 ${(r.container.maxWeight / 1000).toFixed(1)} t`;
+  // 같은 제품이 같은 층에 같은 방향으로 잇달아 놓이면 한 줄로 묶는다("× 20"). 순서는 그대로다.
   const groups = [];
   r.placed.forEach(p => {
-    let g = groups.find(x => x.name === p.name && x.z === p.z && x.x === p.x);
-    if (g) g.count++;
-    else groups.push({ ...p, count: 1 });
+    const g = groups[groups.length - 1];
+    if (g && g.name === p.name && g.z === p.z && g.l === p.l && g.w === p.w && g.h === p.h) {
+      g.count++;
+      g.xMin = Math.min(g.xMin, p.x);
+      g.xMax = Math.max(g.xMax, p.x);
+    } else groups.push({ ...p, count: 1, xMin: p.x, xMax: p.x });
   });
+  const depth = p =>
+    p.xMin === p.xMax ? `${(p.x / 1000).toFixed(2)}m` : `${(p.xMax / 1000).toFixed(2)}~${(p.xMin / 1000).toFixed(2)}m`;
   $('sequenceEmpty').style.display = r.placed.length ? 'none' : 'block';
   $('sequenceEmpty').textContent = r.placed.length ? '' : '적재 가능한 화물이 없습니다.';
   $('sequenceList').innerHTML = groups
     .map(
       (p, i) =>
-        `<li><span class="num">${String(i + 1).padStart(2, '0')}</span><span class="dot" style="background:${p.color};border-radius:${p.shape === 'cylinder' ? '50%' : '2px'}"></span><div><strong>${esc(p.name)} × ${p.count} · ${p.shape === 'cylinder' ? '원통형' : '박스형'}</strong><br><small>문에서 ${(p.x / 1000).toFixed(2)}m 안쪽 · 바닥에서 ${(p.z / 1000).toFixed(2)}m 높이</small></div><small>${p.l}×${p.w}×${p.h}</small></li>`
+        `<li><span class="num">${String(i + 1).padStart(2, '0')}</span><span class="dot" style="background:${p.color};border-radius:${p.shape === 'cylinder' ? '50%' : '2px'}"></span><div><strong>${esc(p.name)} × ${p.count} · ${p.shape === 'cylinder' ? '원통형' : '박스형'}</strong><br><small>문에서 ${depth(p)} 안쪽 · 바닥에서 ${(p.z / 1000).toFixed(2)}m 높이</small></div><small>${p.l}×${p.w}×${p.h}</small></li>`
     )
     .join('');
   const blocked = shipment?.unallocated.length > 0;
@@ -1284,6 +1300,12 @@ function renderResultSummary() {
     safety = LoadwiseEngine.SAFETY_LEVELS[shipment?.safety || $('safetyLevel').value]?.label || '기본';
   const level = ctu?.level || 'safe',
     levelText = { safe: '양호', caution: '주의', danger: '위험' }[level];
+  // 미적재와 자동 평가 결과를 안전 판정 한 줄에 함께 적는다(맨 위 한 줄만 보고 판단하지 않도록). 카드 색은 둘 중 나쁜 쪽을 따른다.
+  const left = shipment?.unallocated?.length || 0,
+    grade = shipment && window.LoadwiseReview ? LoadwiseReview.review(shipment).grade : null,
+    gradeLevel = grade?.key === 'bad' ? 'danger' : grade?.key === 'warn' ? 'caution' : 'safe',
+    rank = { safe: 0, caution: 1, danger: 2 },
+    cardLevel = rank[gradeLevel] > rank[level] ? gradeLevel : level;
   const count = kind => plan.dunnage.filter(d => d.kind === kind).length,
     nails = plan.dunnage.filter(d => d.kind === 'beam').reduce((sum, d) => sum + (d.nails || 0), 0);
   const needs = [
@@ -1310,9 +1332,9 @@ function renderResultSummary() {
     restraint ? `CTU 고정 필요 ${restraint}방향` : ''
   ].filter(Boolean);
   el.hidden = false;
-  el.dataset.level = level;
+  el.dataset.level = cardLevel;
   el.innerHTML =
-    `<div class="summary-verdict"><span>안전 판정</span><strong>안전 수준 ${esc(safety)} · 사전검사 ${levelText}</strong></div>` +
+    `<div class="summary-verdict"><span>안전 판정</span><strong>안전 수준 ${esc(safety)} · 사전검사 ${levelText}${grade ? ` · 자동 평가 ${esc(grade.label)}` : ''}${left ? ` · 미적재 ${left}개` : ''}</strong></div>` +
     `<div class="summary-needs"><span>꼭 필요한 고정재</span><strong>${needs.length ? needs.map(n => `<em><i class="securing-icon">${securingIcon(n.icon)}</i>${n.text}</em>`).join('') : '추가 고정재 없음'}</strong></div>` +
     `<div class="summary-checks"><span>확인할 항목</span><strong>${checks.length ? checks.join(' · ') : '없음'}</strong></div>` +
     axleSummaryHtml();

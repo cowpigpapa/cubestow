@@ -99,6 +99,11 @@ test('validation warning uses the in-app notice dialog', async ({ page }) => {
   await page.locator('#addProduct').click();
   await expect(page.locator('#messageDialog')).toHaveAttribute('open', '');
   await expect(page.getByRole('heading', { name: '제품 정보를 확인해 주세요' })).toBeVisible();
+  // 틀린 칸을 하나씩 짚어 주고, 닫으면 첫 번째 틀린 칸에 커서를 둔다
+  await expect(page.locator('#messageText')).toContainText('제품명을 입력하세요');
+  await expect(page.locator('#messageText')).toContainText('개당 중량은 0보다 커야 합니다');
+  await page.locator('#messageConfirm').click();
+  await expect(page.locator('#productName')).toBeFocused();
 });
 
 test('admin controls stay hidden before login', async ({ page }) => {
@@ -494,6 +499,8 @@ test('result summary shows the safety verdict and field results compare with the
   const summary = page.locator('#resultSummary');
   await expect(summary).toBeVisible();
   await expect(summary).toContainText('안전 판정');
+  // 안전 판정 한 줄에 자동 평가 등급도 함께 적는다
+  await expect(summary.locator('.summary-verdict')).toContainText(/자동 평가 (양호|주의|재검토 필요)/);
   await expect(summary).toContainText('꼭 필요한 고정재');
   // 도로·복합 운송이면 축하중 추정(트랙터 앞축·뒤축·샤시 축·총중량)과 일반 제원 가정을 함께 보여 준다.
   const axle = summary.locator('.summary-axle');

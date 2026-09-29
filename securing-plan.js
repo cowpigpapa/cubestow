@@ -279,12 +279,8 @@ function lashingCapacityKg(kind, options, upper) {
 function lashingCount(massKg, kind, options = { anchors: 'rated' }, upper = false) {
   return Math.max(1, Math.ceil(massKg / lashingCapacityKg(kind, options, upper)));
 }
-function buildSecuringPlan(load, transportMode = currentTransportMode(), options = securingOptions, safety) {
-  const dunnage = [],
-    airbags = [],
-    reviews = [],
-    floorItems = load.placed.filter(p => p.z === 0),
-    c = load.container;
+// 문쪽: 문에서 떨어진 바닥 화물 앞 각재·쐐기(못), 윗단은 펜스·충전재. buildSecuringPlan에서 분리(1.1.89).
+function planDoorSide(load, c, transportMode, options, dunnage) {
   // 문쪽: 앞에 화물이 없는 문쪽 화물이 문에서 150mm 넘게 떨어져 있으면 뒤 기둥 사이에 가로 각재 펜스를 세우고, 펜스와 화물 사이를 충전재로 채운다.
   // 150mm 이하의 틈은 문을 경계로 본다(CTU Code 부속서 7 §2.3.6 간극 합 15cm, §4.2.5). 컨테이너 바닥에는 보통 못을 박을 수 없어 바닥 부목은 쓰지 않는다.
   const doorExposed = load.placed.filter(
@@ -429,6 +425,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
       });
     }
   }
+}
+
+// 안쪽 끝: 안쪽 벽과 떨어진 바닥 화물 뒤 각재·쐐기(못). 못을 쓰지 않으면 검토 항목.
+function planInnerEnd(load, c, transportMode, options, dunnage, reviews) {
   // 안쪽 끝: 무거운 화물을 가운데로 옮겨 안쪽 벽과 떨어진 바닥 화물은 문쪽과 같이 뒤쪽 바닥에 각재를 대고 못으로 고정한다(쐐기 추가).
   // 못 수는 안쪽 방향(급정거) 가속도로 계산한다. 못을 쓰지 않으면 각재 버팀을 검토 항목으로 남긴다.
   {
@@ -502,6 +502,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
         count: innerExposed.length
       });
   }
+}
+
+// 벽 간극·화물 사이 간극의 에어백(스페이서 맞버팀, 이음매 공유, 수직 통합, 개수 한도)과 벽 충전재.
+function planAirbags(load, c, airbags, dunnage) {
   {
     const candidates = [],
       opposed = [];
@@ -796,7 +800,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
           dunnage.push(f);
       });
   }
-  fillRemainingVoids(load, airbags, dunnage, options);
+}
+
+// 바닥 선하중(길이 1m당 화물 중량) 검토.
+function reviewFloorLineLoad(load, c, reviews) {
   // 바닥 선하중(길이 1m당 화물 중량): 20ft 4.5t/m, 40ft·45ft 3.0t/m(TIS-GDV 컨테이너 적재 지침, CTU Code는 운영사 협의로 둠).
   // 넘으면 화물 밑에 길이 방향 받침목(20ft 폭 0.10m·40ft 0.15m 이상)을 깔아 하중을 나누도록 검토 항목으로 알린다.
   {
@@ -822,7 +829,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
         count: 1
       });
   }
-  reviews.push(...LoadwiseEngine.transportReviews(load, transportMode));
+}
+
+// 문쪽 윗단 화물의 도어 스트랩(되잡기 래싱).
+function planDoorStrap(load, c, floorItems, dunnage, airbags) {
   // 문쪽 줄에 윗단 화물이 있으면 문을 열 때 떨어지지 않게 상단을 도어 스트랩(웹 래싱)으로 측면·바닥 고정점에 묶는다.
   // 에어백은 문쪽에 쓰지 않는다(CTU Code 부속서 7 §2.3.8). 문은 충격하중이 없을 때만 경계로 본다(§4.2.5).
   if (floorItems.length) {
@@ -860,6 +870,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
         dunnage.push(strap);
     }
   }
+}
+
+// 끈 고정재(에어백·충전재·래싱)를 계획에서 빼고, 못 채운 곳은 검토 항목으로 남긴다.
+function applySecuringOptions(options, dunnage, airbags, reviews) {
   // 에어백을 쓰지 않으면 같은 자리를 충전재로, 충전재를 쓰지 않으면 충전재·스페이서를 빼고, 래싱을 쓰지 않으면 스트랩·래싱을 뺀다. 못 채운 곳은 검토 항목으로 남긴다.
   if (!options.airbag) {
     if (options.filler)
@@ -907,6 +921,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
     for (let i = dunnage.length - 1; i >= 0; i--)
       if (dunnage[i].kind === 'lashing' || dunnage[i].kind === 'strap') dunnage.splice(i, 1);
   }
+}
+
+// CTU 기준: 화물로 막히지 않은 옆면을 화물별 검토 항목으로.
+function reviewCtuOpenFaces(load, options, safety, reviews) {
   // CTU 기준: 화물로 막히지 않은 옆면을 화물별로 적고, 켜 둔 고정재 중 맞는 것으로 막게 한다(래싱 → 에어백·충전재 순).
   if (safety === 'secure') {
     const method = options.lashing
@@ -936,6 +954,10 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
           ctuFace: true
         });
   }
+}
+
+// 고정점 표시를 확인하지 않았을 때의 계산 기준 안내.
+function anchorNotes(options, dunnage) {
   // 고정점 표시를 확인하지 않았고 래싱이 고정점보다 강하면, 줄 수를 고정점 기준으로 늘렸다고 알린다(운송 안정성 검토가 아닌 계산 기준 안내).
   const notes = [];
   if (
@@ -948,6 +970,25 @@ function buildSecuringPlan(load, transportMode = currentTransportMode(), options
       product: '래싱 고정점',
       text: `고정점 표시를 확인하지 않아 ISO 1496-1 최소값(바닥 ${ANCHOR_MSL_FLOOR.toLocaleString()}daN·위쪽 고리 ${ANCHOR_MSL_UPPER}daN)으로 래싱 줄 수를 계산했습니다. 고정점 MSL이 래싱(${lashingMslOf(options).toLocaleString()}daN) 이상이면 고정 조건에서 '표시 확인'을 고르세요`
     });
+  return notes;
+}
+
+function buildSecuringPlan(load, transportMode = currentTransportMode(), options = securingOptions, safety) {
+  const dunnage = [],
+    airbags = [],
+    reviews = [],
+    floorItems = load.placed.filter(p => p.z === 0),
+    c = load.container;
+  planDoorSide(load, c, transportMode, options, dunnage);
+  planInnerEnd(load, c, transportMode, options, dunnage, reviews);
+  planAirbags(load, c, airbags, dunnage);
+  fillRemainingVoids(load, airbags, dunnage, options);
+  reviewFloorLineLoad(load, c, reviews);
+  reviews.push(...LoadwiseEngine.transportReviews(load, transportMode));
+  planDoorStrap(load, c, floorItems, dunnage, airbags);
+  applySecuringOptions(options, dunnage, airbags, reviews);
+  reviewCtuOpenFaces(load, options, safety, reviews);
+  const notes = anchorNotes(options, dunnage);
   return {
     dunnage,
     airbags,
