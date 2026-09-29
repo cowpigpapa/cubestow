@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { context, overlap } from './support/securing-setup.mjs';
+import { context } from './support/securing-setup.mjs';
 
 // securing.test.mjs에서 떼어 낸 오래 걸리는 테스트(파일마다 따로 돌아 전체 시간이 줄어든다).
 test('CTU mode uses no more containers than the basic mode and names each face that securing must close @slow', () => {

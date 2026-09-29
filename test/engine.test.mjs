@@ -358,7 +358,7 @@ test('incremental top-load check matches a full recomputation by the validator',
   }
   assert.ok(
     checked === 6000 && fallback >= 1000 && incrementalRejected >= 300,
-    `checked ${checked}, fallback ${fallback}, rejected on the incremental path ${incrementalRejected}`
+    `checked ${checked}, fallback ${fallback}, rejected ${rejected}, rejected on the incremental path ${incrementalRejected}`
   );
 });
 

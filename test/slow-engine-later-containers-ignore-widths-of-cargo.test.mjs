@@ -1,21 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  context,
-  engine,
-  validator,
-  C20,
-  CONTAINERS,
-  base,
-  units,
-  pack,
-  overlapArea,
-  supportRatio,
-  widthMix,
-  fragileMix,
-  mixed,
-  assertValidShipment
-} from './support/engine-setup.mjs';
+import { engine, CONTAINERS, base, assertValidShipment } from './support/engine-setup.mjs';
 
 // engine.test.mjs에서 떼어 낸 오래 걸리는 테스트(파일마다 따로 돌아 전체 시간이 줄어든다).
 test('later containers ignore widths of cargo already loaded in earlier containers @slow', () => {

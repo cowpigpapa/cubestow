@@ -70,6 +70,7 @@ test('product list title and mobile layout do not wrap or overflow', async ({ pa
     count = page.locator('#productCount');
   await expect(title).toHaveText('제품 목록');
   await expect(title).toHaveCSS('white-space', 'nowrap');
+  await expect(count).toBeVisible();
   const positions = await page.locator('.collapsible-head').evaluate(el => {
     const heading = el.querySelector('strong'),
       meta = el.querySelector('#productCount');

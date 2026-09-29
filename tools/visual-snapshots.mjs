@@ -2,6 +2,7 @@
 //   node tools/visual-snapshots.mjs <폴더>              여러 폭 × 여러 상태의 전체 화면을 PNG로 찍는다
 //   node tools/visual-snapshots.mjs --compare <A> <B>  두 폴더의 같은 이름 PNG가 바이트까지 같은지 비교한다
 // 고치기 전에 한 번, 고친 뒤에 한 번 찍어 비교한다. 계산 시간 표시와 3D 캔버스는 가린다(매번 달라서).
+/* global shipment -- page.evaluate 안에서 쓰는 화면 전역 */
 import { spawn } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

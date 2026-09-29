@@ -14,7 +14,7 @@
 
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
-- 현재 단계: Vercel 공개 베타 · 버전 1.1.84 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
+- 현재 단계: Vercel 공개 베타 · 버전 1.1.85 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
 - 서비스: https://cubestow.vercel.app/
 - 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
@@ -165,6 +165,7 @@ CTU 기준 적용은 먼저 화물끼리 서로 막히는 배치를 찾습니다
 npm test                 # 전체 단위 테스트(약 3분, 배포 전 필수. 오래 걸리는 테스트는 test/slow-*.test.mjs로 나눠 동시에 돈다)
 npm run test:quick       # 오래 걸리는 @slow 테스트 9개를 뺀 빠른 확인(약 30초)
 npm run format           # 코드 서식 정리(Prettier, .prettierrc.json). 커밋 전에 실행
+npm run lint             # 정적 검사(ESLint, eslint.config.mjs). 경고도 0개여야 통과하며 CI에서도 돈다
 npm run benchmark          # 회귀 게이트, 결과 파일은 바꾸지 않음
 npm run benchmark:write    # 기준 결과(benchmarks/*.json) 갱신
 npm run build
@@ -189,7 +190,9 @@ npm run samples:capture  # 샘플 결과 미리보기 캡처·요약 다시 만�
 ```text
 index.html          화면 구조
 styles.css          기본 스타일(예전 layout-fixes.css·v2.css 포함)
-app.js              입력, 화면, 3D, 내보내기
+app.js              입력, 화면 상태, 결과 표시
+view-3d.js          3D·평면 적재 화면 그리기(three.js)
+import-export.js    Excel·CSV 가져오기, PDF·Excel 내보내기
 securing-plan.js    고정재 계획(에어백·스페이서·충전재·각재·래싱·검토 항목, CTU 기준)
 packing-engine.js   DOM과 분리된 적재 엔진
 engine-worker.js    엔진을 백그라운드에서 실행하는 Web Worker

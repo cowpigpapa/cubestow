@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
-import { context, overlap } from './support/securing-setup.mjs';
+import { context } from './support/securing-setup.mjs';
 
 test('securing options replace or drop airbags, fillers, floor nails and lashing as chosen', () => {
   const sample = context.__samples[3],

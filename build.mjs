@@ -11,6 +11,8 @@ for (const file of [
   'packing-engine.js',
   'engine-worker.js',
   'securing-plan.js',
+  'view-3d.js',
+  'import-export.js',
   'app.js',
   'project-model.js',
   'project-store.js',
@@ -35,7 +37,7 @@ await cp('sample-results', 'dist/client/sample-results', { recursive: true });
 const supabaseConfig = `window.LOADWISE_SUPABASE = ${JSON.stringify({ url: process.env.SUPABASE_URL || '', publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || '' })};\n`;
 await writeFile('dist/client/supabase-config.js', supabaseConfig);
 
-const worker = `export default { async fetch(request, env) {\n  const url = new URL(request.url);\n  if (url.pathname === \"/\") url.pathname = \"/index.html\";\n  const response = await env.ASSETS.fetch(new Request(url, request));\n  return response.status === 404 ? env.ASSETS.fetch(new Request(new URL(\"/index.html\", request.url), request)) : response;\n} };\n`;
+const worker = `export default { async fetch(request, env) {\n  const url = new URL(request.url);\n  if (url.pathname === "/") url.pathname = "/index.html";\n  const response = await env.ASSETS.fetch(new Request(url, request));\n  return response.status === 404 ? env.ASSETS.fetch(new Request(new URL("/index.html", request.url), request)) : response;\n} };\n`;
 await writeFile('dist/server/index.js', worker);
 
 const html = await readFile('dist/client/index.html', 'utf8');

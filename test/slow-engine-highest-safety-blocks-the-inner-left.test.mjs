@@ -2,22 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import {
-  context,
-  engine,
-  validator,
-  C20,
-  CONTAINERS,
-  base,
-  units,
-  pack,
-  overlapArea,
-  supportRatio,
-  widthMix,
-  fragileMix,
-  mixed,
-  assertValidShipment
-} from './support/engine-setup.mjs';
+import { context, engine, C20, CONTAINERS, assertValidShipment } from './support/engine-setup.mjs';
 
 // engine.test.mjs에서 떼어 낸 오래 걸리는 테스트(파일마다 따로 돌아 전체 시간이 줄어든다).
 test('highest safety blocks the inner, left and right faces of every item in every sample @slow', async () => {

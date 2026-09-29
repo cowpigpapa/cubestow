@@ -10,6 +10,8 @@ for (const file of [
   'packing-engine.js',
   'sample-scenarios.js',
   'securing-plan.js',
+  'view-3d.js',
+  'import-export.js',
   'app.js'
 ])
   vm.runInContext(await readFile(new URL(`../../${file}`, import.meta.url), 'utf8'), context);

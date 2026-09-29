@@ -72,7 +72,6 @@
 
   // 입력 화물의 폭 조합으로 채울 수 없는 짧은 방향 잔여 폭을 계산한다.
   function createWidthOracle(units, maxWidth) {
-    const types = new Set(units.map(p => `${p.l}x${p.w}x${p.h}:${p.rotate ? 1 : 0}`)).size;
     const widths = [
       ...new Set(units.flatMap(p => allowedRotations(p).map(d => Math.round(d[1]))).filter(w => w > 0 && w <= maxWidth))
     ].sort((a, b) => a - b);
