@@ -24,3 +24,18 @@ test('the engine worker loads its scripts with the same cache version as the pag
   );
   for (const [, file, v] of imported) assert.equal(v, version, `${file} in engine-worker.js`);
 });
+
+test('the pages declare a favicon that the build copies next to them', async () => {
+  const read = f => readFile(new URL(`../${f}`, import.meta.url), 'utf8');
+  for (const page of ['index.html', 'sample-results.html']) {
+    const html = await read(page);
+    assert.match(html, /<link rel="icon" href="favicon\.svg" type="image\/svg\+xml">/, page);
+    assert.match(html, /<link rel="icon" href="favicon-32\.png" sizes="32x32" type="image\/png">/, page);
+    assert.match(html, /<link rel="apple-touch-icon" href="apple-touch-icon\.png">/, page);
+  }
+  const build = await read('build.mjs');
+  for (const icon of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png']) {
+    assert.match(build, new RegExp(icon.replace('.', '\\.')), `build copies ${icon}`);
+    await readFile(new URL(`../public/${icon}`, import.meta.url));
+  }
+});
