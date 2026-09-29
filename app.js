@@ -237,6 +237,8 @@ function enhanceUnitFields() {
       if (text === '') return;
       const style = getComputedStyle(input);
       measure.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      // 단위는 숫자와 같은 글꼴·크기·굵기로 보여 준다.
+      suffix.style.font = measure.font;
       const left = parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth) - input.scrollLeft;
       suffix.style.left = `${left + measure.measureText(text).width + 1}px`;
     };
@@ -846,7 +848,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260929-5');
+      engineWorker = new Worker('engine-worker.js?v=20260929-6');
     } catch {
       engineWorker = null;
     }

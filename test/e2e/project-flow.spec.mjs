@@ -796,8 +796,20 @@ test('units sit inside the inputs right after the number and optional marks sit 
     suffix = page.locator('#productWeight + .unit-suffix');
   // 비어 있으면 예시 숫자 뒤에 흐린 단위, 입력하면 입력한 숫자 바로 뒤에 단위(100kg)
   await expect(suffix).toBeVisible();
+  const colors = () =>
+    weight.evaluate(i => ({
+      text: getComputedStyle(i).color,
+      example: getComputedStyle(i, '::placeholder').color,
+      unit: getComputedStyle(i.nextElementSibling).color
+    }));
+  // 예시는 숫자와 단위가 같은 흐린 색, 입력한 값은 숫자와 단위가 같은 글자색
+  let c = await colors();
+  expect(c.unit).toBe(c.example);
+  expect(c.example).not.toBe(c.text);
   await weight.fill('100');
   await expect(suffix).toHaveText('kg');
+  c = await colors();
+  expect(c.unit).toBe(c.text);
   const gap = async () => {
     const [box, unit] = await Promise.all([weight.boundingBox(), suffix.boundingBox()]);
     return unit.x - box.x;
