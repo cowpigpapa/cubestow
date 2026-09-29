@@ -1,17 +1,119 @@
-(function(root){
-  const CURRENT_SCHEMA_VERSION=5,CURRENT_ALGORITHM_VERSION='ep-lex-portfolio-2026.10.28';
-  const allowedContainers=new Set(['20ft','40ft','40hc','45hc','20ft-kr','40ft-kr','40hc-kr','45hc-kr']),allowedSafety=new Set(['strict','standard','secure']),allowedPreferences=new Set(['auto','density','width','balance']),legacyOptimizations={intelligent:['strict','auto'],sequence:['strict','auto'],hybrid:['strict','width'],volume:['standard','density'],balance:['strict','balance']},allowedTransportModes=new Set(['sea','combined','road']);
-  function number(value,fallback=0){const n=Number(value);return Number.isFinite(n)&&n>0?n:fallback}
-  function normalizeProduct(p={}){const maxTopLoadKg=p.maxTopLoadKg==null||p.maxTopLoadKg===''?null:Math.max(0,Number(p.maxTopLoadKg));return{name:String(p.name||'').trim(),group:String(p.group||'기타').trim()||'기타',shape:p.shape==='cylinder'?'cylinder':'box',qty:Math.max(1,Math.floor(number(p.qty,1))),l:number(p.l),w:number(p.w),h:number(p.h),weight:number(p.weight),maxTopLoadKg:Number.isFinite(maxTopLoadKg)?maxTopLoadKg:null,rotate:Boolean(p.rotate),fragile:Boolean(p.fragile),source:['manual','csv','excel','json'].includes(p.source)?p.source:'manual'}}
-  function normalizeResultSummary(value){if(!value||typeof value!=='object')return null;return{state:['complete','partial','failed'].includes(value.state)?value.state:'failed',loaded:Math.max(0,Math.floor(Number(value.loaded)||0)),total:Math.max(0,Math.floor(Number(value.total)||0)),containerCount:Math.max(0,Math.floor(Number(value.containerCount)||0)),totalWeight:Math.max(0,Number(value.totalWeight)||0),calculatedAt:String(value.calculatedAt||'')}}
-  function normalizeFieldResult(value){if(!value||typeof value!=='object')return null;return{loaded:Math.max(0,Math.floor(Number(value.loaded)||0)),containers:Math.max(0,Math.floor(Number(value.containers)||0)),notes:String(value.notes||'').slice(0,240),recordedAt:String(value.recordedAt||'')}}
+(function (root) {
+  const CURRENT_SCHEMA_VERSION = 5,
+    CURRENT_ALGORITHM_VERSION = 'ep-lex-portfolio-2026.10.28';
+  const allowedContainers = new Set(['20ft', '40ft', '40hc', '45hc', '20ft-kr', '40ft-kr', '40hc-kr', '45hc-kr']),
+    allowedSafety = new Set(['strict', 'standard', 'secure']),
+    allowedPreferences = new Set(['auto', 'density', 'width', 'balance']),
+    legacyOptimizations = {
+      intelligent: ['strict', 'auto'],
+      sequence: ['strict', 'auto'],
+      hybrid: ['strict', 'width'],
+      volume: ['standard', 'density'],
+      balance: ['strict', 'balance']
+    },
+    allowedTransportModes = new Set(['sea', 'combined', 'road']);
+  function number(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  }
+  function normalizeProduct(p = {}) {
+    const maxTopLoadKg = p.maxTopLoadKg == null || p.maxTopLoadKg === '' ? null : Math.max(0, Number(p.maxTopLoadKg));
+    return {
+      name: String(p.name || '').trim(),
+      group: String(p.group || '기타').trim() || '기타',
+      shape: p.shape === 'cylinder' ? 'cylinder' : 'box',
+      qty: Math.max(1, Math.floor(number(p.qty, 1))),
+      l: number(p.l),
+      w: number(p.w),
+      h: number(p.h),
+      weight: number(p.weight),
+      maxTopLoadKg: Number.isFinite(maxTopLoadKg) ? maxTopLoadKg : null,
+      rotate: Boolean(p.rotate),
+      fragile: Boolean(p.fragile),
+      source: ['manual', 'csv', 'excel', 'json'].includes(p.source) ? p.source : 'manual'
+    };
+  }
+  function normalizeResultSummary(value) {
+    if (!value || typeof value !== 'object') return null;
+    return {
+      state: ['complete', 'partial', 'failed'].includes(value.state) ? value.state : 'failed',
+      loaded: Math.max(0, Math.floor(Number(value.loaded) || 0)),
+      total: Math.max(0, Math.floor(Number(value.total) || 0)),
+      containerCount: Math.max(0, Math.floor(Number(value.containerCount) || 0)),
+      totalWeight: Math.max(0, Number(value.totalWeight) || 0),
+      calculatedAt: String(value.calculatedAt || '')
+    };
+  }
+  function normalizeFieldResult(value) {
+    if (!value || typeof value !== 'object') return null;
+    return {
+      loaded: Math.max(0, Math.floor(Number(value.loaded) || 0)),
+      containers: Math.max(0, Math.floor(Number(value.containers) || 0)),
+      notes: String(value.notes || '').slice(0, 240),
+      recordedAt: String(value.recordedAt || '')
+    };
+  }
   // 스키마 4 이하의 단일 전략(optimization)을 안전 기준 × 우선 기준으로 옮긴다.
-  function normalizeStrategy(data){const legacy=legacyOptimizations[data.optimization]||legacyOptimizations.intelligent;return{safety:allowedSafety.has(data.safety)?data.safety:legacy[0],preference:allowedPreferences.has(data.preference)?data.preference:legacy[1]}}
+  function normalizeStrategy(data) {
+    const legacy = legacyOptimizations[data.optimization] || legacyOptimizations.intelligent;
+    return {
+      safety: allowedSafety.has(data.safety) ? data.safety : legacy[0],
+      preference: allowedPreferences.has(data.preference) ? data.preference : legacy[1]
+    };
+  }
   // 고정재 선택. 없으면 모두 사용.
   // 고정 조건: 마찰(CTU 표의 화물 밑면), 래싱 MSL(daN), 고정점(iso: ISO 최소값, rated: 표시 확인). 모르는 값은 기본값.
-  const FRICTION_KEYS=new Set(['unknown','wood-pallet','planed-wood','plastic-pallet','steel-crate','rubber','slip']),LASHING_MSLS=new Set([2000,2500,4000,5000]);
-  function normalizeSecuring(value){const v=value&&typeof value==='object'?value:{};return{airbag:v.airbag!==false,filler:v.filler!==false,nails:v.nails!==false,lashing:v.lashing!==false,friction:FRICTION_KEYS.has(v.friction)?v.friction:'unknown',lashingMsl:LASHING_MSLS.has(Number(v.lashingMsl))?Number(v.lashingMsl):2000,anchors:v.anchors==='rated'?'rated':'iso'}}
-  function normalizeSnapshot(data={}){const products=Array.isArray(data.products)?data.products.map(normalizeProduct).filter(p=>p.name&&p.l&&p.w&&p.h&&p.weight):[];return{schemaVersion:CURRENT_SCHEMA_VERSION,algorithmVersion:String(data.algorithmVersion||'legacy'),products,containerType:allowedContainers.has(data.containerType)?data.containerType:'20ft',...normalizeStrategy(data),transportMode:allowedTransportModes.has(data.transportMode)?data.transportMode:'combined',securing:normalizeSecuring(data.securing),resultSummary:normalizeResultSummary(data.resultSummary),fieldResult:normalizeFieldResult(data.fieldResult)}}
-  function createSnapshot(products,containerType,strategy={},metadata={}){return normalizeSnapshot({products,containerType,...(typeof strategy==='string'?{optimization:strategy}:strategy),...metadata})}
-  root.LoadwiseProjectModel={CURRENT_SCHEMA_VERSION,CURRENT_ALGORITHM_VERSION,normalizeProduct,normalizeSnapshot,createSnapshot};
+  const FRICTION_KEYS = new Set([
+      'unknown',
+      'wood-pallet',
+      'planed-wood',
+      'plastic-pallet',
+      'steel-crate',
+      'rubber',
+      'slip'
+    ]),
+    LASHING_MSLS = new Set([2000, 2500, 4000, 5000]);
+  function normalizeSecuring(value) {
+    const v = value && typeof value === 'object' ? value : {};
+    return {
+      airbag: v.airbag !== false,
+      filler: v.filler !== false,
+      nails: v.nails !== false,
+      lashing: v.lashing !== false,
+      friction: FRICTION_KEYS.has(v.friction) ? v.friction : 'unknown',
+      lashingMsl: LASHING_MSLS.has(Number(v.lashingMsl)) ? Number(v.lashingMsl) : 2000,
+      anchors: v.anchors === 'rated' ? 'rated' : 'iso'
+    };
+  }
+  function normalizeSnapshot(data = {}) {
+    const products = Array.isArray(data.products)
+      ? data.products.map(normalizeProduct).filter(p => p.name && p.l && p.w && p.h && p.weight)
+      : [];
+    return {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      algorithmVersion: String(data.algorithmVersion || 'legacy'),
+      products,
+      containerType: allowedContainers.has(data.containerType) ? data.containerType : '20ft',
+      ...normalizeStrategy(data),
+      transportMode: allowedTransportModes.has(data.transportMode) ? data.transportMode : 'combined',
+      securing: normalizeSecuring(data.securing),
+      resultSummary: normalizeResultSummary(data.resultSummary),
+      fieldResult: normalizeFieldResult(data.fieldResult)
+    };
+  }
+  function createSnapshot(products, containerType, strategy = {}, metadata = {}) {
+    return normalizeSnapshot({
+      products,
+      containerType,
+      ...(typeof strategy === 'string' ? { optimization: strategy } : strategy),
+      ...metadata
+    });
+  }
+  root.LoadwiseProjectModel = {
+    CURRENT_SCHEMA_VERSION,
+    CURRENT_ALGORITHM_VERSION,
+    normalizeProduct,
+    normalizeSnapshot,
+    createSnapshot
+  };
 })(globalThis);

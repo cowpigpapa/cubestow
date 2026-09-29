@@ -14,7 +14,7 @@
 
 제품 규격, 중량, 수량과 적재 제약을 입력하면 컨테이너별 배치·적재 순서·고정재 위치를 계산하고 3D로 보여주는 브라우저 기반 컨테이너 로딩 시뮬레이터입니다.
 
-- 현재 단계: Vercel 공개 베타 · 버전 1.1.83 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
+- 현재 단계: Vercel 공개 베타 · 버전 1.1.84 (버전은 package.json의 semver로 관리하고 화면 하단에 같은 값을 표시한다. LoadWise 시절의 4.0.0까지는 이전 제품 버전이며, Cubestow로 이름을 바꾸면서 1.x로 다시 시작했다.)
 - 서비스: https://cubestow.vercel.app/
 - 저장소: https://github.com/cowpigpapa/cubestow
 - 제품 요구사항: [LOADING-SIMULATOR-PRD.md](LOADING-SIMULATOR-PRD.md)
@@ -162,8 +162,9 @@ CTU 기준 적용은 먼저 화물끼리 서로 막히는 배치를 찾습니다
 정적 웹 애플리케이션이며 로컬 개발 서버와 배포용 빌드를 제공합니다.
 
 ```bash
-npm test                 # 전체 단위 테스트(약 9분, 배포 전 필수)
+npm test                 # 전체 단위 테스트(약 3분, 배포 전 필수. 오래 걸리는 테스트는 test/slow-*.test.mjs로 나눠 동시에 돈다)
 npm run test:quick       # 오래 걸리는 @slow 테스트 9개를 뺀 빠른 확인(약 30초)
+npm run format           # 코드 서식 정리(Prettier, .prettierrc.json). 커밋 전에 실행
 npm run benchmark          # 회귀 게이트, 결과 파일은 바꾸지 않음
 npm run benchmark:write    # 기준 결과(benchmarks/*.json) 갱신
 npm run build

@@ -1,6 +1,6 @@
 {
   "name": "cubestow",
-  "version": "1.1.83",
+  "version": "1.1.84",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,12 +12,15 @@
     "test": "node --test test/*.test.mjs",
     "test:quick": "node --test --test-skip-pattern=@slow test/*.test.mjs",
     "test:e2e": "playwright test",
-    "samples:capture": "node tools/capture-sample-results.mjs"
+    "samples:capture": "node tools/capture-sample-results.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1"
+    "@playwright/test": "^1.62.1",
+    "prettier": "^3.9.9"
   }
 }

@@ -1,30 +1,45 @@
-import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 
-await rm("dist", { recursive: true, force: true });
-await mkdir("dist/client/vendor", { recursive: true });
-await mkdir("dist/server", { recursive: true });
+await rm('dist', { recursive: true, force: true });
+await mkdir('dist/client/vendor', { recursive: true });
+await mkdir('dist/server', { recursive: true });
 
-for (const file of ["index.html", "styles.css", "v3-projects.css", "packing-engine.js", "engine-worker.js", "securing-plan.js", "app.js", "project-model.js", "project-store.js", "load-insights.js", "sample-scenarios.js", "solution-validator.js", "result-review.js"]) {
+for (const file of [
+  'index.html',
+  'styles.css',
+  'v3-projects.css',
+  'packing-engine.js',
+  'engine-worker.js',
+  'securing-plan.js',
+  'app.js',
+  'project-model.js',
+  'project-store.js',
+  'load-insights.js',
+  'sample-scenarios.js',
+  'solution-validator.js',
+  'result-review.js'
+]) {
   await cp(file, `dist/client/${file}`);
 }
-await cp("vendor/three.min.js", "dist/client/vendor/three.min.js");
-await cp("vendor/xlsx.full.min.js", "dist/client/vendor/xlsx.full.min.js");
-await cp("vendor/supabase.js", "dist/client/vendor/supabase.js");
-await cp("public/og.png", "dist/client/og.png");
-await cp("sample-results.html", "dist/client/sample-results.html");
-await cp("sample-results.js", "dist/client/sample-results.js");
-await cp("sample-results.css", "dist/client/sample-results.css");
-await cp("library.js", "dist/client/library.js");
-await cp("library.css", "dist/client/library.css");
-await cp("sample-results", "dist/client/sample-results", { recursive: true });
+await cp('vendor/three.min.js', 'dist/client/vendor/three.min.js');
+await cp('vendor/xlsx.full.min.js', 'dist/client/vendor/xlsx.full.min.js');
+await cp('vendor/supabase.js', 'dist/client/vendor/supabase.js');
+await cp('public/og.png', 'dist/client/og.png');
+await cp('sample-results.html', 'dist/client/sample-results.html');
+await cp('sample-results.js', 'dist/client/sample-results.js');
+await cp('sample-results.css', 'dist/client/sample-results.css');
+await cp('library.js', 'dist/client/library.js');
+await cp('library.css', 'dist/client/library.css');
+await cp('sample-results', 'dist/client/sample-results', { recursive: true });
 
-const supabaseConfig = `window.LOADWISE_SUPABASE = ${JSON.stringify({url:process.env.SUPABASE_URL||'',publishableKey:process.env.SUPABASE_PUBLISHABLE_KEY||''})};\n`;
-await writeFile("dist/client/supabase-config.js", supabaseConfig);
+const supabaseConfig = `window.LOADWISE_SUPABASE = ${JSON.stringify({ url: process.env.SUPABASE_URL || '', publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || '' })};\n`;
+await writeFile('dist/client/supabase-config.js', supabaseConfig);
 
 const worker = `export default { async fetch(request, env) {\n  const url = new URL(request.url);\n  if (url.pathname === \"/\") url.pathname = \"/index.html\";\n  const response = await env.ASSETS.fetch(new Request(url, request));\n  return response.status === 404 ? env.ASSETS.fetch(new Request(new URL(\"/index.html\", request.url), request)) : response;\n} };\n`;
-await writeFile("dist/server/index.js", worker);
+await writeFile('dist/server/index.js', worker);
 
-const html = await readFile("dist/client/index.html", "utf8");
-if (!html.includes("<title>Cubestow")) throw new Error("Cubestow metadata missing");
-for(const [,src] of html.matchAll(/<script[^>]+src="([^"]+)"/g))if(!/^https?:/.test(src))await access(`dist/client/${src.split('?')[0]}`);
-console.log("Cubestow build complete");
+const html = await readFile('dist/client/index.html', 'utf8');
+if (!html.includes('<title>Cubestow')) throw new Error('Cubestow metadata missing');
+for (const [, src] of html.matchAll(/<script[^>]+src="([^"]+)"/g))
+  if (!/^https?:/.test(src)) await access(`dist/client/${src.split('?')[0]}`);
+console.log('Cubestow build complete');

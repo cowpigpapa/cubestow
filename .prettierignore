@@ -1,0 +1,19 @@
+# 서식 정리 대상이 아닌 것
+node_modules/
+dist/
+vendor/
+outputs/
+test-results/
+playwright-report/
+sample-results/
+benchmarks/
+test-projects/
+supabase/
+public/
+research/
+*.md
+*.html
+*.json
+# 줄바꿈만 바뀐 채 커밋하지 않는 파일
+dev-server.mjs
+playwright.config.mjs
