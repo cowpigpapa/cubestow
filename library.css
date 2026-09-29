@@ -177,3 +177,64 @@
 .library-view .lib-article ul {
   padding-left: 22px;
 }
+/* CTU Code 전체 요약: 항목 카드와 중요도 표시 */
+.library-view .lib-item {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--lib-line);
+  border-left: 4px solid #d5dbd8;
+  border-radius: 10px;
+  background: #fff;
+}
+.library-view .lib-item[data-level='3'] {
+  border-left-color: #0071e3;
+  background: #f7fbff;
+}
+.library-view .lib-item[data-level='2'] {
+  border-left-color: #7fb89a;
+}
+.library-view .lib-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.library-view .lib-item-head b {
+  font-size: 15.5px;
+}
+.library-view .lib-item-head small {
+  color: var(--lib-muted);
+  font-size: 12px;
+}
+.library-view .lib-level {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eef1f3;
+  color: #5f6763;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.library-view .lib-item[data-level='3'] .lib-level {
+  background: #e3efff;
+  color: #0b4a99;
+}
+.library-view .lib-item[data-level='2'] .lib-level {
+  background: #e5f5ec;
+  color: #145c33;
+}
+.library-view .lib-item p {
+  margin: 6px 0 0;
+}
+.library-view .lib-item ul {
+  margin: 6px 0 0;
+}
+.library-view .lib-why {
+  color: var(--lib-muted) !important;
+  font-size: 13px;
+}
+.library-view .lib-links a,
+.library-view .lib-article p a {
+  color: #0071e3;
+  font-weight: 600;
+}

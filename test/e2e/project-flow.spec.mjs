@@ -772,6 +772,12 @@ test('the library links the official CTU Code sources and opens Korean commentar
   const map = page.locator('.lib-article table').filter({ hasText: 'Cubestow 반영' });
   await expect(map.locator('tbody tr')).toHaveCount(16);
   await expect(map.locator('a[href="#library/ch5-accel"]')).toHaveText('완료');
+  // 전체 요약: 본문 13장·부속서 10개·정보자료 10개가 중요도와 함께 나온다
+  await page.goto('/#library/ctu-overview');
+  await expect(page.locator('.lib-article h2')).toContainText('CTU Code 전체 요약');
+  await expect(page.locator('.lib-item')).toHaveCount(33);
+  await expect(page.locator('.lib-item[data-level="3"]').first()).toContainText('꼭 알아야 함');
+  await page.goto('/#library/structure');
   await map.locator('a[href="#library/a7-securing"]').click();
   await expect(page.locator('.lib-article')).toContainText('cx,y · d ≥ cz · b');
   await page.locator('.lib-crumb a').click();
