@@ -829,3 +829,50 @@ test('units sit inside the inputs right after the number and optional marks sit 
   expect(s.y + s.height).toBeLessThanOrEqual(t.y + t.height + 1);
   expect(t.height).toBeLessThan(24);
 });
+
+test('products that cannot fit the chosen container are rejected before the calculation with a concrete reason', async ({
+  page
+}) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  const dialog = page.locator('#messageDialog');
+  // 20ft 폭 2,352mm보다 넓은 화물: 등록 단계에서 이유와 함께 막는다
+  await page.fill('#productName', '넓은 기계');
+  await page.fill('#productWeight', '500');
+  await page.fill('#productLength', '2400');
+  await page.fill('#productWidth', '2500');
+  await page.fill('#productHeight', '1000');
+  await page.click('#addProduct');
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('컨테이너에 들어갈 수 없는 제품');
+  await expect(dialog).toContainText('짧은 변 2,400mm');
+  await page.locator('#messageConfirm').click();
+  await expect(page.locator('#productCount')).toContainText('0개 품목');
+  // 높이만 넘는 화물은 눕히기를 켜면 들어간다
+  await page.fill('#productLength', '2000');
+  await page.fill('#productWidth', '1000');
+  await page.fill('#productHeight', '2500');
+  await page.click('#addProduct');
+  await expect(dialog).toContainText('높이 2,500mm');
+  await expect(dialog).toContainText('눕혀서 적재 가능이 꺼져 있음');
+  await page.locator('#messageConfirm').click();
+  await page.check('#allowRotation');
+  await page.click('#addProduct');
+  await expect(page.locator('#productCount')).toContainText('1개 품목');
+});
+
+test('the summary cards separate this container from the shipment total', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('#emptySample').click();
+  await page.locator('[data-sample="6"]').click();
+  await expect(page.locator('#loadedCount')).not.toHaveText('—', { timeout: 120000 });
+  await expect(page.locator('#containerCount')).toHaveText(/^[2-9]대$/);
+  await expect(page.locator('.stats span', { hasText: '이 컨테이너 수량' })).toBeVisible();
+  await expect(page.locator('#loadedDetail')).toContainText('대 합계');
+  await expect(page.locator('#loadedDetail')).toContainText('전체 100개');
+  await expect(page.locator('#weightDetail')).toContainText('대 합계');
+  await expect(page.locator('#weightDetail')).toContainText('대당 허용');
+});

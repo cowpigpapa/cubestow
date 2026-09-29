@@ -73,3 +73,69 @@ test('the review flags suspicious layouts for the admin log with a stable finger
   assert.match(fp, /^[0-9a-f]{16}$/);
   assert.equal(fp, context.LoadwiseReview.fingerprint({ codes }));
 });
+
+test('the review warns when cargo is stacked on items whose top-load limit was not entered', () => {
+  const c = { name: '20ft Dry', l: 5898, w: 2352, h: 2393, maxWeight: 28200 };
+  const box = (x, z, weight, maxTopLoadKg, order) => ({
+    name: 'a',
+    shape: 'box',
+    x,
+    y: 0,
+    z,
+    l: 1000,
+    w: 1000,
+    h: 1000,
+    weight,
+    maxTopLoadKg,
+    order
+  });
+  const review = placed =>
+    context.LoadwiseReview.review({
+      containers: [
+        {
+          container: c,
+          placed,
+          totalWeight: placed.reduce((s, p) => s + p.weight, 0),
+          securing: { dunnage: [], airbags: [], reviews: [] }
+        }
+      ],
+      unallocated: [],
+      totalUnits: placed.length,
+      safety: 'strict'
+    });
+  // 미입력 화물 위에 자기 무게 이상이 실림 → 주의
+  const heavy = review([box(4898, 0, 2000, null, 1), box(4898, 1000, 2000, null, 2)]);
+  const item = heavy.items.find(it => it.code === 'top-load-unknown');
+  assert.ok(item, 'top-load-unknown item present');
+  assert.equal(item.level, 'warn');
+  assert.match(item.title, /미입력 화물 1개 위에 적층/);
+  assert.notEqual(heavy.grade.key, 'ok');
+  // 한도를 입력했으면 지적하지 않는다
+  const known = review([box(4898, 0, 2000, 3000, 1), box(4898, 1000, 2000, null, 2)]);
+  assert.ok(!known.items.some(it => it.code === 'top-load-unknown'));
+  // 가벼운 것이 얹히면 안내만
+  const light = review([box(4898, 0, 2000, null, 1), box(4898, 1000, 300, null, 2)]);
+  assert.equal(light.items.find(it => it.code === 'top-load-unknown').level, 'info');
+});
+
+test('the same finding in several containers is merged into one line', () => {
+  const c = { name: '20ft Dry', l: 5898, w: 2352, h: 2393, maxWeight: 28200 };
+  const load = () => ({
+    container: c,
+    placed: [{ name: 'a', shape: 'box', x: 0, y: 0, z: 0, l: 1000, w: 1000, h: 1000, weight: 100, order: 1 }],
+    totalWeight: 100,
+    securing: { dunnage: [], airbags: [], reviews: [{ product: '바닥 선하중', location: '안쪽 1m 구간' }] }
+  });
+  const r = context.LoadwiseReview.review({
+    containers: [load(), load()],
+    unallocated: [],
+    totalUnits: 2,
+    safety: 'strict'
+  });
+  const lines = r.items.filter(it => it.code === 'line-load');
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0].title, '1·2번 바닥 선하중 초과');
+  const flush = r.items.filter(it => it.code === 'flush');
+  assert.equal(flush.length, 1);
+  assert.match(flush[0].title, /^1·2번 첫 화물이 안쪽 벽에서 떨어짐/);
+});

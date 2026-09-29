@@ -177,6 +177,30 @@
       for (const r of plan.reviews.filter(r => r.product === '바닥 선하중'))
         add('warn', 'line-load', `${n}번 바닥 선하중 초과`, r.location, '');
     });
+    // 상부 허용하중을 입력하지 않은 화물 위에 다른 화물이 얹힘: 엔진은 한도를 무제한으로 보므로 따로 알린다.
+    // 위에 실린 무게가 자기 무게 이상이면 주의, 그보다 가벼우면 안내.
+    const over = (a, b) =>
+      Math.min(a.x + a.l, b.x + b.l) > Math.max(a.x, b.x) && Math.min(a.y + a.w, b.y + b.w) > Math.max(a.y, b.y);
+    let unknownStacked = 0,
+      unknownHeavy = 0;
+    for (const load of loads)
+      for (const p of load.placed || []) {
+        if (Number.isFinite(p.maxTopLoadKg)) continue;
+        const above = (load.placed || []).filter(q => q !== p && Math.abs(q.z - (p.z + p.h)) < 2 && over(p, q));
+        if (!above.length) continue;
+        unknownStacked++;
+        if (above.reduce((s, q) => s + (q.weight || 0), 0) >= (p.weight || 0)) unknownHeavy++;
+      }
+    if (unknownStacked)
+      add(
+        unknownHeavy ? 'warn' : 'info',
+        'top-load-unknown',
+        `상부 허용하중 미입력 화물 ${unknownStacked}개 위에 적층`,
+        unknownHeavy
+          ? `그중 ${unknownHeavy}개는 자기 무게 이상이 위에 실렸습니다. 미입력 화물은 한도 없이 쌓을 수 있는 것으로 계산했습니다.`
+          : '미입력 화물은 한도 없이 쌓을 수 있는 것으로 계산했습니다.',
+        '제품의 상부 허용하중을 입력하면 압축하중을 검증합니다. 모르면 상부 적재 금지를 켜세요.'
+      );
     // 조금만 실린 마지막 컨테이너
     if (loads.length >= 2) {
       const last = loads[loads.length - 1],
@@ -201,7 +225,37 @@
           ? { key: 'warn', label: '주의' }
           : { key: 'ok', label: '양호' };
     if (!items.length) add('ok', 'clean', '지적 사항 없음', '모든 자동 점검을 통과했습니다.', '');
-    return { grade, items: items.sort((a, b) => LEVEL_ORDER[b.level] - LEVEL_ORDER[a.level]), anomalies };
+    return {
+      grade,
+      items: mergeContainerItems(items).sort((a, b) => LEVEL_ORDER[b.level] - LEVEL_ORDER[a.level]),
+      anomalies
+    };
+  }
+
+  // 여러 컨테이너에서 같은 지적("1번 바닥 선하중 초과"와 "2번 …")이 나오면 "1·2번 …" 하나로 묶는다.
+  function mergeContainerItems(items) {
+    const out = [],
+      groups = new Map();
+    for (const it of items) {
+      const m = /^(\d+)번 (.*)$/.exec(it.title);
+      if (!m) {
+        out.push(it);
+        continue;
+      }
+      const key = [it.code, it.level, m[2], it.detail, it.fix].join('\u0000');
+      let g = groups.get(key);
+      if (!g) {
+        g = { ...it, numbers: [] };
+        groups.set(key, g);
+        out.push(g);
+      }
+      g.numbers.push(m[1]);
+    }
+    return out.map(it => {
+      if (!it.numbers) return it;
+      const { numbers, ...rest } = it;
+      return { ...rest, title: it.title.replace(/^\d+번/, `${numbers.join('·')}번`) };
+    });
   }
 
   // 같은 입력·조건·지적이면 같은 값(서버에서 중복 기록을 막는다).

@@ -614,6 +614,11 @@ function addProduct() {
     });
     return;
   }
+  const fit = productFitIssue(p, CONTAINERS[$('containerType').value]);
+  if (fit) {
+    showAppMessage(`${p.name}: ${fit}`, { title: '컨테이너에 들어갈 수 없는 제품입니다', tone: 'warning' });
+    return;
+  }
   rememberProduct(p.name, $('productGroup').value.trim());
   if (editingIndex >= 0) {
     products[editingIndex] = { ...products[editingIndex], ...p };
@@ -627,6 +632,29 @@ function addProduct() {
   markSimulationChanged();
   renderProducts();
   window.loadwiseStorage?.suggestName(`${p.name} 적재`);
+}
+// 입력 단계 검증: 고른 컨테이너에 들어갈 수 없는 치수·중량은 계산 전에 무엇이 얼마나 넘는지 구체적으로 알린다.
+// 엔진과 같은 기준이다: 눕혀서 적재 가능이 꺼져 있으면 높이는 그대로 두고 바닥면만 90° 돌릴 수 있다.
+function productFitIssue(p, c) {
+  if (!c) return '';
+  const mm = v => `${Math.round(v).toLocaleString()}mm`;
+  if (p.weight > c.maxWeight)
+    return `개당 중량 ${p.weight.toLocaleString()}kg이 ${c.name} 허용 중량 ${c.maxWeight.toLocaleString()}kg을 넘습니다`;
+  if (p.rotate) {
+    const dims = [p.l, p.w, p.h].sort((a, b) => a - b),
+      box = [c.w, c.h, c.l].sort((a, b) => a - b),
+      names = ['가장 짧은 변', '중간 변', '가장 긴 변'],
+      i = dims.findIndex((d, k) => d > box[k]);
+    return i < 0
+      ? ''
+      : `${names[i]} ${mm(dims[i])}가 ${c.name}에 어느 방향으로 눕혀도 들어가지 않습니다(내부 ${c.l}×${c.w}×${c.h}mm)`;
+  }
+  if (p.h > c.h) return `높이 ${mm(p.h)}가 ${c.name} 높이 ${mm(c.h)}를 넘습니다(눕혀서 적재 가능이 꺼져 있음)`;
+  const short = Math.min(p.l, p.w),
+    long = Math.max(p.l, p.w);
+  if (short > c.w) return `짧은 변 ${mm(short)}가 ${c.name} 폭 ${mm(c.w)}를 넘습니다`;
+  if (long > c.l) return `긴 변 ${mm(long)}가 ${c.name} 길이 ${mm(c.l)}를 넘습니다`;
+  return '';
 }
 function renderSampleList(filter = '전체') {
   const modes = { sea: '해상', combined: '복합', road: '육상' },
@@ -848,7 +876,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260929-6');
+      engineWorker = new Worker('engine-worker.js?v=20260929-7');
     } catch {
       engineWorker = null;
     }
@@ -914,6 +942,19 @@ async function simulate() {
       title: '등록된 제품이 없습니다',
       tone: 'warning'
     });
+    return;
+  }
+  // 컨테이너를 바꾼 뒤에도 안 들어가는 제품이 있으면 계산 전에 알린다.
+  const fitContainer = CONTAINERS[$('containerType').value],
+    misfits = products.map(p => ({ p, why: productFitIssue(p, fitContainer) })).filter(x => x.why);
+  if (misfits.length) {
+    showAppMessage(
+      misfits
+        .slice(0, 3)
+        .map(x => `${x.p.name}: ${x.why}`)
+        .join('\n') + (misfits.length > 3 ? `\n외 ${misfits.length - 3}개` : ''),
+      { title: '컨테이너에 들어갈 수 없는 제품이 있습니다', tone: 'warning' }
+    );
     return;
   }
   if (simulationRunning) {
@@ -1089,12 +1130,19 @@ function updateResults() {
   $('weightRate').textContent = `${r.weightRate.toFixed(1)}%`;
   $('volumeBar').style.width = `${Math.min(100, r.volumeRate)}%`;
   $('weightBar').style.width = `${Math.min(100, r.weightRate)}%`;
+  // 수량·중량 칸은 지금 보는 컨테이너 값이고, 작은 글씨에 전체 합계를 함께 보여 준다(컨테이너가 여러 대일 때 헷갈리지 않게).
+  const loads = shipment ? shipment.containers : [r],
+    loadedAll = loads.reduce((s, l) => s + l.placed.length, 0),
+    weightAll = loads.reduce((s, l) => s + (l.totalWeight || 0), 0),
+    many = loads.length > 1;
   $('loadedCount').textContent = `${r.placed.length}개`;
-  $('loadedDetail').textContent = `전체 ${total}개`;
+  $('loadedDetail').textContent = many ? `${loads.length}대 합계 ${loadedAll}개 / 전체 ${total}개` : `전체 ${total}개`;
   $('totalWeight').textContent = `${r.totalWeight.toLocaleString()} kg`;
-  $('containerCount').textContent = `${shipment ? shipment.containers.length : 1}대`;
+  $('containerCount').textContent = `${loads.length}대`;
   $('containerDetail').textContent = r.container.name;
-  $('weightDetail').textContent = `허용 ${(r.container.maxWeight / 1000).toFixed(1)} t`;
+  $('weightDetail').textContent = many
+    ? `${loads.length}대 합계 ${(weightAll / 1000).toFixed(1)} t · 대당 허용 ${(r.container.maxWeight / 1000).toFixed(1)} t`
+    : `허용 ${(r.container.maxWeight / 1000).toFixed(1)} t`;
   const groups = [];
   r.placed.forEach(p => {
     let g = groups.find(x => x.name === p.name && x.z === p.z && x.x === p.x);

@@ -1220,9 +1220,10 @@ body .workspace {
   }
 }
 @media (max-width: 760px) {
+  /* 프로젝트 도구줄(높이 72px)이 위에 절대 위치로 놓이므로 그만큼만 비운다 */
   body .workspace {
     margin-top: 4px;
-    padding-top: 118px;
+    padding-top: 76px;
   }
   .project-toolbar {
     top: 0;
@@ -4246,4 +4247,70 @@ details.account-menu[open] > summary::after {
 }
 .result-header > .step-heading {
   min-width: max-content;
+}
+/* 손가락 조작(640px 이하): 자주 누르는 작은 버튼은 36px 이상으로 */
+@media (max-width: 640px) {
+  .qty-stepper {
+    gap: 6px;
+  }
+  .qty-stepper input {
+    width: 56px;
+    height: 36px;
+    font-size: 13px;
+  }
+  .qty-arrows {
+    gap: 2px;
+  }
+  .qty-arrows button {
+    width: 30px;
+    height: 17px;
+    font-size: 9px !important;
+  }
+  .edit-product,
+  .product-item .edit-product {
+    min-height: 36px;
+    padding: 0 14px;
+    line-height: 34px;
+  }
+  button.collapse-toggle,
+  details.menu > summary {
+    min-height: 36px;
+  }
+  .playback button {
+    width: 36px;
+    height: 36px;
+  }
+  .container-tabs .nav-arrow,
+  .result-control-row .container-tabs .nav-arrow {
+    width: 36px;
+    min-height: 36px;
+  }
+}
+@media (max-width: 640px) {
+  /* 위쪽 모바일 규칙이 30px !important로 고정한 접기·불러오기 버튼도 36px로 */
+  button.collapse-toggle,
+  .collapse-state,
+  .load-menu > summary {
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+  .container-tabs .nav-arrow,
+  .result-control-row .container-tabs .nav-arrow,
+  .playback button {
+    flex: 0 0 36px;
+  }
+  .securing-visibility button {
+    min-height: 36px;
+  }
+}
+@media (max-width: 640px) {
+  .option-row input[type='checkbox'],
+  .product-item input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+  }
+  #resetView {
+    flex: 0 0 36px;
+    min-height: 36px;
+  }
 }
