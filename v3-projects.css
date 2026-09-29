@@ -4365,3 +4365,15 @@ details.account-menu[open] > summary::after {
     margin-left: auto;
   }
 }
+/* 운송 경로 설명: 문장과 가속도를 두 줄로(문자열의 줄바꿈 그대로) */
+.segment-hint {
+  white-space: pre-line;
+}
+/* 슬라이더 아래 단계 이름은 눌러서 고를 수 있다 */
+.slider-stops span {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.slider-stops span:hover {
+  color: #0071e3;
+}

@@ -214,9 +214,10 @@ const PREFERENCE_HINTS = {
   balance: '앞뒤·좌우 무게 편차가 가장 작은 배치를 고릅니다(화물 사이를 벌릴 수 있음)'
 };
 const TRANSPORT_HINTS = {
-  road: '도로 기준으로 계산합니다 · 좌우 0.5g, 급정거 0.8g',
-  combined: '도로와 해상 중 불리한 값을 씁니다(권장)',
-  sea: '거친 해역 기준으로 계산합니다 · 좌우 0.8g, 앞뒤 0.4g'
+  // 첫 줄은 한 문장, 둘째 줄은 가속도(설명 상자는 줄바꿈을 그대로 보여 준다).
+  road: '도로 기준으로 계산합니다\n(좌우 0.5g, 급정거 0.8g)',
+  combined: '도로와 해상 중 불리한 값을 씁니다 (권장)',
+  sea: '거친 해역 기준으로 계산합니다\n(좌우 0.8g, 앞뒤 0.4g)'
 };
 let ctuNoticeShown = false;
 const CTU_NOTICE =
@@ -284,6 +285,18 @@ function enhanceSafetySlider() {
       showAppMessage(CTU_NOTICE, { title: 'CTU 기준 적용', tone: 'info' });
     }
   };
+  // 슬라이더 아래 글자(적재량 우선·기본·CTU 기준 적용)를 눌러도 그 단계로 옮긴다.
+  slider
+    .closest('.field-control')
+    ?.querySelectorAll('.slider-stops span')
+    .forEach((stop, i) => {
+      stop.addEventListener('click', () => {
+        if (slider.value === String(i)) return;
+        slider.value = String(i);
+        slider.oninput();
+        slider.onchange();
+      });
+    });
   selectRenderers.push(render);
   render();
 }
@@ -886,7 +899,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260929-9');
+      engineWorker = new Worker('engine-worker.js?v=20260929-10');
     } catch {
       engineWorker = null;
     }

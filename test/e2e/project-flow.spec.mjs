@@ -911,3 +911,28 @@ test('the securing conditions explain the lashing-point default and the option h
   expect(sec.y).toBeGreaterThanOrEqual(a.y + a.height);
   expect(sec.width).toBeGreaterThan(a.width * 2);
 });
+
+test('the safety step labels move the slider and the route hint shows its accelerations on a second line', async ({
+  page
+}) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  const stops = page.locator('.slider-stops span');
+  await stops.nth(2).click();
+  await expect(page.locator('#safetySlider')).toHaveValue('2');
+  await expect(page.locator('#safetyLevel')).toHaveValue('secure');
+  await expect(page.locator('#safetyLabel')).toHaveText('CTU 기준 적용');
+  // CTU 기준은 처음 고를 때 한 번 안내한다
+  await expect(page.locator('#messageDialog')).toHaveAttribute('open', '');
+  await page.locator('#messageConfirm').click();
+  await stops.nth(0).click();
+  await expect(page.locator('#safetySlider')).toHaveValue('0');
+  await expect(page.locator('#safetyLevel')).toHaveValue('standard');
+  // 운송 경로 설명: 문장 한 줄, 가속도 한 줄
+  await page.locator('.segmented[data-for="transportMode"] button', { hasText: '육상' }).click();
+  const hint = page.locator('.route-field .segment-hint');
+  await expect(hint).toHaveText(/도로 기준으로 계산합니다\s*\(좌우 0\.5g, 급정거 0\.8g\)/);
+  const lines = await hint.evaluate(el => el.innerText.split('\n').filter(Boolean).length);
+  expect(lines).toBe(2);
+});
