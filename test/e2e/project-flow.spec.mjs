@@ -883,3 +883,31 @@ test('the summary cards separate this container from the shipment total', async 
   await expect(page.locator('#weightDetail')).toContainText('대 합계');
   await expect(page.locator('#weightDetail')).toContainText('대당 허용');
 });
+
+test('the securing conditions explain the lashing-point default and the option hints sit in one aligned row on desktop', async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto('/');
+  // 고정점 기본값(ISO 최소) 설명이 선택 상자 바로 아래에 있다
+  await page.locator('#securingConditions>summary').click();
+  const note = page.locator('.securing-conditions-panel .condition-note');
+  await expect(note).toBeVisible();
+  await expect(note).toContainText('ISO 1496-1 최소값');
+  await expect(note).toContainText('표시 확인함');
+  await page.keyboard.press('Escape');
+  // 안전 수준·배치 방식·운송 경로 설명 상자는 같은 줄에 같은 높이로 놓인다(3줄 높이, 세로 가운데)
+  const [a, b, c] = await Promise.all([
+    page.locator('.safety-hint').boundingBox(),
+    page.locator('.pref-field .segment-hint').boundingBox(),
+    page.locator('.route-field .segment-hint').boundingBox()
+  ]);
+  expect(Math.abs(a.y - b.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(a.height - b.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(b.height - c.height)).toBeLessThanOrEqual(1);
+  expect(a.height).toBeGreaterThanOrEqual(74);
+  // 고정재 줄은 설명 상자 아래 한 줄 전체
+  const sec = await page.locator('.securing-field').boundingBox();
+  expect(sec.y).toBeGreaterThanOrEqual(a.y + a.height);
+  expect(sec.width).toBeGreaterThan(a.width * 2);
+});

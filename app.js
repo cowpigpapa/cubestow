@@ -886,7 +886,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260929-8');
+      engineWorker = new Worker('engine-worker.js?v=20260929-9');
     } catch {
       engineWorker = null;
     }
@@ -1244,9 +1244,17 @@ function renderAutoReview() {
     `<div class="auto-review-head"><span>자동 평가</span><strong>${r.grade.label}</strong><small>규칙 기반 점검 · 같은 결과면 같은 평가</small></div>` +
     `<ul>${r.items.map(it => `<li data-level="${it.level}"><i aria-hidden="true">${icon[it.level]}</i><div><b>${esc(it.title)}</b>${it.detail ? `<span>${esc(it.detail)}</span>` : ''}${it.fix ? `<em>${esc(it.fix)}</em>` : ''}</div></li>`).join('')}</ul>` +
     `<p class="auto-review-scope">사전 검토용 평가입니다. CTU Code나 도로 법규 적합 판정이 아니며, 실제 적입 전 현장 책임자가 확인해야 합니다.${/-kr$/.test(shipment.containerKey || '') ? ' 한국 도로 한도는 적재중량 기준 값이며, 축하중은 일반 20ft·40ft 샤시 제원으로 추정한 값입니다(결과 요약 참조).' : ''}</p>` +
-    (r.anomalies.length
-      ? `<p class="auto-review-flag">알고리즘 개선을 위해 이 결과를 점검 기록으로 남겼습니다(${r.anomalies.length}건, 제품명 없이 치수·무게·조건만).</p>`
-      : '');
+    flagNoteHtml(r.anomalies.length);
+}
+// 점검 기록 안내: 남겼는지, 오늘 한도(브라우저마다 하루 10건, 서버에서도 같은 한도)에 걸렸는지.
+function flagNoteHtml(count) {
+  if (!count) return '';
+  const q = window.loadwiseStorage?.flagQuota?.();
+  if (q?.global)
+    return `<p class="auto-review-flag">오늘 점검 기록이 전체 한도에 도달해 이 결과는 남기지 않았습니다(${count}건). 내일 다시 기록됩니다.</p>`;
+  if (q?.reached)
+    return `<p class="auto-review-flag">오늘 이 브라우저의 점검 기록 한도(하루 ${q.limit}건)에 도달해 이 결과는 남기지 않았습니다(${count}건). 내일 다시 기록됩니다.</p>`;
+  return `<p class="auto-review-flag">알고리즘 개선을 위해 이 결과를 점검 기록으로 남겼습니다(${count}건, 제품명 없이 치수·무게·조건만${q ? ` · 브라우저마다 하루 ${q.limit}건까지` : ''}).</p>`;
 }
 // 계산이 끝날 때 한 번: 알고리즘이 의심되는 결과면 입력·조건·지적을 점검 기록으로 보낸다(관리자만 열람).
 function recordReviewFlags() {

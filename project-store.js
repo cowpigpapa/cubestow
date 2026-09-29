@@ -482,10 +482,36 @@
     const day = new Date().toISOString().slice(0, 10);
     try {
       const v = JSON.parse(localStorage.getItem(FLAG_SENT) || '{}');
-      return v.day === day ? { day, count: Number(v.count) || 0 } : { day, count: 0 };
+      return v.day === day
+        ? { day, count: Number(v.count) || 0, limited: !!v.limited, globalLimited: !!v.globalLimited }
+        : { day, count: 0 };
     } catch {
       return { day, count: 0 };
     }
+  }
+  // 서버가 브라우저마다 하루 한도를 세는 데 쓰는 무작위 ID(개인 정보 아님). 한 번 만들면 이 브라우저에 남는다.
+  const FLAG_CLIENT = 'loadwise.v3.clientId';
+  function clientId() {
+    try {
+      let id = localStorage.getItem(FLAG_CLIENT);
+      if (!/^[0-9a-f]{32}$/.test(id || '')) {
+        id = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('');
+        localStorage.setItem(FLAG_CLIENT, id);
+      }
+      return id;
+    } catch {
+      return null;
+    }
+  }
+  // 화면 안내용: 오늘 이 브라우저가 보낸 건수와 한도 도달 여부.
+  function flagQuota() {
+    const s = sentToday();
+    return {
+      sent: s.count,
+      limit: FLAG_DAILY_LIMIT,
+      reached: s.count >= FLAG_DAILY_LIMIT || !!s.limited,
+      global: !!s.globalLimited
+    };
   }
   // 예전 대기열에 남은 제품명·제품군도 보내기 전에 지운다.
   const stripNames = input => ({ ...input, products: (input?.products || []).map(({ name, group, ...rest }) => rest) });
@@ -512,20 +538,30 @@
     const sentOk = new Set(),
       sent = sentToday();
     for (const entry of readFlags()) {
-      if (sent.count >= FLAG_DAILY_LIMIT) break;
-      const { error } = await client.rpc('record_algorithm_flag', {
+      if (sent.count >= FLAG_DAILY_LIMIT || sent.limited || sent.globalLimited) break;
+      const params = {
         p_app_version: entry.appVersion,
         p_engine: entry.engine,
         p_settings: entry.settings,
         p_flags: entry.flags,
         p_input: stripNames(entry.input),
         p_fingerprint: entry.fingerprint
-      });
-      if (error) console.warn('algorithm flag not sent', error.message);
-      else {
-        sent.count++;
-        sentOk.add(entry.fingerprint);
+      };
+      let { data, error } = await client.rpc('record_algorithm_flag', { ...params, p_client: clientId() });
+      // 요청 제한 마이그레이션(20260929120000)을 아직 적용하지 않은 서버는 p_client를 모른다. 그때는 예전 서명으로 보낸다.
+      if (error && /p_client|PGRST202|does not exist|not find/i.test(error.message || ''))
+        ({ data, error } = await client.rpc('record_algorithm_flag', params));
+      if (error) {
+        console.warn('algorithm flag not sent', error.message);
+        continue;
       }
+      // 서버 응답: ok·duplicate는 보낸 것으로, limit·global-limit은 오늘 더 보내지 않는다(대기열에 남겨 내일 다시 보낸다).
+      if (data === 'limit' || data === 'global-limit') {
+        sent[data === 'limit' ? 'limited' : 'globalLimited'] = true;
+        break;
+      }
+      sent.count++;
+      sentOk.add(entry.fingerprint);
     }
     try {
       localStorage.setItem(FLAG_SENT, JSON.stringify(sent));
@@ -688,7 +724,7 @@
     state('저장되지 않음');
     trackVisitors();
   }
-  window.loadwiseStorage = { markDirty, suggestName, detach, recordAlgorithmFlag };
+  window.loadwiseStorage = { markDirty, suggestName, detach, recordAlgorithmFlag, flagQuota };
   window.addEventListener('loadwise:simulation-complete', recordSimulation);
   window.addEventListener('DOMContentLoaded', init);
 })();

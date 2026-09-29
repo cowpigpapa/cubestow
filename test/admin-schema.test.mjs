@@ -70,3 +70,31 @@ test('algorithm flags can be recorded by anyone through a checked function but o
   const schema = await readFile(new URL('../supabase-schema.sql', import.meta.url), 'utf8');
   assert.match(schema, /public\.algorithm_flags/);
 });
+
+test('the algorithm flag rate limit migration counts per client and per user and reports the limit', async () => {
+  const sql = await readFile(
+    new URL('../supabase/migrations/20260929120000_limit_algorithm_flags_per_client.sql', import.meta.url),
+    'utf8'
+  );
+  assert.match(sql, /add column if not exists client_id text check \(client_id ~ '\^\[0-9a-f\]\{16,64\}\$'\)/);
+  assert.match(
+    sql,
+    /where client_id = v_client and created_at > now\(\) - interval '1 day'\) >= 10 then return 'limit'/
+  );
+  assert.match(
+    sql,
+    /where user_id = auth\.uid\(\) and created_at > now\(\) - interval '1 day'\) >= 10 then return 'limit'/
+  );
+  assert.match(sql, />= 500 then return 'global-limit'/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /drop function if exists public\.record_algorithm_flag\(text, text, jsonb, jsonb, jsonb, text\)/);
+  assert.match(
+    sql,
+    /grant execute on function public\.record_algorithm_flag\(text, text, jsonb, jsonb, jsonb, text, text\) to anon, authenticated/
+  );
+  assert.doesNotMatch(sql, /grant[^;]*insert[^;]*algorithm_flags/i);
+  // 통합 스키마 파일도 같은 정의를 갖는다
+  const schema = await readFile(new URL('../supabase-schema.sql', import.meta.url), 'utf8');
+  assert.match(schema, /client_id text check/);
+  assert.match(schema, /p_client text default null/);
+});
