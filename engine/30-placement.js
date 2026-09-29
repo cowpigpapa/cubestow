@@ -303,7 +303,7 @@
     // 기둥을 많이 세울 수 있는 규격(총 부피가 큰 규격)부터 안쪽에 세운다.
     let lists = [...groups.values()].sort((a, b) => b.length * b[0].volume - a.length * a[0].volume);
     if (balanced && lists.length > 1) lists = balancedGroupOrder(c, lists);
-    // 균형 변형: 모든 기둥을 최대 높이로 세웠을 때 바닥이 남으면, 남는 비율만큼 기둥을 낮춰 길이 방향으로 고르게 펼친다.
+    // 균형 변형: 모든 기둥을 최대 높이로 세웠을 때 바닥이 남으면, 남는 비율만큼 기둥을 낮춰 종방향으로 고르게 펼친다.
     let spread = 1;
     if (balanced) {
       let area = 0;
@@ -317,7 +317,7 @@
     }
     for (const list of lists) {
       const u = list[0];
-      // 방향: 기둥이 높이를 가장 잘 채우고, 비슷하면 눕힌(높이가 바닥 최소 치수 이하) 방향, 폭 방향 잔여가 작은 방향 순.
+      // 방향: 기둥이 높이를 가장 잘 채우고, 비슷하면 눕힌(높이가 바닥 최소 치수 이하) 방향, 횡방향 잔여가 작은 방향 순.
       const scored = u.rotations
         .map(d => {
           const k = Math.min(columnHeight(run, u, d), list.length);
@@ -459,7 +459,7 @@
     return { kept, removed };
   }
   const RESETTLE_ROUNDS = 6;
-  // 층 후보 깊이: 남은 화물의 회전별 길이 방향 치수를 부피로 가중해 많이 쓰일 깊이부터 고른다. 투입 순서 첫 화물의 깊이는 항상 넣는다.
+  // 층 후보 깊이: 남은 화물의 회전별 종방향 치수를 부피로 가중해 많이 쓰일 깊이부터 고른다. 투입 순서 첫 화물의 깊이는 항상 넣는다.
   function wallDepths(units, room, limit) {
     const weight = new Map();
     for (const u of units)
@@ -471,7 +471,7 @@
       .sort((a, b) => b - a)[0];
     return [...new Set([...(first ? [first] : []), ...ranked])].slice(0, limit);
   }
-  // 전폭 벽(스트립) 빌더. 벽 = 깊이 D 안에 같은 규격을 같은 방향으로 수직으로 쌓은 기둥들을 폭 방향으로 빈틈없이 붙인 것.
+  // 전폭 벽(스트립) 빌더. 벽 = 깊이 D 안에 같은 규격을 같은 방향으로 수직으로 쌓은 기둥들을 횡방향으로 빈틈없이 붙인 것.
   // 기둥 후보(규격·회전·단수)의 폭 조합을 동적계획법으로 골라 벽 부피를 최대로 하고(양 끝 잔여 폭은 500mm 이하를 우선),
   // 벽 채움률이 가장 높은 깊이를 골라 안쪽 벽부터 차례로 확정한다. 기둥은 벽의 안쪽 면에 맞추고, 짧은 기둥의 문쪽 틈은 500mm 이하다.
   const STRIP_STEP = 10;
@@ -568,7 +568,7 @@
     while (pending.length && x < c.l) {
       const strip = bestStrip(run, pending, c.l - x, c.maxWeight - weight);
       if (!strip) break;
-      // 기둥을 폭 방향으로 붙여 놓는다. 무거운 기둥을 가운데에 두어 좌우 무게를 맞춘다.
+      // 기둥을 횡방향으로 붙여 놓는다. 무거운 기둥을 가운데에 두어 좌우 무게를 맞춘다.
       const picks = [...strip.picks].sort((a, b) => b.weight - a.weight),
         line = [];
       picks.forEach((col, i) => (i % 2 ? line.push(col) : line.unshift(col)));

@@ -94,7 +94,7 @@
     };
   }
   // CTU Code 참고 계산. 가속도 계수는 IMO MSC.1/Circ.1498 Informative Material 5, Quick Lashing Guide A·B·C 10.1.1/11.1.1/12.1.1.
-  // c: 수평 가속도, v: 함께 쓰는 수직 가속도(1g 단위). 전후는 컨테이너 길이 방향, 차량 진행 방향은 안쪽 벽 쪽이다.
+  // c: 수평 가속도, v: 함께 쓰는 수직 가속도(1g 단위). 전후는 컨테이너 종방향, 차량 진행 방향은 안쪽 벽 쪽이다.
   const CTU_ACCELERATIONS = {
     road: { label: '도로', side: { c: 0.5, v: 1 }, forward: { c: 0.8, v: 1 }, backward: { c: 0.5, v: 1 } },
     seaA: { label: '해상 A', side: { c: 0.5, v: 1 }, forward: { c: 0.3, v: 0.5 }, backward: { c: 0.3, v: 0.5 } },

@@ -186,7 +186,7 @@ const SAMPLE_SETS = (() => {
       category: '원통',
       container: '40ft',
       mode: 'sea',
-      description: '무거운 원통의 단층 배치와 길이 방향 중량 분산',
+      description: '무거운 원통의 단층 배치와 종방향 중량 분산',
       products: [drum('종이 롤', '지류', 24, 1000, 1300, 850, 900)]
     },
     17: {

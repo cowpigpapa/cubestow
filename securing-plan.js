@@ -78,7 +78,7 @@ function fillRemainingVoids(load, airbags, dunnage, options = securingOptions) {
   let bags = airbags.length;
   const lash = [],
     todo = [];
-  // 선(점 하나를 지나는 축 방향 직선) 위 빈 공간의 합. 길이 방향은 그 선에서 가장 문쪽 화물부터 안쪽 벽까지(문쪽 공간은 문쪽 고정이 맡는다).
+  // 선(점 하나를 지나는 축 방향 직선) 위 빈 공간의 합. 종방향은 그 선에서 가장 문쪽 화물부터 안쪽 벽까지(문쪽 공간은 문쪽 고정이 맡는다).
   const lineVoid = (axis, p) => {
     const zc = p.z + p.h / 2,
       spans = [];
@@ -574,7 +574,7 @@ function planAirbags(load, c, airbags, dunnage) {
         w: bag
       })); /* 실무상 컨테이너 끝(안쪽 벽·문)에는 에어백을 두지 않는다. 화물은 안쪽 벽에 밀착하고 문 쪽은 각재·부목으로 막는다. */
     });
-    // 같은 벽 쪽에서 틈이 비슷하고(±30mm) 길이 방향으로 붙어 있는(50mm 이내) 화물 줄은 이음매마다 에어백 하나를 걸쳐 두 화물을 함께 누른다.
+    // 같은 벽 쪽에서 틈이 비슷하고(±30mm) 종방향으로 붙어 있는(50mm 이내) 화물 줄은 이음매마다 에어백 하나를 걸쳐 두 화물을 함께 누른다.
     // 화물마다 하나씩 넣던 것보다 개수가 약 절반이고, 모든 화물이 에어백에 닿는다(사용자 결정 2026-09-27: 개수보다 고정과 벽 밀착이 중요).
     for (const zone of ['left', 'right']) {
       const wallBags = candidates
@@ -805,7 +805,7 @@ function planAirbags(load, c, airbags, dunnage) {
 // 바닥 선하중(길이 1m당 화물 중량) 검토.
 function reviewFloorLineLoad(load, c, reviews) {
   // 바닥 선하중(길이 1m당 화물 중량): 20ft 4.5t/m, 40ft·45ft 3.0t/m(TIS-GDV 컨테이너 적재 지침, CTU Code는 운영사 협의로 둠).
-  // 넘으면 화물 밑에 길이 방향 받침목(20ft 폭 0.10m·40ft 0.15m 이상)을 깔아 하중을 나누도록 검토 항목으로 알린다.
+  // 넘으면 화물 밑에 종방향 받침목(20ft 폭 0.10m·40ft 0.15m 이상)을 깔아 하중을 나누도록 검토 항목으로 알린다.
   {
     const limit = c.l <= 7000 ? 4500 : 3000;
     let worst = 0,
@@ -824,7 +824,7 @@ function reviewFloorLineLoad(load, c, reviews) {
       reviews.push({
         product: '바닥 선하중',
         severity: 'review',
-        location: `문에서 ${(at / 1000).toFixed(1)}~${((at + 1000) / 1000).toFixed(1)}m 구간 ${(worst / 1000).toFixed(1)}t/m · 한계 ${(limit / 1000).toFixed(1)}t/m 초과 → 화물 밑 길이 방향 받침목(폭 ${c.l <= 7000 ? '0.10' : '0.15'}m 이상)으로 하중 분산`,
+        location: `문에서 ${(at / 1000).toFixed(1)}~${((at + 1000) / 1000).toFixed(1)}m 구간 ${(worst / 1000).toFixed(1)}t/m · 한계 ${(limit / 1000).toFixed(1)}t/m 초과 → 화물 밑 종방향 받침목(폭 ${c.l <= 7000 ? '0.10' : '0.15'}m 이상)으로 하중 분산`,
         axes: '',
         count: 1
       });
