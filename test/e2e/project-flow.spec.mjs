@@ -1025,3 +1025,20 @@ test('a scroll-to-top button appears after scrolling down a long page and takes 
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
   await expect(top).toBeHidden();
 });
+
+test('on a wide screen the scroll-to-top button sits beside the document and lines up with its bottom', async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto('/#library/ctu-overview');
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const top = page.locator('button.to-top');
+  await expect(top).toBeVisible();
+  await expect
+    .poll(async () => {
+      const [b, a] = await Promise.all([top.boundingBox(), page.locator('.lib-article').boundingBox()]);
+      // 글 카드 오른쪽 바깥에 간격을 두고 서고, 아래 끝선이 맞는다
+      return b.x >= a.x + a.width + 8 && Math.abs(b.y + b.height - (a.y + a.height)) <= 2;
+    })
+    .toBe(true);
+});
