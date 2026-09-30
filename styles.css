@@ -931,19 +931,12 @@ footer small {
     transform: rotate(360deg);
   }
 }
-.visitor-count {
-  display: flex;
-}
 @media (max-width: 760px) {
   .simulation-status {
     position: absolute;
     left: 20px;
     top: 78px;
     z-index: 3;
-  }
-  .visitor-count {
-    order: 3;
-    width: 100%;
   }
 }
 .brand > small {

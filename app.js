@@ -417,9 +417,9 @@ function bindEvents() {
       el.focus({ preventScroll: true });
     };
   renderSampleList();
-  // 드롭다운 메뉴는 항목을 누르거나 바깥을 누르면 닫는다.
+  // 드롭다운 메뉴는 항목을 누르거나 바깥을 누르면 닫는다. 고정 조건 펼침 칸도 바깥을 누르면 닫는다.
   document.addEventListener('click', event =>
-    document.querySelectorAll('details.menu[open]').forEach(menu => {
+    document.querySelectorAll('details.menu[open], details.securing-conditions[open]').forEach(menu => {
       if (!menu.contains(event.target) || event.target.closest('.menu-list button')) menu.open = false;
     })
   );
@@ -913,7 +913,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260930-11');
+      engineWorker = new Worker('engine-worker.js?v=20260930-12');
     } catch {
       engineWorker = null;
     }

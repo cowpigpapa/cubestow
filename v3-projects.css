@@ -444,41 +444,6 @@ body {
     display: grid;
   }
 }
-.visitor-count {
-  gap: 10px;
-}
-.visitor-count span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 86px;
-  padding: 9px 12px;
-  border: 1px solid #dedee3;
-  border-radius: 12px;
-  background: #fff;
-  color: #6e6e73 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-}
-.visitor-count span::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #0071e3;
-  box-shadow: 0 0 0 3px #e8f3ff;
-}
-.visitor-count span:nth-child(2)::before {
-  background: #7b61a8;
-  box-shadow: 0 0 0 3px #f0ebf8;
-}
-.visitor-count b {
-  margin-left: auto;
-  color: #1d1d1f !important;
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
 .account-identity {
   max-width: 240px;
   overflow: hidden;
@@ -1277,12 +1242,6 @@ body .workspace {
   color: #b8c5bd;
   font-size: 12px;
 }
-.site-footer .visitor-count {
-  grid-column: 3;
-  grid-row: 1/3;
-  align-self: center;
-  justify-self: end;
-}
 .site-footer .footer-meta {
   grid-column: 1/3;
   display: flex;
@@ -1296,6 +1255,15 @@ body .workspace {
   font-size: 10px;
   font-weight: 600;
   color: #cbd5cf;
+}
+/* 방문자 수: 버전·제작자와 같은 크기·색의 한 줄. 숫자는 고정폭이라 자릿수가 바뀌어도 흔들리지 않는다. */
+.site-footer .footer-visitors {
+  display: inline-flex;
+  gap: 10px;
+}
+.site-footer .footer-visitors b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .site-footer .footer-meta i {
   font-style: normal;
@@ -1312,7 +1280,6 @@ body .workspace {
     gap: 12px;
   }
   .site-footer > p,
-  .site-footer .visitor-count,
   .site-footer .footer-meta {
     grid-column: 1;
     grid-row: auto;
@@ -1658,7 +1625,6 @@ button.collapse-toggle,
 .dropzone small,
 .simulation-status,
 .simulation-status > b,
-.visitor-count span,
 .save-state,
 .project-toolbar .safety-notice,
 .collapsible-head span,
@@ -1709,9 +1675,6 @@ button.collapse-toggle,
 .playback span,
 .sequence-list .num {
   font-size: 12px;
-}
-.visitor-count span {
-  font-size: 12px !important;
 }
 .step-heading > span {
   font-size: 12px;

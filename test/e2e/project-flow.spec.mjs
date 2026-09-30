@@ -294,18 +294,47 @@ test('one run button, view controls inside the 3D view and an XYZ axis toggle', 
   await expect(page.locator('#viewAxes b')).toHaveText('OFF');
 });
 
-test('footer keeps professional contrast and aligns the visitor counter', async ({ page }) => {
-  await page.goto('/');
-  const footer = page.locator('.site-footer'),
-    workspace = page.locator('.workspace'),
-    visitors = page.locator('.site-footer .visitor-count'),
-    style = await footer.evaluate(e => getComputedStyle(e).backgroundColor),
-    workBox = await workspace.boundingBox(),
-    footerBox = await footer.boundingBox(),
-    visitorBox = await visitors.boundingBox();
-  expect(style).toBe('rgb(16, 21, 18)');
-  expect(Math.abs(workBox.x + workBox.width - (visitorBox.x + visitorBox.width))).toBeLessThanOrEqual(20);
-  expect(Math.abs(footerBox.y + footerBox.height / 2 - (visitorBox.y + visitorBox.height / 2))).toBeLessThanOrEqual(1);
+test('footer keeps professional contrast and shows visitors as one quiet line beside the version', async ({ page }) => {
+  for (const size of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 }
+  ]) {
+    await page.setViewportSize(size);
+    await page.goto('/');
+    const footer = page.locator('.site-footer'),
+      visitors = page.locator('.site-footer .footer-meta .footer-visitors'),
+      version = page.locator('#appVersion'),
+      made = page.locator('.footer-meta > span', { hasText: 'Made by' });
+    expect(await footer.evaluate(e => getComputedStyle(e).backgroundColor)).toBe('rgb(16, 21, 18)');
+    await expect(visitors).toHaveCount(1);
+    await expect(visitors).toContainText('오늘');
+    await expect(visitors).toContainText('누적');
+    const [versionBox, visitorBox, madeBox] = await Promise.all([
+      version.boundingBox(),
+      visitors.boundingBox(),
+      made.boundingBox()
+    ]);
+    // 한 줄: 버전 → 방문자 → 제작자 순서로 같은 줄에 놓인다
+    for (const box of [visitorBox, madeBox])
+      expect(Math.abs(box.y + box.height / 2 - (versionBox.y + versionBox.height / 2))).toBeLessThanOrEqual(2);
+    expect(visitorBox.x).toBeGreaterThan(versionBox.x + versionBox.width);
+    expect(madeBox.x).toBeGreaterThan(visitorBox.x + visitorBox.width);
+    // 배지 없이 버전과 같은 크기·색, 숫자는 고정폭
+    const look = await visitors.evaluate(el => {
+      const s = getComputedStyle(el),
+        v = getComputedStyle(document.getElementById('appVersion')),
+        inner = [...el.querySelectorAll('span')].map(x => getComputedStyle(x));
+      return {
+        sameSize: inner.every(x => x.fontSize === v.fontSize),
+        sameColor: inner.every(x => x.color === v.color),
+        badge: [s, ...inner].some(x => x.backgroundColor !== 'rgba(0, 0, 0, 0)' || x.borderTopWidth !== '0px'),
+        tabular: [...el.querySelectorAll('b')].every(b =>
+          getComputedStyle(b).fontVariantNumeric.includes('tabular-nums')
+        )
+      };
+    });
+    expect(look).toEqual({ sameSize: true, sameColor: true, badge: false, tabular: true });
+  }
 });
 
 test('CTU sliding and tipping reference calculation appears in the securing panel', async ({ page }) => {
@@ -756,6 +785,10 @@ test('securing conditions set friction, lashing MSL and lashing points for the l
   await page.locator('#lashingMsl').selectOption('4000');
   await page.locator('#anchorRating').selectOption('rated');
   await expect(summary).toHaveText('마찰 0.45 · 래싱 4t · 고정점 표시 확인');
+  // 고르는 동안에는 열려 있고, 바깥을 누르면 닫힌다(다시 "고정 조건"을 누르지 않아도 된다).
+  await expect(page.locator('#securingConditions')).toHaveJSProperty('open', true);
+  await page.locator('#productName').click();
+  await expect(page.locator('#securingConditions')).toHaveJSProperty('open', false);
   // 계산하면 고정재 계획에 쓴 조건이 기준 문장에 나온다.
   await loadSample(page, 3);
   await page.locator('#securingPanel').evaluate(panel => (panel.open = true));
