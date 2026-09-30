@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 // 테스트는 운영 Supabase(방문자 수·알고리즘 점검 기록)에 쓰지 않는다.
 test.beforeEach(async ({ page }) => {
@@ -1113,4 +1114,231 @@ test('the sample dialog leads with three purpose-picked samples and folds the fu
   await expect(headline).toContainText('전량 적재');
   await expect(headline).toContainText(/대/);
   await expect(headline).toContainText(/자동 평가 (양호|주의|재검토 필요)/);
+});
+
+// 관리자 점검 기록: 가짜 관리자 세션과 가짜 Supabase 응답으로만 돌린다(운영 데이터에 닿지 않는다).
+test('an admin can replay an algorithm flag with its products and conditions, and still download or delete flags', async ({
+  page
+}) => {
+  const now = Math.floor(Date.now() / 1000),
+    b64 = value => Buffer.from(JSON.stringify(value)).toString('base64url'),
+    user = {
+      id: '00000000-0000-4000-8000-000000000001',
+      aud: 'authenticated',
+      role: 'authenticated',
+      email: 'admin@example.com'
+    },
+    session = {
+      access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: user.id, exp: now + 3600, role: 'authenticated' })}.sig`,
+      token_type: 'bearer',
+      expires_in: 3600,
+      expires_at: now + 3600,
+      refresh_token: 'e2e-refresh',
+      user
+    };
+  let rows = [
+    {
+      id: 42,
+      created_at: '2026-09-20T01:00:00Z',
+      app_version: '1.1.90',
+      engine: 'ep-lex-portfolio-2026.09.01',
+      settings: {
+        container: '40hc',
+        safety: 'secure',
+        preference: 'density',
+        transportMode: 'sea',
+        securing: {
+          airbag: false,
+          filler: true,
+          nails: false,
+          lashing: true,
+          friction: 'rubber',
+          lashingMsl: 4000,
+          anchors: 'rated'
+        }
+      },
+      flags: [{ code: 'inner-void' }],
+      input: {
+        products: [
+          {
+            shape: 'box',
+            l: 1200,
+            w: 1000,
+            h: 900,
+            weight: 350,
+            qty: 12,
+            rotate: false,
+            fragile: false,
+            maxTopLoadKg: 800
+          },
+          {
+            shape: 'box',
+            l: 1100,
+            w: 900,
+            h: 800,
+            weight: 200,
+            qty: 6,
+            rotate: true,
+            fragile: true,
+            maxTopLoadKg: null
+          },
+          {
+            shape: 'cylinder',
+            l: 900,
+            w: 900,
+            h: 1100,
+            weight: 500,
+            qty: 4,
+            rotate: false,
+            fragile: false,
+            maxTopLoadKg: null
+          }
+        ]
+      }
+    },
+    {
+      id: 7,
+      created_at: '2026-08-01T01:00:00Z',
+      app_version: '1.0.3',
+      engine: 'old',
+      settings: { container: '53ft', optimization: 'volume', transportMode: 'road' },
+      flags: [{ code: 'validation' }],
+      input: {
+        products: [
+          { shape: 'box', l: 1000, w: 800, h: 600, weight: 100, qty: 3 },
+          { shape: 'box', l: 1000, w: 0, h: 600, weight: 100, qty: 2 }
+        ]
+      }
+    },
+    {
+      id: 9,
+      created_at: '2026-08-02T01:00:00Z',
+      app_version: '1.1.50',
+      engine: 'x',
+      settings: { container: '20ft', safety: 'strict', preference: 'auto', transportMode: 'combined' },
+      flags: [{ code: 'thin-last' }],
+      input: { products: [{ shape: 'box', l: 600, w: 400, h: 300, weight: 10, qty: 1 }] }
+    }
+  ];
+  const deletes = [],
+    projectWrites = [],
+    json = (route, body, status = 200) =>
+      route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+  await page.route(/^https:\/\/[a-z0-9]+\.supabase\.co\//, route => {
+    const request = route.request(),
+      url = new URL(request.url());
+    if (url.pathname.endsWith('/rpc/is_admin')) return json(route, true);
+    if (url.pathname.endsWith('/rpc/admin_user_stats')) return json(route, []);
+    if (url.pathname.endsWith('/rpc/get_visit_counts')) return json(route, { today: 1, total: 2 });
+    if (url.pathname.endsWith('/rest/v1/admin_users'))
+      return json(route, [{ email: user.email, created_at: '2026-01-01T00:00:00Z' }]);
+    if (url.pathname.endsWith('/rest/v1/algorithm_flags')) {
+      if (request.method() === 'DELETE') {
+        const id = Number(String(url.searchParams.get('id')).replace('eq.', ''));
+        deletes.push(id);
+        rows = rows.filter(r => r.id !== id);
+        return route.fulfill({ status: 204, body: '' });
+      }
+      return json(route, rows);
+    }
+    if (url.pathname.endsWith('/rest/v1/projects')) {
+      if (request.method() !== 'GET') projectWrites.push(request.method());
+      return json(route, []);
+    }
+    if (url.pathname.includes('/rpc/')) return json(route, null);
+    return route.abort();
+  });
+  await page.addInitScript(
+    value => localStorage.setItem('sb-wejegdshcpqqqhhjbtox-auth-token', value),
+    JSON.stringify(session)
+  );
+  await page.goto('/');
+  const openAdmin = async () => {
+    await page.locator('#accountMenu > summary').click();
+    await page.locator('#adminButton').click();
+    await expect(page.locator('#adminDialog')).toHaveJSProperty('open', true);
+    await expect(page.locator('#algorithmFlagList tr')).toHaveCount(rows.length);
+  };
+  const flagRow = id => page.locator('#algorithmFlagList tr', { has: page.locator(`[data-flag-replay="${id}"]`) });
+  await openAdmin();
+  // 버튼 순서: 다시 계산 · JSON 내려받기 · 삭제
+  await expect(flagRow(42).locator('button')).toHaveText(['이 조건으로 다시 계산', 'JSON 내려받기', '삭제']);
+
+  // 0) 확인 창에서 취소하면 입력 화면도 관리자 창도 그대로다
+  await flagRow(42).getByRole('button', { name: '이 조건으로 다시 계산' }).click();
+  await expect(page.locator('#messageTitle')).toHaveText('이 조건으로 다시 계산할까요?');
+  await page.locator('#messageCancel').click();
+  await expect(page.locator('#adminDialog')).toHaveJSProperty('open', true);
+  await expect(page.locator('#productList .product-item')).toHaveCount(0);
+  await expect(page.locator('#containerType')).toHaveValue('20ft');
+  await page.locator('#adminDialog').evaluate(d => d.close());
+  await openAdmin();
+
+  // 1) 구버전·일부 누락 기록: 오류 없이 불러오고, 옮기지 못한 것만 알린다
+  await flagRow(7).getByRole('button', { name: '이 조건으로 다시 계산' }).click();
+  const note = page.locator('#messageText');
+  await expect(page.locator('#messageTitle')).toHaveText('이 조건으로 다시 계산할까요?');
+  await expect(note).toContainText('이 기록은 v1.0.3 / 엔진 old에서 생성되었습니다.');
+  await expect(note).toContainText('점검 제품 2: 치수나 무게가 없어 넣지 못했습니다.');
+  await expect(note).toContainText('컨테이너: 알 수 없는 값(53ft)');
+  await expect(note).toContainText('저장본은 바뀌지 않고, 원래 점검 기록도 그대로 남습니다');
+  await expect(note).not.toContainText('안전 수준');
+  await page.locator('#messageConfirm').click();
+  await expect(page.locator('#adminDialog')).toHaveJSProperty('open', false);
+  await expect(page.locator('#productList .product-item')).toHaveCount(1);
+  await expect(page.locator('#productList')).toContainText('점검 제품 1');
+  await expect(page.locator('#safetyLevel')).toHaveValue('standard');
+  await expect(page.locator('#transportMode')).toHaveValue('road');
+  await expect(page.locator('#loadedCount')).toHaveText('3개', { timeout: 20000 });
+  // 저장 프로젝트와 연결을 끊은 새 작업으로 계산한다
+  await expect(page.locator('#currentProjectName')).toHaveText('점검 기록 #7 다시 계산');
+
+  // 2) 전체 기록: 제품 셋과 컨테이너·계산 조건·고정 조건이 모두 복원되고 계산이 실제로 돈다
+  await openAdmin();
+  await flagRow(42).getByRole('button', { name: '이 조건으로 다시 계산' }).click();
+  await expect(note).toContainText('이 기록은 v1.1.90 / 엔진 ep-lex-portfolio-2026.09.01에서 생성되었습니다.');
+  await expect(note).not.toContainText('그대로 옮기지 못한 항목');
+  await page.locator('#messageConfirm').click();
+  await expect(page.locator('#adminDialog')).toHaveJSProperty('open', false);
+  await expect(page.locator('#productList .product-item strong')).toHaveText([
+    '점검 제품 1',
+    '점검 제품 2',
+    '점검 제품 3'
+  ]);
+  await expect(page.locator('#containerType')).toHaveValue('40hc');
+  await expect(page.locator('#safetyLevel')).toHaveValue('secure');
+  await expect(page.locator('#preference')).toHaveValue('density');
+  await expect(page.locator('#transportMode')).toHaveValue('sea');
+  await expect(page.locator('#securingConditionsSummary')).toHaveText('마찰 0.6 · 래싱 4t · 고정점 표시 확인');
+  expect(
+    await page.evaluate(() => {
+      const s = window.loadwiseProject.snapshot();
+      return [
+        s.securing,
+        s.products.map(p => [p.l, p.w, p.h, p.weight, p.qty, p.rotate, p.fragile, p.maxTopLoadKg, p.shape])
+      ];
+    })
+  ).toEqual([
+    rows[0].settings.securing,
+    rows[0].input.products.map(p => [p.l, p.w, p.h, p.weight, p.qty, p.rotate, p.fragile, p.maxTopLoadKg, p.shape])
+  ]);
+  await expect(page.locator('#loadedCount')).not.toHaveText('—', { timeout: 20000 });
+  await expect(page.locator('#resultHeadline')).toBeVisible();
+  // 다시 계산해도 원본 기록은 지우지 않고, 저장 프로젝트에도 쓰지 않는다
+  expect(deletes).toEqual([]);
+  expect(projectWrites).toEqual([]);
+
+  // 3) JSON 내려받기와 삭제는 그대로 동작한다
+  await openAdmin();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    flagRow(42).getByRole('button', { name: 'JSON 내려받기' }).click()
+  ]);
+  expect(download.suggestedFilename()).toBe('cubestow-algorithm-flag-42.json');
+  const saved = JSON.parse(await readFile(await download.path(), 'utf8'));
+  expect(saved.input.products).toHaveLength(3);
+  await flagRow(9).getByRole('button', { name: '삭제' }).click();
+  await page.locator('#messageConfirm').click();
+  await expect(page.locator('#algorithmFlagList tr')).toHaveCount(2);
+  expect(deletes).toEqual([9]);
 });

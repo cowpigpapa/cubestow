@@ -4530,3 +4530,34 @@ details.account-menu[open] > summary::after {
     grid-template-columns: 1fr;
   }
 }
+/* 알고리즘 점검 기록: 다시 계산 · JSON 내려받기 · 삭제 */
+.flag-actions {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 6px;
+}
+.flag-actions button[data-flag-replay] {
+  grid-column: 1 / -1;
+}
+#algorithmFlagList td:nth-child(3),
+#algorithmFlagList td:nth-child(4) {
+  min-width: 120px;
+  white-space: normal;
+}
+.flag-actions button {
+  padding: 6px 10px;
+  border: 1px solid var(--v3-line);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.flag-actions button[data-flag-replay] {
+  border-color: #0071e3;
+  background: #0071e3;
+  color: #fff;
+}
+.flag-actions button[data-flag-delete] {
+  color: #b3261e;
+}

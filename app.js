@@ -864,7 +864,8 @@ if (typeof window !== 'undefined')
     algorithmVersion: LoadwiseProjectModel.CURRENT_ALGORITHM_VERSION,
     snapshot: projectSnapshot,
     apply: applyProjectSnapshot,
-    reset: resetProject
+    reset: resetProject,
+    run: () => simulate()
   };
 function changeProductQty(index, delta) {
   if (!products[index]) return;
@@ -913,7 +914,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260930-13');
+      engineWorker = new Worker('engine-worker.js?v=20260930-14');
     } catch {
       engineWorker = null;
     }

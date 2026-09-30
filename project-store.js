@@ -604,10 +604,16 @@
       ? data
           .map(
             row =>
-              `<tr><td>${formatDate(row.created_at)}</td><td>v${escapeHtml(row.app_version)}<br><small>${escapeHtml(row.engine)}</small></td><td>${escapeHtml([row.settings?.container, row.settings?.safety, row.settings?.preference, row.settings?.transportMode].filter(Boolean).join(' · '))}</td><td>${(row.flags || []).map(item => escapeHtml(FLAG_NAMES[item.code] || item.code)).join(', ')}</td><td><button type="button" data-flag-download="${row.id}">입력 받기</button> <button type="button" data-flag-delete="${row.id}">삭제</button></td></tr>`
+              `<tr><td>${formatDate(row.created_at)}</td><td>v${escapeHtml(row.app_version)}<br><small>${escapeHtml(row.engine)}</small></td><td>${escapeHtml([row.settings?.container, row.settings?.safety, row.settings?.preference, row.settings?.transportMode].filter(Boolean).join(' · '))}</td><td>${(row.flags || []).map(item => escapeHtml(FLAG_NAMES[item.code] || item.code)).join(', ')}</td><td><span class="flag-actions"><button type="button" data-flag-replay="${escapeHtml(row.id)}">이 조건으로 다시 계산</button><button type="button" data-flag-download="${escapeHtml(row.id)}">JSON 내려받기</button><button type="button" data-flag-delete="${escapeHtml(row.id)}">삭제</button></span></td></tr>`
           )
           .join('')
       : '<tr><td class="admin-empty" colspan="5">아직 점검 기록이 없습니다.</td></tr>';
+    box
+      .querySelectorAll('[data-flag-replay]')
+      .forEach(
+        button =>
+          (button.onclick = () => replayAlgorithmFlag(data.find(r => String(r.id) === button.dataset.flagReplay)))
+      );
     box.querySelectorAll('[data-flag-download]').forEach(
       button =>
         (button.onclick = () => {
@@ -637,6 +643,34 @@
           loadAlgorithmFlags();
         })
     );
+  }
+  // 점검 기록을 현재 입력 화면에 옮기고 바로 계산한다. 버전이 다르거나 옮기지 못한 항목이 있으면 먼저 알린다.
+  async function replayAlgorithmFlag(row) {
+    if (!row) return;
+    const plan = window.LoadwiseProjectModel.fromAlgorithmFlag(row, {
+        appVersion: ($('appVersion')?.textContent || '').replace(/^v/, ''),
+        engine: window.LoadwiseEngine?.ENGINE_VERSION || ''
+      }),
+      skipped = plan.notes.length ? `그대로 옮기지 못한 항목:\n${plan.notes.map(n => `· ${n}`).join('\n')}` : '';
+    if (!plan.snapshot)
+      return message([skipped, plan.versionNote].filter(Boolean).join('\n\n'), {
+        title: '이 기록으로는 다시 계산할 수 없습니다',
+        tone: 'warning'
+      });
+    const intro = `점검 제품 ${plan.snapshot.products.length}개와 기록된 조건을 입력 화면에 넣고 바로 계산합니다. 지금 입력 화면의 제품과 조건은 이 기록으로 바뀝니다. 저장해 둔 프로젝트와는 연결을 끊고 계산하므로 저장본은 바뀌지 않고, 원래 점검 기록도 그대로 남습니다.`;
+    const ok = await message([intro, plan.versionNote, skipped].filter(Boolean).join('\n\n'), {
+      title: '이 조건으로 다시 계산할까요?',
+      tone: plan.versionNote || skipped ? 'warning' : 'info',
+      confirmAction: true,
+      actionLabel: '다시 계산'
+    });
+    if (!ok) return;
+    $('adminDialog').close();
+    // 저장된 프로젝트에 덮어쓰지 않도록 먼저 떼어 낸다(샘플을 열 때와 같다).
+    detach(`점검 기록 #${row.id} 다시 계산`);
+    window.loadwiseProject.apply(plan.snapshot);
+    await window.loadwiseProject.run();
+    document.querySelector('#planner')?.scrollIntoView({ behavior: 'smooth' });
   }
   async function recordSimulation() {
     if (!user) return;

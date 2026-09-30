@@ -109,11 +109,113 @@
       ...metadata
     });
   }
+  // 관리자 "이 조건으로 다시 계산": 알고리즘 점검 기록 한 건(서버 행 또는 브라우저 대기열 형식)을 입력 스냅숏으로 바꾼다.
+  // 기록에는 제품명·제품군이 없으므로 "점검 제품 N"으로 채운다. 옮기지 못한 항목만 notes에 남기고, 쓸 제품이 없으면 snapshot은 null.
+  const SAFETY_LABELS = { strict: '기본', standard: '적재량 우선', secure: 'CTU 기준 적용' },
+    PREFERENCE_LABELS = { auto: '추천', density: '붙여 싣기', balance: '무게중심' },
+    TRANSPORT_LABELS = { road: '육상', combined: '복합', sea: '해상' },
+    SECURING_LABELS = {
+      airbag: '에어백',
+      filler: '충전재',
+      nails: '바닥 못',
+      lashing: '래싱',
+      friction: '바닥 마찰',
+      lashingMsl: '래싱 MSL',
+      anchors: '고정점'
+    };
+  function fromAlgorithmFlag(row, current = {}) {
+    const record = row && typeof row === 'object' ? row : {},
+      settings = record.settings && typeof record.settings === 'object' ? record.settings : {},
+      input = record.input && typeof record.input === 'object' ? record.input : {},
+      notes = [],
+      products = [];
+    (Array.isArray(input.products) ? input.products : []).forEach((raw, i) => {
+      const name = `점검 제품 ${i + 1}`,
+        p = raw && typeof raw === 'object' ? raw : {},
+        product = normalizeProduct({ ...p, name, group: '점검 기록' });
+      if (!(product.l && product.w && product.h && product.weight)) {
+        notes.push(`${name}: 치수나 무게가 없어 넣지 못했습니다.`);
+        return;
+      }
+      if (!(Number(p.qty) >= 1)) notes.push(`${name}: 수량이 없어 1개로 넣었습니다.`);
+      products.push(product);
+    });
+    if (!products.length) notes.push('다시 계산할 수 있는 제품이 기록에 없습니다.');
+    const option = (label, value, allowed, fallback, labels) => {
+      if (allowed(value)) return value;
+      notes.push(
+        value == null || value === ''
+          ? `${label}: 기록에 없어 기본값(${labels?.[fallback] || fallback})으로 계산합니다.`
+          : `${label}: 알 수 없는 값(${String(value).slice(0, 30)})이라 기본값(${labels?.[fallback] || fallback})으로 계산합니다.`
+      );
+      return fallback;
+    };
+    const containerType = option('컨테이너', settings.container, v => allowedContainers.has(v), '20ft');
+    // 예전 단일 전략(optimization)만 있는 기록은 안전 수준 × 배치 방식으로 옮긴다.
+    const legacy = legacyOptimizations[settings.optimization],
+      safety =
+        legacy && !allowedSafety.has(settings.safety)
+          ? legacy[0]
+          : option('안전 수준', settings.safety, v => allowedSafety.has(v), 'strict', SAFETY_LABELS);
+    let preference =
+      legacy && !allowedPreferences.has(settings.preference)
+        ? legacy[1]
+        : option('배치 방식', settings.preference, v => allowedPreferences.has(v), 'auto', PREFERENCE_LABELS);
+    if (preference === 'width') {
+      notes.push('배치 방식: 예전 방식(width)은 지금 없어 추천으로 계산합니다.');
+      preference = 'auto';
+    }
+    const transportMode = option(
+      '운송 모드',
+      settings.transportMode,
+      v => allowedTransportModes.has(v),
+      'combined',
+      TRANSPORT_LABELS
+    );
+    const s = settings.securing && typeof settings.securing === 'object' ? settings.securing : null,
+      valid = {
+        airbag: v => typeof v === 'boolean',
+        filler: v => typeof v === 'boolean',
+        nails: v => typeof v === 'boolean',
+        lashing: v => typeof v === 'boolean',
+        friction: v => FRICTION_KEYS.has(v),
+        lashingMsl: v => LASHING_MSLS.has(Number(v)),
+        anchors: v => v === 'iso' || v === 'rated'
+      };
+    if (!s)
+      notes.push(
+        '고정 조건: 기록에 없어 기본값(고정재 모두 사용 · 마찰 0.3 · 래싱 2t · 고정점 ISO 최소)으로 계산합니다.'
+      );
+    else {
+      const missing = Object.keys(valid).filter(key => !valid[key](s[key]));
+      if (missing.length)
+        notes.push(
+          `고정 조건 중 ${missing.map(key => SECURING_LABELS[key]).join(' · ')}: 기록에 없어 기본값으로 계산합니다.`
+        );
+    }
+    const recorded = {
+        appVersion: String(record.app_version ?? record.appVersion ?? '').replace(/^v/, ''),
+        engine: String(record.engine ?? '')
+      },
+      now = { appVersion: String(current.appVersion ?? '').replace(/^v/, ''), engine: String(current.engine ?? '') },
+      versionNote =
+        recorded.appVersion === now.appVersion && recorded.engine === now.engine
+          ? ''
+          : `이 기록은 ${recorded.appVersion ? `v${recorded.appVersion}` : '버전 정보 없음'} / 엔진 ${recorded.engine || '정보 없음'}에서 생성되었습니다. 현재 버전(v${now.appVersion} / 엔진 ${now.engine}) 결과와 다를 수 있습니다.`;
+    return {
+      snapshot: products.length
+        ? normalizeSnapshot({ products, containerType, safety, preference, transportMode, securing: s || {} })
+        : null,
+      notes,
+      versionNote
+    };
+  }
   root.LoadwiseProjectModel = {
     CURRENT_SCHEMA_VERSION,
     CURRENT_ALGORITHM_VERSION,
     normalizeProduct,
     normalizeSnapshot,
-    createSnapshot
+    createSnapshot,
+    fromAlgorithmFlag
   };
 })(globalThis);
