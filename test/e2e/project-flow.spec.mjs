@@ -754,7 +754,9 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('#planner')).toBeHidden();
   await expect(page.locator('.topbar nav a[href="#library"]')).toHaveClass(/active/);
   // 공식 원문은 IMO 배포 링크로만 건다(파일을 다시 올리지 않음).
-  await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(4);
+  await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(5);
+  // 빠른 래싱 가이드도 IMO 공식 파일로만 링크한다(다른 곳의 사본은 걸지 않는다).
+  await expect(page.locator('#libraryView a[href*="mariterm"]')).toHaveCount(0);
   await expect(page.locator('#libraryView')).toContainText('사전 서면 허가 없이 복제할 수 없습니다');
   // 해설을 열고 자료실로 돌아온다.
   await page.locator('a.lib-doc[href="#library/qlg-c"]').click();
@@ -768,7 +770,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="#library/a7-securing"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="#library/qlg-c"]')).toHaveCount(1);
-  await expect(section('CTU Code 정보자료').locator('a.lib-card[href*="Quick-Lashing-Guide"]')).toHaveCount(1);
+  await expect(section('CTU Code 정보자료').locator('a.lib-card[href$="1498.pdf#page=65"]')).toHaveCount(1);
   // 한국어 번역은 원문 카드 바로 옆에 준비 중 카드로, 설명은 아래 안내에
   await expect(
     section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 한국어 번역' })

@@ -30,12 +30,13 @@
     },
     {
       group: '1498',
-      title: '빠른 래싱 가이드 단독본 (영어 PDF)',
-      org: 'MariTerm 배포본',
-      date: '2014-12',
-      lang: '영어 PDF',
-      url: 'https://www.mariterm.se/wp-content/uploads/2016/12/CTU-Code-Quick-Lashing-Guide-dec-2014.pdf',
-      note: '정보자료 IM5(빠른 래싱 가이드 A·B·C)만 따로 묶은 PDF. 현장에서 표만 볼 때 편합니다.'
+      title: '빠른 래싱 가이드 (정보자료 IM5)',
+      org: 'IMO · ILO · UNECE',
+      date: '2014-12-16',
+      lang: '영어 PDF 65~119쪽',
+      // 같은 정보자료 PDF 를 가이드가 시작하는 쪽에서 연다. 다른 곳의 사본 대신 IMO 공식 배포본만 링크한다.
+      url: IMO + '1498.pdf#page=65',
+      note: '래싱 몇 줄이 필요한지 표로 찾는 가이드 A·B·C. 정보자료 원문의 해당 쪽이 바로 열립니다.'
     },
     {
       group: 'other',
