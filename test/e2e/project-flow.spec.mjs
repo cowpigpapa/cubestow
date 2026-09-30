@@ -769,9 +769,21 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="#library/a7-securing"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="#library/qlg-c"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-card[href*="Quick-Lashing-Guide"]')).toHaveCount(1);
-  // 한국어 번역은 IMO 허가 전까지 준비 중 표시만
-  await expect(section('한국어 번역').locator('.lib-soon')).toHaveCount(2);
-  await expect(section('한국어 번역')).toContainText('IMO에 게시 허가를 요청해 두었습니다');
+  // 한국어 번역은 원문 카드 바로 옆에 준비 중 카드로, 설명은 아래 안내에
+  await expect(
+    section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 한국어 번역' })
+  ).toHaveCount(1);
+  await expect(
+    section('CTU Code 정보자료').locator('a.lib-card[href$="1498.pdf"] + .lib-soon', {
+      hasText: '정보자료 한국어 번역'
+    })
+  ).toHaveCount(1);
+  await expect(section('안내')).toContainText('IMO에 게시 허가를 요청해 두었습니다');
+  // 참고 자료는 법령·표준을 반영한 Cubestow 글
+  await page.goto('/#library/kr-road');
+  await expect(page.locator('.lib-article')).toContainText('500만원 이하의 과태료');
+  await expect(page.locator('.lib-article')).toContainText('16.7m');
+  await page.goto('/#library');
   // 참고 자료는 Cubestow가 쓴 글만(외부 사이트 링크 없음), 해설 진행표는 없음
   await expect(section('참고 자료').locator('a.lib-card')).toHaveCount(0);
   await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(2);

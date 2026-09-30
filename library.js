@@ -752,21 +752,63 @@
       tag: 'ISO 1496-1',
       summary: '바닥 고정점 1,000daN, 위쪽 래싱 고리 500daN — 래싱은 가장 약한 곳까지만 믿는다.',
       body: `
-      <p>ISO 1496-1(일반 화물 컨테이너)은 컨테이너 안 고정점의 <b>최소</b> 허용하중을 정합니다. 바닥·하부 레일의 고정점(anchor point)은 어느 방향이든 1,000daN(약 1톤) 이상, 위쪽 측벽·상부 레일의 래싱 고리(lashing point)는 500daN 이상입니다. 실제 컨테이너는 이보다 강한 경우가 많지만, 표시(명판·고리 각인)로 확인하지 않으면 최소값만 믿어야 합니다.</p>
-      <p>빠른 래싱 가이드 §5.3은 래싱 고정점이 래싱과 같은 MSL 이상이어야 한다고 합니다. 2,000daN 웨빙을 500daN 고리에 걸면 실제로 쓸 수 있는 힘은 500daN이므로, 같은 화물을 막으려면 줄 수가 4배 필요합니다.</p>
+      <p>컨테이너 안에서 래싱을 거는 고리는 생각보다 약합니다. 매년 1억 개가 넘는 컨테이너가 오가지만, 래싱 장비만 튼튼하게 고르고 고리 강도를 확인하지 않아 고정이 풀리는 일이 흔합니다. 이 글은 고정점의 종류와 허용하중, 그리고 고정 전체의 힘을 어떻게 셈해야 하는지 정리합니다.</p>
+      <h3>고정점 종류와 최소 허용하중</h3>
+      <table class="lib-table"><thead><tr><th>고정점</th><th>위치</th><th>최소 허용하중(MSL)</th><th>근거</th></tr></thead><tbody>
+      <tr><td>바닥 고정점(anchor point)</td><td>바닥 가장자리, 하부 측면 레일</td><td>1,000daN(약 1톤), 어느 방향이든</td><td>ISO 1496-1</td></tr>
+      <tr><td>위쪽 래싱 고리(lashing point, D링)</td><td>상부 측면 레일, 측벽 위쪽</td><td>500daN(약 0.5톤)</td><td>ISO 1496-1</td></tr>
+      </tbody></table>
+      <p>표의 값은 <b>최소</b>입니다. 최근 제작된 컨테이너는 바닥 고정점이 2,000daN인 경우도 많지만(CTU Code 6장), 고리 각인이나 제조사 자료로 확인하지 않았다면 최소값만 믿어야 합니다.</p>
+      <h3>가장 약한 곳이 전체의 한계</h3>
+      <p>래싱 한 줄의 힘은 벨트·긴장기·훅·고정점 가운데 가장 약한 부품의 MSL을 넘을 수 없습니다. 빠른 래싱 가이드 §5.3도 고정점은 래싱과 같은 MSL 이상이어야 한다고 합니다.</p>
+      <table class="lib-table"><thead><tr><th>예</th><th>래싱 벨트</th><th>건 곳</th><th>실제로 믿을 수 있는 힘</th></tr></thead><tbody>
+      <tr><td>1</td><td>2,000daN</td><td>바닥 고정점(1,000daN)</td><td>1,000daN — 벨트 능력의 절반</td></tr>
+      <tr><td>2</td><td>2,000daN</td><td>위쪽 고리(500daN)</td><td>500daN — 벨트 능력의 4분의 1</td></tr>
+      <tr><td>3</td><td>4,000daN 벨트 2줄</td><td>위쪽 고리 2개</td><td>500 × 2 = 1,000daN — "8,000daN 고정"이 아님</td></tr>
+      </tbody></table>
+      <p>그래서 같은 화물을 위쪽 고리로 막으려면 고리를 확인했을 때보다 줄 수가 최대 4배 필요합니다. 한 고정점에 하프루프 양 끝을 모두 걸면 그 고정점은 래싱 MSL의 1.4배 이상이어야 합니다(빠른 래싱 가이드 §5.3).</p>
+      <h3>현장 체크포인트</h3>
+      <ul><li>고리 각인·명판·제조사 자료로 고정점 MSL을 확인합니다. 확인하지 못하면 바닥 1,000daN, 위쪽 500daN으로 셉니다.</li><li>고정 업체나 장비 공급사가 말하는 "○○daN 고정"이 벨트 능력인지, 고정점까지 포함한 값인지 계약과 계산서로 확인합니다.</li><li>무거운 화물은 위쪽 고리보다 바닥 고정점과 블로킹으로 막는 방법을 먼저 검토합니다.</li><li>고리가 휘었거나 용접이 갈라진 컨테이너는 고정점 수에서 뺍니다.</li></ul>
       <h3>Cubestow 설정 (1.1.79~)</h3>
       <ul><li>고정 조건 → 컨테이너 래싱 고정점 "확인 안 함"(기본): 바닥 1,000daN, 컨테이너 높이 절반 위의 고리 500daN까지만 래싱에 맡깁니다.</li><li>"표시 확인": 고정점이 래싱 MSL 이상이라고 보고 래싱 MSL로 계산합니다.</li><li>고정점 때문에 줄 수를 늘리면 고정재 권고에 "계산 기준 · 래싱 고정점" 안내가 붙습니다.</li></ul>
+      <p class="lib-why">참고한 자료: ISO 1496-1(일반 화물 컨테이너 사양·시험), CTU Code 6장과 정보자료 IM5 §5.3, 컨테이너 고정점 강도와 가장 약한 곳 원칙에 관한 업계 기고.</p>
       ${note}`
     },
     {
       id: 'kr-road',
-      title: '한국 도로 운송 중량 한도',
+      title: '한국 도로 운송 중량·제원 한도',
       tag: '도로법',
-      summary: '총중량 40t·축하중 10t과 20ft 21t·40ft 25t 적재 한도의 관계, Cubestow 축하중 추정의 가정.',
+      summary: '축하중 10t·총중량 40t과 폭·높이·길이 한도, 컨테이너별 실을 수 있는 화물 무게 계산, 과적 책임과 대안.',
       body: `
-      <p>국내 도로법 기준 차량 총중량은 40t, 축하중은 10t입니다. 컨테이너 트레일러의 총중량에는 트랙터(약 9t)·샤시(약 5t)·컨테이너 자중(20ft 약 2t, 40ft 약 4t)이 포함되므로, 실제 실을 수 있는 화물은 이보다 훨씬 적습니다. 한국무역협회 안내 등 실무에서는 20ft 21t 미만, 40ft 25t 미만을 도로 운송 한도로 봅니다.</p>
+      <p>컨테이너를 트레일러로 옮기는 구간이 있으면 명판의 최대 총질량보다 국내 도로 한도가 먼저 걸리는 경우가 많습니다. 도로 한도는 컨테이너 하나가 아니라 트랙터·샤시·컨테이너·화물을 모두 합친 차량 전체에 적용되기 때문입니다.</p>
+      <h3>법정 기준 (도로법 제77조, 시행령 제79조)</h3>
+      <table class="lib-table"><thead><tr><th>항목</th><th>운행 제한 기준(초과하면 제한)</th></tr></thead><tbody>
+      <tr><td>축하중(바퀴 한 쌍을 받치는 축 하나에 걸리는 무게)</td><td>10톤</td></tr>
+      <tr><td>총중량(트랙터 + 샤시 + 컨테이너 + 화물)</td><td>40톤</td></tr>
+      <tr><td>폭</td><td>2.5m</td></tr>
+      <tr><td>높이</td><td>4.0m(도로관리청이 고시한 도로는 4.2m)</td></tr>
+      <tr><td>길이</td><td>16.7m</td></tr>
+      </tbody></table>
+      <p>기준을 넘는 차량은 도로관리청의 운행 허가를 받아야 합니다(도로법 제77조제1항 단서). 단속 실무에서는 측정 오차 10%를 두어 축하중 11톤·총중량 44톤을 넘으면 적발하는 것으로 안내되지만, 법정 기준은 10톤·40톤입니다.</p>
+      <h3>실을 수 있는 화물 무게 계산</h3>
+      <p>화물 한도 = 40톤 − (트랙터 + 샤시 + 컨테이너 자중)입니다. 아래 자중은 대표값이며 차량마다 다릅니다.</p>
+      <table class="lib-table"><thead><tr><th>구성</th><th>대표 자중</th></tr></thead><tbody>
+      <tr><td>트랙터(헤드)</td><td>약 9톤</td></tr>
+      <tr><td>샤시</td><td>20ft 약 3.8톤, 40ft 약 5톤</td></tr>
+      <tr><td>20ft 컨테이너</td><td>약 2.2~2.5톤</td></tr>
+      <tr><td>40ft·40ft HC 컨테이너</td><td>약 3.7~4톤</td></tr>
+      <tr><td>40ft 냉동(RF) 컨테이너</td><td>약 4.5~5톤</td></tr>
+      </tbody></table>
+      <p>예: 40ft는 9 + 5 + 4 = 18톤이므로 법정 기준 40톤에서는 화물 약 22톤, 단속 기준 44톤에서는 약 26톤입니다. 그래서 실무에서는 40ft 화물을 25톤 이하, 여유를 두면 24톤 이내로 권합니다. 20ft는 같은 계산으로 약 24톤이 나오지만, 실무 안내(한국무역협회 등)는 21톤 미만으로 더 보수적으로 잡습니다. 냉동 컨테이너는 자중이 커서 그보다 적게 실어야 합니다.</p>
+      <h3>무게가 한 축에 몰리면</h3>
+      <p>총중량이 40톤 안이어도 화물 무게중심이 컨테이너 앞쪽(안쪽 벽 쪽)에 몰리면 트랙터 뒤축이 10톤을 넘을 수 있습니다(CTU 정보자료 IM6 §3.2.2). 무거운 화물은 컨테이너 길이 가운데에 두는 것이 안전합니다.</p>
+      <h3>과적의 책임</h3>
+      <ul><li>운행 제한을 위반한 차량의 운전자에게는 500만원 이하의 과태료가 부과됩니다(도로법 제117조제1항제1호).</li><li><b>화주</b>, 화물자동차 운송사업자·운송주선사업자처럼 운행을 지시하는 사람이 운전자에게 과적 운행을 지시·요구하거나 <b>화물 중량을 사실과 다르게 알리면</b> 그 사람에게도 500만원 이하의 과태료가 부과됩니다(제77조제3항, 제117조제1항제3호). 운전자가 이를 신고하면 운전자는 과태료를 면합니다(제117조제5항).</li><li>단속에 걸리면 초과분을 내리거나 차량을 바꿔야 해 선적 일정에 차질이 생길 수 있습니다.</li></ul>
+      <h3>한도를 넘는 화물이라면</h3>
+      <ul><li>컨테이너 대수를 늘려 나눠 싣습니다(Cubestow의 "한국 도로 한도" 컨테이너 선택).</li><li>항만 근처 CFS(화물 작업장)까지 카고 트럭으로 옮긴 뒤 그곳에서 컨테이너에 적입하는 방법을 검토합니다.</li><li>나눌 수 없는 중량물은 도로관리청의 운행 허가를 받습니다.</li></ul>
       <h3>Cubestow 설정</h3>
       <ul><li>컨테이너 목록의 "한국 도로 한도" 항목은 최대 적재중량을 20ft 21t, 40ft·40HC·45HC 25t로 낮춘 것입니다. 이 값으로 대수를 나눕니다.</li><li>도로·복합 운송이면 결과 요약에 <b>축하중 추정</b>을 보여 줍니다. 정보자료 IM6(복합운송 하중 분포)과 같은 지렛대 방법으로, 컨테이너(화물+자체중량)와 샤시의 무게를 킹핀과 샤시 축에 나누고 킹핀 하중을 트랙터 앞축·뒤축에 다시 나눕니다.</li><li>일반 제원 가정(Cubestow 설정): 3축 트랙터(6×4) 자체중량 9t(앞축 5.4t·뒤 2축 3.6t, 축간거리 3.9m, 커플러가 뒤축 중심보다 0.45m 앞), 20ft 샤시 2축 3.8t, 40ft·45ft 샤시 3축 5t, 킹핀은 컨테이너 앞에서 1.0m, 샤시 축 중심은 뒤에서 1.3m(20ft)·1.9m(40ft). 실제 차량마다 다르므로 계량으로 확인해야 합니다.</li><li>판정: 축하중 10t·총중량 40t 이하 양호, 단속 오차 범위(11t·44t) 안이면 주의, 넘으면 위험. 화물 무게중심이 컨테이너 앞쪽(안쪽 벽 쪽)에 몰리면 트랙터 뒤축이 과적되기 쉽습니다(IM6 3.2.2).</li></ul>
+      <p class="lib-why">참고한 자료: 도로법 제77조·제117조와 도로법 시행령 제79조(국가법령정보센터, 2026-09-30 확인), 국내 포워딩 업체와 물류 실무 블로그의 컨테이너 운송 중량 안내, 한국무역협회 안내, CTU 정보자료 IM6.</p>
       ${note}`
     }
   ];
@@ -801,7 +843,14 @@
     ['1498', 'IM5', '빠른 래싱 가이드 C', '핵심', '래싱 줄 수(마찰 보간, MSL 환산)', 'qlg-c'],
     ['1498', 'IM6', '복합운송 하중 분포', '핵심', '도로 축하중 추정(지렛대 방법)', 'im6-load-distribution'],
     ['ISO 1496-1', '고정점', '컨테이너 래싱 고정점 허용하중', '핵심', '고정점 기본값(ISO 최소)', 'anchor-points'],
-    ['도로법', '제79조', '한국 도로 중량 한도', '핵심', '20ft 21t·40ft 25t 한도, 축 10t·총 40t', 'kr-road']
+    [
+      '도로법',
+      '제77조·시행령 제79조',
+      '한국 도로 운송 중량·제원 한도',
+      '핵심',
+      '20ft 21t·40ft 25t 한도, 축 10t·총 40t',
+      'kr-road'
+    ]
   ];
   const hasDoc = id => DOCS.some(d => d.id === id);
   const mapTable = () =>
@@ -853,10 +902,13 @@
     }
   ];
   const REFERENCE_DOCS = ['anchor-points', 'kr-road'];
-  const TRANSLATIONS = [
-    { title: 'CTU Code 본문 한국어 번역', sub: 'MSC.1/Circ.1497 · 13장과 부속서 10개' },
-    { title: 'CTU Code 정보자료 한국어 번역', sub: 'MSC.1/Circ.1498 · IM1~IM10' }
-  ];
+  // 한국어 번역은 원문 카드 바로 옆에 둔다(IMO 허가 전까지 준비 중).
+  const TRANSLATIONS = {
+    [IMO + '1497.pdf']: 'CTU Code 본문 한국어 번역',
+    [IMO + '1498.pdf']: 'CTU Code 정보자료 한국어 번역'
+  };
+  const soonCard = title =>
+    `<div class="lib-doc lib-soon" aria-disabled="true"><span class="lib-tag">Coming soon</span><b>${esc(title)}</b><span>전체 한국어 번역 초안이 준비되어 있습니다. IMO 게시 허가를 받는 중입니다.</span><span class="lib-open">IMO 허가 후 공개</span></div>`;
   const byId = id => DOCS.find(d => d.id === id);
   function renderList(view) {
     const sections = SECTIONS.map(
@@ -864,15 +916,15 @@
         `<section class="lib-section"><h3>${esc(g.title)} <small>${esc(g.sub)}</small></h3><div class="lib-docs">${OFFICIAL.filter(
           o => o.group === g.official
         )
-          .map(card)
+          .map(o => card(o) + (TRANSLATIONS[o.url] ? soonCard(TRANSLATIONS[o.url]) : ''))
           .join('')}${g.docs.map(byId).filter(Boolean).map(docCard).join('')}</div></section>`
     ).join('');
     view.innerHTML = `<div class="lib-head"><h2>자료실</h2><p>${lines('컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 ')}<a href="#library/structure">자료 구조 안내</a>와 <a href="#library/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
       ${sections}
-      <section class="lib-section"><h3>한국어 번역 <small>준비 중</small></h3><div class="lib-docs">${TRANSLATIONS.map(t => `<div class="lib-doc lib-soon" aria-disabled="true"><span class="lib-tag">Coming soon</span><b>${esc(t.title)}</b><span>${esc(t.sub)}</span><span class="lib-open">IMO 허가 후 공개</span></div>`).join('')}</div>
-        <p class="lib-disclaimer">${lines('CTU Code 전체 한국어 번역 초안은 준비되어 있습니다. CTU Code와 정보자료의 저작권은 IMO에 있어 사전 서면 허가 없이 번역·복제할 수 없으므로, IMO에 게시 허가를 요청해 두었습니다. 허가를 받으면 이곳에 공개합니다. 그 전까지는 위의 공식 원문 링크와 Cubestow 해설을 이용해 주세요.')}</p></section>
       <section class="lib-section"><h3>참고 자료 <small>Cubestow 작성 · 계속 추가</small></h3><div class="lib-docs">${REFERENCE_DOCS.map(byId).filter(Boolean).map(docCard).join('')}</div></section>
-      <p class="lib-disclaimer">${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 공식 배포 링크를 겁니다. 해설과 참고 자료는 Cubestow가 원문을 읽고 직접 쓴 글이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다.')}</p>`;
+      <section class="lib-section lib-notes"><h3>안내</h3>
+        <p class="lib-disclaimer"><b>한국어 번역</b><br>${lines('CTU Code 본문과 정보자료의 전체 한국어 번역 초안은 준비되어 있습니다. 저작권자인 IMO의 사전 서면 허가 없이는 번역본을 게시할 수 없어, IMO에 게시 허가를 요청해 두었습니다. 허가를 받으면 원문 옆 "Coming soon" 카드에서 공개합니다. 그 전까지는 공식 원문 링크와 Cubestow 해설을 이용해 주세요.')}</p>
+        <p class="lib-disclaimer"><b>저작권과 해설</b><br>${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 공식 배포 링크를 겁니다. 해설과 참고 자료는 Cubestow가 원문과 법령을 읽고 직접 쓴 글이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다.')}</p></section>`;
   }
   function renderDoc(view, doc) {
     view.innerHTML = `<nav class="lib-crumb"><a href="#library">← 자료실</a></nav><article class="lib-article"><span class="lib-tag">${esc(doc.tag)}</span><h2>${esc(doc.title)}</h2>${doc.body.replace('<!--lib-map-->', mapTable())}</article>`;
