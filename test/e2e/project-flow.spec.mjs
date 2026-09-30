@@ -100,13 +100,13 @@ test('the algorithm policy holds the CTU Code scope and the CTU Code menu opens 
   await page.goto('/');
   // 상단 메뉴: 사용 가이드 · 알고리즘 정책 · 샘플 결과 · CTU Code (CTU Code 팝업 단추는 없다)
   await expect(page.locator('#ctuButton')).toHaveCount(0);
-  await expect(page.locator('.topbar nav a[href="#library"]')).toHaveText('CTU Code');
+  await expect(page.locator('.topbar nav a[href="/library/ctu-code"]')).toHaveText('CTU Code');
   await page.getByRole('button', { name: '알고리즘 정책' }).click();
   const policy = page.locator('#policyDialog');
   await expect(policy.locator('summary', { hasText: 'CTU Code 반영 범위' })).toBeVisible();
   await policy.locator('summary', { hasText: 'CTU Code 반영 범위' }).click();
   await expect(policy).toContainText('빠른 래싱 가이드 C 표와 고른 고정 조건');
-  await policy.locator('a[href="#library"]').click();
+  await policy.locator('a[href="/library/ctu-code"]').click();
   await expect(policy).not.toBeVisible();
   await expect(page.locator('#libraryView')).toBeVisible();
   await expect(page.locator('.lib-head h2')).toHaveText('CTU Code');
@@ -613,7 +613,7 @@ test('the sample results preview sits between the header and footer and compares
   page
 }) => {
   await page.goto('/');
-  const link = page.locator('.topbar nav a[href="#samples"]');
+  const link = page.locator('.topbar nav a[href="/samples"]');
   await expect(link).toHaveText('샘플 결과');
   await link.click();
   await expect(page.locator('#samplesView')).toBeVisible();
@@ -654,7 +654,7 @@ test('the sample results preview sits between the header and footer and compares
   await expect(page.locator('#planner')).toBeVisible();
   await expect(page.locator('#samplesView')).toBeHidden();
   await page.goto('/sample-results.html');
-  await expect(page).toHaveURL(/#samples$/);
+  await expect(page).toHaveURL(/\/samples$/);
   await expect(page.locator('#samplesView')).toBeVisible();
 });
 
@@ -720,7 +720,7 @@ test('the header menu stays visible on phones and every item fits the screen', a
     'absolute'
   );
   await expect(page.locator('meta[name="format-detection"]')).toHaveAttribute('content', /email=no/);
-  await page.locator('.topbar nav a[href="#samples"]').click();
+  await page.locator('.topbar nav a[href="/samples"]').click();
   await expect(page.locator('#samplesView')).toBeVisible();
   // 샘플 결과의 고정 툴바는 두 줄 헤더 바로 아래에 붙는다.
   await expect(page.locator('#samplesView section.sv-sample')).toHaveCount(20);
@@ -802,18 +802,18 @@ test('the library links the official CTU Code sources and opens Korean commentar
   page
 }) => {
   await page.goto('/');
-  await page.locator('.topbar nav a[href="#library"]').click();
+  await page.locator('.topbar nav a[href="/library/ctu-code"]').click();
   await expect(page.locator('#libraryView')).toBeVisible();
   await expect(page.locator('#planner')).toBeHidden();
-  await expect(page.locator('.topbar nav a[href="#library"]')).toHaveClass(/active/);
+  await expect(page.locator('.topbar nav a[href="/library/ctu-code"]')).toHaveClass(/active/);
   // 공식 원문은 IMO 배포 링크로만 건다(파일을 다시 올리지 않음).
   await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(5);
   // 빠른 래싱 가이드도 IMO 공식 파일로만 링크한다(다른 곳의 사본은 걸지 않는다).
   await expect(page.locator('#libraryView a[href*="mariterm"]')).toHaveCount(0);
   await expect(page.locator('#libraryView')).toContainText('사전 서면 허가 없이 복제할 수 없습니다');
   // 해설을 열고 CTU Code 목록으로 돌아온다.
-  await page.locator('a.lib-doc[href="#library/qlg-c"]').click();
-  await expect(page).toHaveURL(/#library\/qlg-c$/);
+  await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
+  await expect(page).toHaveURL(/\/library\/ctu-code\/qlg-c$/);
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
@@ -821,8 +821,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('a.lib-doc')).toHaveCount(16);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
   await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
-  await expect(section('CTU Code 본문').locator('a.lib-doc[href="#library/a7-securing"]')).toHaveCount(1);
-  await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="#library/qlg-c"]')).toHaveCount(1);
+  await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
+  await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="/library/ctu-code/qlg-c"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-card[href$="1498.pdf#page=65"]')).toHaveCount(1);
   // 한국어 번역은 원문 카드 바로 옆에 준비 중 카드로, 설명은 아래 안내에
   await expect(
@@ -835,10 +835,10 @@ test('the library links the official CTU Code sources and opens Korean commentar
   ).toHaveCount(1);
   await expect(section('안내')).toContainText('IMO에 게시 허가를 요청해 두었습니다');
   // 참고 자료는 법령·표준을 반영한 Cubestow 글
-  await page.goto('/#library/kr-road');
+  await page.goto('/library/ctu-code/kr-road');
   await expect(page.locator('.lib-article')).toContainText('500만원 이하의 과태료');
   await expect(page.locator('.lib-article')).toContainText('16.7m');
-  await page.goto('/#library');
+  await page.goto('/library/ctu-code');
   // 참고 자료는 Cubestow가 쓴 글만(외부 사이트 링크 없음), 해설 진행표는 없음
   await expect(section('참고 자료').locator('a.lib-card')).toHaveCount(0);
   await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(2);
@@ -846,24 +846,24 @@ test('the library links the official CTU Code sources and opens Korean commentar
   // 안내 문구는 문장마다 줄을 바꾼다
   await expect(page.locator('.lib-head p br')).toHaveCount(2);
   // 구조 안내: 1497·1498·1531 비교와, 참조 항목마다 해설 링크가 있는 지도
-  await page.locator('.lib-head a[href="#library/structure"]').click();
+  await page.locator('.lib-head a[href="/library/ctu-code/structure"]').click();
   await expect(page.locator('.lib-article h2')).toContainText('1497·1498·1531');
   const map = page.locator('.lib-article table').filter({ hasText: 'Cubestow 반영' });
   await expect(map.locator('tbody tr')).toHaveCount(16);
-  await expect(map.locator('a[href="#library/ch5-accel"]')).toHaveText('완료');
+  await expect(map.locator('a[href="/library/ctu-code/ch5-accel"]')).toHaveText('완료');
   // 전체 요약: 본문 13장·부속서 10개·정보자료 10개가 중요도와 함께 나온다
-  await page.goto('/#library/ctu-overview');
+  await page.goto('/library/ctu-code/ctu-overview');
   await expect(page.locator('.lib-article h2')).toContainText('CTU Code 전체 요약');
   await expect(page.locator('.lib-item')).toHaveCount(33);
   await expect(page.locator('.lib-item[data-level="3"]').first()).toContainText('꼭 알아야 함');
-  await page.goto('/#library/structure');
-  await map.locator('a[href="#library/a7-securing"]').click();
+  await page.goto('/library/ctu-code/structure');
+  await map.locator('a[href="/library/ctu-code/a7-securing"]').click();
   await expect(page.locator('.lib-article')).toContainText('cx,y · d ≥ cz · b');
   await page.locator('.lib-crumb a').click();
   // 주소로 바로 열어도 되고, 샘플 결과·플래너와 서로 바뀐다.
-  await page.goto('/#library/anchor-points');
+  await page.goto('/library/ctu-code/anchor-points');
   await expect(page.locator('.lib-article h2')).toContainText('고정점');
-  await page.locator('.topbar nav a[href="#samples"]').click();
+  await page.locator('.topbar nav a[href="/samples"]').click();
   await expect(page.locator('#samplesView')).toBeVisible();
   await expect(page.locator('#libraryView')).toBeHidden();
   await page.locator('.topbar .brand').click();
@@ -872,7 +872,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('#libraryView')).toBeHidden();
   // 알고리즘 정책 창에서도 CTU Code 메뉴로 간다.
   await page.click('#policyButton');
-  await page.locator('#policyDialog a[href="#library"]').click();
+  await page.locator('#policyDialog a[href="/library/ctu-code"]').click();
   await expect(page.locator('#policyDialog')).not.toBeVisible();
   await expect(page.locator('#libraryView')).toBeVisible();
 });
@@ -1059,7 +1059,7 @@ test('a scroll-to-top button appears after scrolling down a long page and takes 
   page
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/#library/ctu-overview');
+  await page.goto('/library/ctu-code/ctu-overview');
   const top = page.locator('button.to-top');
   // 맨 위에서는 보이지 않는다
   await expect(top).toBeHidden();
@@ -1083,7 +1083,7 @@ test('on a wide screen the scroll-to-top button sits beside the document and lin
   page
 }) => {
   await page.setViewportSize({ width: 1400, height: 900 });
-  await page.goto('/#library/ctu-overview');
+  await page.goto('/library/ctu-code/ctu-overview');
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   const top = page.locator('button.to-top');
   await expect(top).toBeVisible();
@@ -1341,4 +1341,73 @@ test('an admin can replay an algorithm flag with its products and conditions, an
   await page.locator('#messageConfirm').click();
   await expect(page.locator('#algorithmFlagList tr')).toHaveCount(2);
   expect(deletes).toEqual([9]);
+});
+
+// 주소 구조: /simulator · /samples · /library/ctu-code(/해설). 옛 # 주소는 새 주소로 옮긴다.
+test('path addresses open each screen directly, move old hash links, and navigate without reloading', async ({
+  page
+}) => {
+  test.setTimeout(60000);
+  const missing = [];
+  page.on('response', r => {
+    if (r.status() === 404 && new URL(r.url()).origin === new URL(page.url() || 'http://x').origin)
+      missing.push(r.url());
+  });
+  const canonical = () => page.locator('link[rel="canonical"]').getAttribute('href');
+
+  // 깊은 주소로 바로 열어도 CSS·스크립트·작업자가 모두 뜬다
+  await page.goto('/library/ctu-code/qlg-c');
+  await expect(page.locator('#libraryView .lib-article h2')).toBeVisible();
+  await expect(page.locator('#planner')).toBeHidden();
+  await expect(page).toHaveTitle(/CTU Code · Cubestow/);
+  expect(await canonical()).toBe('https://cubestow.onharu.app/library/ctu-code/qlg-c');
+  await page.goto('/library/ctu-code');
+  await expect(page.locator('#libraryView .lib-head h2')).toHaveText('CTU Code');
+  await expect(page.locator('.topbar nav a[href="/library/ctu-code"]')).toHaveClass(/active/);
+  expect(await canonical()).toBe('https://cubestow.onharu.app/library/ctu-code');
+  await page.goto('/samples');
+  await expect(page.locator('#samplesView')).toBeVisible();
+  await expect(page).toHaveTitle(/샘플 결과 · Cubestow/);
+  await page.goto('/simulator');
+  await expect(page.locator('#planner')).toBeVisible();
+  await expect(page.locator('#libraryView')).toBeHidden();
+  expect(await canonical()).toBe('https://cubestow.onharu.app/');
+  await loadSample(page, 2);
+  await expect(page.locator('#loadedCount')).not.toHaveText('—');
+
+  // /library 는 아직 목록 화면이 없어 CTU Code 로 보낸다. 모르는 주소는 플래너(/)로.
+  await page.goto('/library');
+  await expect(page).toHaveURL(/\/library\/ctu-code$/);
+  await page.goto('/no-such-page');
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
+  await expect(page.locator('#planner')).toBeVisible();
+
+  // 옛 # 주소(공유된 링크·즐겨찾기)는 새 주소로 옮긴다
+  await page.goto('/#library/kr-road');
+  await expect(page).toHaveURL(/\/library\/ctu-code\/kr-road$/);
+  await expect(page.locator('#libraryView .lib-article')).toBeVisible();
+  await page.goto('/#library');
+  await expect(page).toHaveURL(/\/library\/ctu-code$/);
+  await page.goto('/#samples');
+  await expect(page).toHaveURL(/\/samples$/);
+  await expect(page.locator('#samplesView')).toBeVisible();
+  await page.goto('/sample-results.html');
+  await expect(page).toHaveURL(/\/samples$/);
+
+  // 메뉴·해설 링크는 새로고침 없이 바뀌고, 뒤로 가기로 돌아온다
+  await page.goto('/');
+  await page.evaluate(() => (window.__sameDocument = true));
+  await page.locator('.topbar nav a[href="/library/ctu-code"]').click();
+  await expect(page).toHaveURL(/\/library\/ctu-code$/);
+  await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
+  await expect(page).toHaveURL(/\/library\/ctu-code\/qlg-c$/);
+  await expect(page.locator('#libraryView .lib-article')).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/library\/ctu-code$/);
+  await expect(page.locator('#libraryView .lib-head')).toBeVisible();
+  await page.locator('a.brand').click();
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
+  await expect(page.locator('#planner')).toBeVisible();
+  expect(await page.evaluate(() => window.__sameDocument)).toBe(true);
+  expect(missing).toEqual([]);
 });

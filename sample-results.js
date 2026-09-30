@@ -127,22 +127,47 @@
     });
   }
 
-  // 주소가 #samples이면 샘플 결과, 아니면 적재 플래너를 보여 준다.
-  // 헤더와 푸터 사이 화면 전환: data-route가 주소(#samples, #library, #library/<해설>)의 첫 부분과 맞는 화면만 보이고,
-  // 맞는 화면이 없으면 적재 플래너를 보인다. 보인 화면에는 cubestow:view 이벤트(detail=주소 첫 부분)를 보낸다.
+  // 헤더와 푸터 사이 화면 전환(경로 주소). data-route가 주소와 같거나 그 아래(/library/ctu-code/<해설>)인 화면만 보이고,
+  // 맞는 화면이 없으면 적재 플래너(/, /simulator)를 보인다. 보인 화면에는 cubestow:view 이벤트(detail=data-route)를 보낸다.
+  const PLANNER_PATHS = new Set(['/', '/simulator']),
+    ALIASES = { '/library': '/library/ctu-code' },
+    PLANNER_TITLE = document.title;
+  // 예전 # 주소(#samples, #library, #library/<해설>)는 새 주소로 옮긴다. 공유된 링크와 즐겨찾기가 계속 열리게.
+  function legacyPath(hash) {
+    if (hash === '#samples') return '/samples';
+    const m = /^#library(?:\/([\w-]+))?$/.exec(hash);
+    return m ? '/library/ctu-code' + (m[1] ? '/' + m[1] : '') : null;
+  }
+  const views = () => [...document.querySelectorAll('[data-route]')],
+    viewFor = path => views().find(v => path === v.dataset.route || path.startsWith(v.dataset.route + '/')) || null;
+  // 주소를 정리한다: 옛 # 주소 → 새 주소, 별칭 → 본 주소, 끝의 / 제거, 모르는 주소 → /.
+  function normalize() {
+    const legacy = legacyPath(location.hash);
+    if (legacy) return history.replaceState(null, '', legacy);
+    let path = location.pathname.replace(/\/+$/, '') || '/';
+    path = ALIASES[path] || path;
+    if (!PLANNER_PATHS.has(path) && !viewFor(path)) path = '/';
+    if (path !== location.pathname) history.replaceState(null, '', path + location.search + location.hash);
+  }
+  function setCanonical(path) {
+    const link = document.querySelector('link[rel="canonical"]');
+    if (link) link.href = new URL(PLANNER_PATHS.has(path) ? '/' : path, link.href).href;
+  }
   function route() {
     const view = document.getElementById('samplesView'),
       planner = document.getElementById('planner');
     if (!view || !planner) return;
-    const key = location.hash.split('/')[0],
-      views = [...document.querySelectorAll('[data-route]')],
-      active = views.find(v => v.dataset.route === key) || null;
-    views.forEach(v => (v.hidden = v !== active));
+    normalize();
+    const path = location.pathname,
+      active = viewFor(path);
+    views().forEach(v => (v.hidden = v !== active));
     planner.hidden = Boolean(active);
+    setCanonical(path);
+    document.title = active?.dataset.title || PLANNER_TITLE;
     // 적재 플래너는 메뉴가 아니라 로고(Cubestow)로 돌아간다.
     document
       .querySelectorAll('.topbar nav a')
-      .forEach(a => a.classList.toggle('active', Boolean(active) && a.getAttribute('href') === key));
+      .forEach(a => a.classList.toggle('active', Boolean(active) && a.getAttribute('href') === active.dataset.route));
     if (!active) {
       window.dispatchEvent(new Event('resize'));
       return;
@@ -151,9 +176,31 @@
       fitTop();
       render(view);
     }
-    document.dispatchEvent(new CustomEvent('cubestow:view', { detail: key }));
+    document.dispatchEvent(new CustomEvent('cubestow:view', { detail: active.dataset.route }));
     window.scrollTo(0, 0);
   }
+  // 사이트 안 주소로 가는 링크는 새로 불러오지 않고 주소만 바꿔 화면을 바꾼다(새 탭·다운로드·수정키 클릭은 그대로).
+  function isAppPath(path) {
+    const p = path.replace(/\/+$/, '') || '/';
+    return PLANNER_PATHS.has(p) || Boolean(ALIASES[p]) || Boolean(viewFor(p));
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (a.target && a.target !== '_self') return;
+    if (a.hasAttribute('download')) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || !isAppPath(url.pathname)) return;
+    e.preventDefault();
+    if (url.pathname + url.search !== location.pathname + location.search)
+      history.pushState(null, '', url.pathname + url.search);
+    route();
+  });
+  window.addEventListener('popstate', route);
+  // 페이지 안에서 옛 # 주소로 바뀌었을 때만 다시 고른다(샘플 번호 바로가기 같은 # 는 그대로 둔다).
+  window.addEventListener('hashchange', () => {
+    if (legacyPath(location.hash)) route();
+  });
   // 고정 툴바는 헤더 바로 아래에 붙인다. 모바일에서는 헤더가 두 줄이라 높이를 재서 맞춘다.
   function fitTop() {
     const view = document.getElementById('samplesView'),
@@ -161,7 +208,6 @@
     if (view && bar) view.style.setProperty('--sv-top', bar.offsetHeight + 'px');
   }
   window.addEventListener('resize', fitTop);
-  window.addEventListener('hashchange', route);
   // 샘플 창 안의 미리보기 링크를 누르면 창을 닫고 샘플 결과로 간다.
   document.addEventListener('click', e => {
     const a = e.target.closest('a[data-close-dialog]');

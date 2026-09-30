@@ -1,4 +1,4 @@
-// 샘플 결과 미리보기(상단 메뉴 샘플 결과, #samples)에 쓰는 캡처를 다시 만든다.
+// 샘플 결과 미리보기(상단 메뉴 샘플 결과, /samples)에 쓰는 캡처를 다시 만든다.
 // 샘플 20개 × 안전 수준 3개(적재량 우선·기본·CTU 기준 적용)를 실제 화면으로 계산해 컨테이너마다 3D 화면을 JPEG로 찍고,
 // 정반대 대각선(카메라를 180° 돌린 방향)에서도 한 장씩 더 찍어 결과 요약을 sample-results/manifest.json에 쓴다. 알고리즘이 바뀌면 `npm run samples:capture`로 다시 만든다.
 /* global shipment, LoadwiseEngine, LoadwiseReview, LoadwiseInsights, SAMPLE_SETS, CONTAINERS, camera, drawThree -- page.evaluate 안에서 쓰는 화면 전역 */

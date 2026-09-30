@@ -120,7 +120,7 @@ try {
         .click()
         .catch(() => {});
     }
-    await page.goto(BASE + '#samples');
+    await page.goto(BASE + 'samples');
     await page.waitForTimeout(1500);
     await shot('samples');
     await ctx.close();
