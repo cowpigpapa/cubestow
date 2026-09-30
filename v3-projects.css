@@ -4377,3 +4377,19 @@ details.account-menu[open] > summary::after {
 .slider-stops span:hover {
   color: #0071e3;
 }
+/* 휴대폰 팝업이 위아래로 가려지지 않게: iOS Safari 의 100vh 는 주소창·아래 도구줄이 숨은 높이라
+   calc(100vh - 32px) 팝업이 보이는 화면보다 커져 제목과 닫기 단추가 주소창 뒤로 들어갔다.
+   지금 보이는 높이(dvh)로 자르고, 넘치는 내용은 팝업 안에서 스크롤한다. */
+.sample-dialog {
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}
+@supports (height: 100dvh) {
+  .policy-dialog {
+    max-height: min(820px, calc(100dvh - 32px));
+  }
+  .admin-dialog,
+  .sample-dialog {
+    max-height: calc(100dvh - 32px);
+  }
+}

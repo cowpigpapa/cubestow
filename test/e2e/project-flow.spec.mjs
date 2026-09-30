@@ -983,3 +983,19 @@ test('the safety step labels move the slider and the route hint shows its accele
   const lines = await hint.evaluate(el => el.innerText.split('\n').filter(Boolean).length);
   expect(lines).toBe(2);
 });
+
+test('long dialogs fit inside a short phone screen and scroll inside', async ({ page }) => {
+  // iOS Safari 는 100vh 가 보이는 높이보다 커서 팝업 위가 주소창 뒤로 숨었다. 보이는 높이 안에 들어와야 한다.
+  await page.setViewportSize({ width: 390, height: 640 });
+  await page.goto('/');
+  for (const [button, dialog] of [
+    ['#ctuButton', '#ctuDialog'],
+    ['#policyButton', '#policyDialog']
+  ]) {
+    await page.locator(button).click();
+    const box = await page.locator(dialog).boundingBox();
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(640);
+    await page.keyboard.press('Escape');
+  }
+});
