@@ -410,6 +410,7 @@ function bindEvents() {
   if ($('emptySample')) $('emptySample').onclick = () => $('sampleDialog').showModal();
   if ($('emptyInput'))
     $('emptyInput').onclick = () => {
+      setMobileTab('input');
       if (typeof setInputCollapsed === 'function') setInputCollapsed(false);
       if (typeof setPanelHidden === 'function') setPanelHidden(false);
       const el = $('productName');
@@ -446,6 +447,13 @@ function bindEvents() {
   $('toggleInput').onclick = () =>
     setInputCollapsed(!document.querySelector('.input-card').classList.contains('input-collapsed'));
   $('togglePanel').onclick = () => setPanelHidden(!$('planner').classList.contains('panel-hidden'));
+  document
+    .querySelectorAll('.mobile-tabs [data-mobile-tab]')
+    .forEach(button => (button.onclick = () => setMobileTab(button.dataset.mobileTab, { scroll: true })));
+  // 빈 프로젝트는 결과 탭의 첫 화면(샘플 보기 · 직접 입력)부터, 제품이 있으면 입력 탭부터.
+  setMobileTab(products.length ? 'input' : 'result');
+  // 계산이 끝나면 결과 탭으로 넘어가 결과가 바로 보이게 한다.
+  window.addEventListener('loadwise:simulation-complete', () => setMobileTab('result', { scroll: 'always' }));
   try {
     if (localStorage.getItem(UI_INPUT_KEY) === '1') setInputCollapsed(true);
     if (localStorage.getItem(UI_PANEL_KEY) === '1') setPanelHidden(true);
@@ -586,6 +594,7 @@ function editProduct(index) {
   $('inputHint').textContent = `${p.name} 수정 중`;
   $('addProduct').innerHTML = '변경 내용 저장 <b aria-hidden="true">✓</b>';
   renderProducts();
+  setMobileTab('input');
   document.querySelector('.input-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   $('productName').focus({ preventScroll: true });
 }
@@ -914,7 +923,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260930-15');
+      engineWorker = new Worker('engine-worker.js?v=20260930-16');
     } catch {
       engineWorker = null;
     }
@@ -1476,6 +1485,28 @@ function setInputCollapsed(collapsed) {
   try {
     localStorage.setItem(UI_INPUT_KEY, collapsed ? '1' : '0');
   } catch {}
+}
+// 휴대폰·태블릿(한 줄 배치, 900px 이하)에서는 적재 플래너를 입력 / 결과 탭으로 나눈다. 넓은 화면에서는 CSS가 둘 다 보인다.
+// 탭은 화면에 고정하지 않는다. 바꿀 때 탭이 화면 위로 지나가 있으면 탭 바로 아래부터 보이게 올린다.
+const MOBILE_LAYOUT = '(max-width: 900px)';
+function setMobileTab(name, { scroll = false } = {}) {
+  const planner = $('planner'),
+    tabs = document.querySelector('.mobile-tabs');
+  if (!planner || !tabs) return;
+  planner.dataset.mobileTab = name;
+  tabs
+    .querySelectorAll('[data-mobile-tab]')
+    .forEach(button => button.setAttribute('aria-selected', String(button.dataset.mobileTab === name)));
+  if (!window.matchMedia?.(MOBILE_LAYOUT).matches) return;
+  // 숨어 있던 3D는 크기가 0이므로 보일 때 다시 잰다.
+  if (name === 'result')
+    requestAnimationFrame(() => {
+      resizeCanvas();
+      draw();
+    });
+  const header = document.querySelector('.topbar')?.offsetHeight || 0,
+    top = tabs.getBoundingClientRect().top - header - 8;
+  if (scroll === 'always' || (scroll && top < 0)) window.scrollTo({ top: Math.max(0, window.scrollY + top) });
 }
 function setPanelHidden(hidden) {
   const button = $('togglePanel');

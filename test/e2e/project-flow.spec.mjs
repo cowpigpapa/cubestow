@@ -75,6 +75,8 @@ test('file import lets the user load only or start simulation', async ({ page })
 test('product list title and mobile layout do not wrap or overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+  // 빈 프로젝트는 결과 탭부터 보이므로 입력 탭으로 간다
+  await page.getByRole('tab', { name: '입력' }).click();
   const title = page.locator('.collapsible-head strong'),
     count = page.locator('#productCount');
   await expect(title).toHaveText('제품 목록');
@@ -1410,4 +1412,55 @@ test('path addresses open each screen directly, move old hash links, and navigat
   await expect(page.locator('#planner')).toBeVisible();
   expect(await page.evaluate(() => window.__sameDocument)).toBe(true);
   expect(missing).toEqual([]);
+});
+
+// 휴대폰·태블릿(한 줄 배치): 적재 플래너를 입력 / 결과 탭으로 나누고, 계산이 끝나면 결과 탭으로 넘어간다.
+test('on a phone the planner splits into input and result tabs and shows the result after calculating', async ({
+  page
+}) => {
+  test.setTimeout(60000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const tabs = page.locator('.mobile-tabs [role="tab"]'),
+    inputTab = page.getByRole('tab', { name: '입력' }),
+    resultTab = page.getByRole('tab', { name: '결과' });
+  await expect(tabs).toHaveText(['입력', '결과']);
+  // 빈 프로젝트는 결과 탭의 첫 화면(샘플 보기 · 직접 입력)부터 보인다
+  await expect(resultTab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#emptyState')).toBeVisible();
+  await expect(page.locator('#controlPanel')).toBeHidden();
+  // 직접 입력 → 입력 탭, 제품명 칸에 바로 쓸 수 있다
+  await page.locator('#emptyInput').click();
+  await expect(inputTab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#productName')).toBeFocused();
+  // 입력 탭: 제품 입력과 계산 조건, 실행 단추. 결과(3D·지표·순서)는 숨는다
+  await expect(page.locator('.simulation-config-bar')).toBeVisible();
+  await expect(page.locator('#recalculateOptions')).toBeVisible();
+  await expect(page.locator('#canvasWrap')).toBeHidden();
+  await expect(page.locator('.loading-plan')).toBeHidden();
+  await resultTab.click();
+  await expect(page.locator('#canvasWrap')).toBeVisible();
+  await expect(page.locator('#controlPanel')).toBeHidden();
+  await expect(page.locator('.simulation-config-bar')).toBeHidden();
+  await inputTab.click();
+  // 입력 탭에서 샘플을 불러와 계산하면 결과 탭으로 넘어가고 3D가 화면 안에 보인다
+  await loadSample(page, 2);
+  await expect(resultTab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#resultHeadline')).toBeVisible();
+  await expect(page.locator('.loading-plan')).toBeVisible();
+  await expect
+    .poll(() => page.locator('#canvasWrap').evaluate(el => Math.round(el.getBoundingClientRect().top)))
+    .toBeLessThan(844);
+  const canvas = await page.locator('#canvasWrap canvas:visible').first().boundingBox();
+  expect(canvas.width).toBeGreaterThan(300);
+  expect(canvas.height).toBeGreaterThan(150);
+  // 탭은 화면에 고정하지 않는다(따라다니는 단추 없음)
+  expect(await page.locator('.mobile-tabs').evaluate(el => getComputedStyle(el).position)).not.toMatch(/sticky|fixed/);
+
+  // 넓은 화면에서는 탭이 없고 입력과 결과가 나란히 보인다
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator('.mobile-tabs')).toBeHidden();
+  await expect(page.locator('#controlPanel')).toBeVisible();
+  await expect(page.locator('#canvasWrap')).toBeVisible();
+  await expect(page.locator('.simulation-config-bar')).toBeVisible();
 });
