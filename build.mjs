@@ -33,6 +33,7 @@ await cp('sample-results.html', 'dist/client/sample-results.html');
 await cp('sample-results.js', 'dist/client/sample-results.js');
 await cp('sample-results.css', 'dist/client/sample-results.css');
 await cp('library.js', 'dist/client/library.js');
+await cp('to-top.js', 'dist/client/to-top.js');
 await cp('library.css', 'dist/client/library.css');
 await cp('sample-results', 'dist/client/sample-results', { recursive: true });
 

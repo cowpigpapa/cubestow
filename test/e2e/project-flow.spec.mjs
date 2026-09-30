@@ -1001,3 +1001,19 @@ test('long dialogs fit inside a short phone screen and scroll inside', async ({ 
     await page.keyboard.press('Escape');
   }
 });
+
+test('a scroll-to-top button appears after scrolling down a long page and takes the reader back up', async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#library/ctu-overview');
+  const top = page.locator('button.to-top');
+  // 맨 위에서는 보이지 않는다
+  await expect(top).toBeHidden();
+  await page.evaluate(() => window.scrollTo(0, 3000));
+  await expect(top).toBeVisible();
+  await expect(top).toHaveAttribute('aria-label', '맨 위로');
+  await top.click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
+  await expect(top).toBeHidden();
+});

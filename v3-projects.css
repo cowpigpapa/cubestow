@@ -4393,3 +4393,54 @@ details.account-menu[open] > summary::after {
     max-height: calc(100dvh - 32px);
   }
 }
+/* 맨 위로 단추(to-top.js): 한 화면쯤 내려가면 오른쪽 아래에 뜬다. 모든 화면 공통. */
+.to-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid #d5dbe1;
+  border-radius: 50%;
+  background: #fff;
+  color: #1d1d1f;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.to-top[hidden] {
+  display: none;
+}
+.to-top:hover {
+  border-color: #0071e3;
+  color: #0071e3;
+}
+.to-top:focus-visible {
+  outline: 3px solid #8ebcf4;
+  outline-offset: 2px;
+}
+.to-top svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 640px) {
+  .to-top {
+    right: 14px;
+    bottom: 14px;
+    width: 44px;
+    height: 44px;
+  }
+}
+@media print {
+  .to-top {
+    display: none !important;
+  }
+}
