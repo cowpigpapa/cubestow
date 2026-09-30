@@ -8,32 +8,46 @@
       c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
     );
   const IMO = 'https://wwwcdn.imo.org/localresources/en/OurWork/Safety/Documents/';
+  // 공식 원문(배포처 링크만). group: 목록에서 어느 구간에 둘지.
   const OFFICIAL = [
     {
-      title: 'CTU Code 본문 (MSC.1/Circ.1497)',
+      group: '1497',
+      title: 'CTU Code 본문 원문 (영어 PDF)',
       org: 'IMO · ILO · UNECE',
       date: '2014-12-16',
-      lang: '영어 PDF',
+      lang: '149쪽',
       url: IMO + '1497.pdf',
-      note: '화물운송단위(컨테이너·트레일러 등) 적입 실무규칙. 13장과 부속서 10개. 강제 규정은 아닌 국제 실무 기준입니다.'
+      note: '13장과 부속서 10개. 적입·고정의 국제 실무 기준입니다.'
     },
     {
-      title: 'CTU Code 정보자료 (MSC.1/Circ.1498)',
+      group: '1498',
+      title: 'CTU Code 정보자료 원문 (영어 PDF)',
       org: 'IMO · ILO · UNECE',
       date: '2014-12-16',
-      lang: '영어 PDF',
+      lang: '181쪽',
       url: IMO + '1498.pdf',
-      note: 'Code를 보충하는 참고자료 IM1~IM10. IM5 빠른 래싱 가이드(래싱 수량 표), IM6 복합운송 하중 분포가 들어 있습니다.'
+      note: 'Code를 보충하는 참고자료 IM1~IM10. 래싱 수량 표(IM5), 하중 분포(IM6)가 들어 있습니다.'
     },
     {
+      group: '1498',
+      title: '빠른 래싱 가이드 단독본 (영어 PDF)',
+      org: 'MariTerm 배포본',
+      date: '2014-12',
+      lang: '영어 PDF',
+      url: 'https://www.mariterm.se/wp-content/uploads/2016/12/CTU-Code-Quick-Lashing-Guide-dec-2014.pdf',
+      note: '정보자료 IM5(빠른 래싱 가이드 A·B·C)만 따로 묶은 PDF. 현장에서 표만 볼 때 편합니다.'
+    },
+    {
+      group: 'other',
       title: 'CTU 서비스 제공자 실사 체크리스트 (MSC.1/Circ.1531)',
       org: 'IMO',
       date: '',
       lang: '영어 PDF',
       url: IMO + 'MSC.1-CIRC.1531%20(E).pdf',
-      note: '적입·포장 업체를 고를 때 확인할 항목.'
+      note: '적입·포장 업체를 고르거나 점검할 때 확인할 항목.'
     },
     {
+      group: 'other',
       title: 'IMO CTU Code 소개 페이지',
       org: 'IMO',
       date: '',
@@ -42,39 +56,13 @@
       note: '위 문서들의 공식 배포 위치.'
     },
     {
+      group: 'other',
       title: 'ISO 1496-1 일반 화물 컨테이너 사양·시험',
       org: 'ISO',
       date: '2013',
       lang: '유료 표준',
       url: 'https://www.iso.org/standard/59672.html',
       note: '컨테이너 바닥 고정점(최소 1,000daN)과 래싱 고리(최소 500daN) 등 구조 기준. 원문은 ISO에서 구매합니다.'
-    }
-  ];
-  const REFERENCES = [
-    {
-      title: 'CTU Code Quick Lashing Guide (MariTerm 배포본)',
-      url: 'https://www.mariterm.se/wp-content/uploads/2016/12/CTU-Code-Quick-Lashing-Guide-dec-2014.pdf',
-      note: 'IM5 빠른 래싱 가이드만 따로 묶은 PDF.'
-    },
-    {
-      title: 'Quick Lashing Guide (IMO Rules)',
-      url: 'https://www.imorules.com/GUID-BF41A810-6C00-463E-AFD0-FBB4C03B506E.html',
-      note: '빠른 래싱 가이드 웹 버전.'
-    },
-    {
-      title: 'Understanding container securing points strength',
-      url: 'https://www.linkedin.com/pulse/understanding-container-securing-points-strength-astrid-groeneveld',
-      note: '컨테이너 고정점 허용하중과 "가장 약한 곳이 한계" 원칙.'
-    },
-    {
-      title: '컨테이너 운송 중량 제한 규정(과적 기준)',
-      url: 'https://amcokorea.com/%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-%EC%9A%B4%EC%86%A1/',
-      note: '국내 도로 총중량·축하중 기준 정리(포워딩 실무).'
-    },
-    {
-      title: '국내 컨테이너 차량 허용 적재 중량 기준 총정리',
-      url: 'https://today-knowlog.com/95',
-      note: '트랙터·샤시·컨테이너 자중과 적재 가능 중량 예시.'
     }
   ];
   const note =
@@ -815,12 +803,6 @@
     ['ISO 1496-1', '고정점', '컨테이너 래싱 고정점 허용하중', '핵심', '고정점 기본값(ISO 최소)', 'anchor-points'],
     ['도로법', '제79조', '한국 도로 중량 한도', '핵심', '20ft 21t·40ft 25t 한도, 축 10t·총 40t', 'kr-road']
   ];
-  // 해설 진행표: 해설로 쓰기로 한 항목(중복 없이). 개요는 맨 앞.
-  const PLAN = [
-    ['CTU 자료 구조 안내(1497·1498·1531)', 'structure'],
-    ['CTU Code 전체 요약(소개·장별 요약·중요도)', 'ctu-overview'],
-    ...MAP.filter(r => r[5] && r[5] !== 'ctu-overview').map(r => [`${r[1]} ${r[2]}`, r[5]])
-  ];
   const hasDoc = id => DOCS.some(d => d.id === id);
   const mapTable = () =>
     `<table class="lib-table"><thead><tr><th>원문</th><th>위치</th><th>내용</th><th>중요도</th><th>Cubestow 반영</th><th>해설</th></tr></thead><tbody>${MAP.map(
@@ -828,14 +810,69 @@
         `<tr><td>${esc(src)}</td><td>${esc(where)}</td><td>${esc(what)}</td><td>${level === '핵심' ? '<b>핵심</b>' : esc(level)}</td><td>${esc(used)}</td><td>${!id ? '—' : hasDoc(id) ? `<a href="#library/${id}">완료</a>` : '예정'}</td></tr>`
     ).join('')}</tbody></table>`;
   const card = o =>
-    `<a class="lib-card" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(o.title)}</b><span class="lib-meta">${[o.org, o.date, o.lang].filter(Boolean).map(esc).join(' · ')}</span><span>${esc(o.note)}</span><span class="lib-open">원문 열기 ↗</span></a>`;
+    `<a class="lib-card" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer"><span class="lib-kind">공식 원문</span><b>${esc(o.title)}</b><span class="lib-meta">${[o.org, o.date, o.lang].filter(Boolean).map(esc).join(' · ')}</span><span>${esc(o.note)}</span><span class="lib-open">원문 열기 ↗</span></a>`;
+  const docCard = d =>
+    `<a class="lib-doc" href="#library/${d.id}"><span class="lib-tag">${esc(d.tag)}</span><b>${esc(d.title)}</b><span>${esc(d.summary)}</span></a>`;
+  // 문장이 마침표로 끝나면 줄을 바꾼다(안내 문구를 한 문장씩 읽히게).
+  const lines = text => text.replace(/\.\s+/g, '.<br>');
+  // 목록 구간: 원문별로 공식 원문 링크와 Cubestow 해설을 함께 둔다.
+  const SECTIONS = [
+    {
+      title: '시작하기',
+      sub: '처음 보는 분',
+      docs: ['structure', 'ctu-overview']
+    },
+    {
+      title: 'CTU Code 본문',
+      sub: 'MSC.1/Circ.1497 · 지켜야 할 실무규칙',
+      official: '1497',
+      docs: [
+        'ch3-key',
+        'ch5-accel',
+        'ch9-packing',
+        'ch11-after',
+        'a4-plates',
+        'a5-receiving',
+        'a7-planning',
+        'a7-load-distribution',
+        'a7-securing',
+        'a7-calc'
+      ]
+    },
+    {
+      title: 'CTU Code 정보자료',
+      sub: 'MSC.1/Circ.1498 · 계산표와 참고 설명',
+      official: '1498',
+      docs: ['qlg-c', 'im6-load-distribution']
+    },
+    {
+      title: '그 밖의 공식 자료',
+      sub: '점검표·배포 페이지·표준',
+      official: 'other',
+      docs: []
+    }
+  ];
+  const REFERENCE_DOCS = ['anchor-points', 'kr-road'];
+  const TRANSLATIONS = [
+    { title: 'CTU Code 본문 한국어 번역', sub: 'MSC.1/Circ.1497 · 13장과 부속서 10개' },
+    { title: 'CTU Code 정보자료 한국어 번역', sub: 'MSC.1/Circ.1498 · IM1~IM10' }
+  ];
+  const byId = id => DOCS.find(d => d.id === id);
   function renderList(view) {
-    view.innerHTML = `<div class="lib-head"><h2>자료실</h2><p>컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 <a href="#library/structure">자료 구조 안내</a>부터 보세요.</p></div>
-      <section class="lib-section"><h3>한국어 해설 <small>Cubestow 작성</small></h3><div class="lib-docs">${DOCS.map(d => `<a class="lib-doc" href="#library/${d.id}"><span class="lib-tag">${esc(d.tag)}</span><b>${esc(d.title)}</b><span>${esc(d.summary)}</span></a>`).join('')}</div></section>
-      <section class="lib-section"><h3>공식 원문 <small>무료 공개, 배포처 링크</small></h3><div class="lib-cards">${OFFICIAL.map(card).join('')}</div>
-        <p class="lib-disclaimer">CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 IMO 공식 배포 링크를 겁니다. 전체 한국어 번역본 게시는 IMO 허가를 받은 뒤에 진행합니다.</p></section>
-      <section class="lib-section"><h3>한국어 해설 진행 <small>${PLAN.filter(([, id]) => hasDoc(id)).length}/${PLAN.length} 완료</small></h3><ol class="lib-plan">${PLAN.map(([t, id]) => (hasDoc(id) ? `<li data-state="done"><a href="#library/${id}">${esc(t)}</a><span>완료</span></li>` : `<li data-state="planned">${esc(t)}<span>예정</span></li>`)).join('')}</ol></section>
-      <section class="lib-section"><h3>참고 자료</h3><div class="lib-cards">${REFERENCES.map(card).join('')}</div></section>`;
+    const sections = SECTIONS.map(
+      g =>
+        `<section class="lib-section"><h3>${esc(g.title)} <small>${esc(g.sub)}</small></h3><div class="lib-docs">${OFFICIAL.filter(
+          o => o.group === g.official
+        )
+          .map(card)
+          .join('')}${g.docs.map(byId).filter(Boolean).map(docCard).join('')}</div></section>`
+    ).join('');
+    view.innerHTML = `<div class="lib-head"><h2>자료실</h2><p>${lines('컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 ')}<a href="#library/structure">자료 구조 안내</a>와 <a href="#library/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
+      ${sections}
+      <section class="lib-section"><h3>한국어 번역 <small>준비 중</small></h3><div class="lib-docs">${TRANSLATIONS.map(t => `<div class="lib-doc lib-soon" aria-disabled="true"><span class="lib-tag">Coming soon</span><b>${esc(t.title)}</b><span>${esc(t.sub)}</span><span class="lib-open">IMO 허가 후 공개</span></div>`).join('')}</div>
+        <p class="lib-disclaimer">${lines('CTU Code 전체 한국어 번역 초안은 준비되어 있습니다. CTU Code와 정보자료의 저작권은 IMO에 있어 사전 서면 허가 없이 번역·복제할 수 없으므로, IMO에 게시 허가를 요청해 두었습니다. 허가를 받으면 이곳에 공개합니다. 그 전까지는 위의 공식 원문 링크와 Cubestow 해설을 이용해 주세요.')}</p></section>
+      <section class="lib-section"><h3>참고 자료 <small>Cubestow 작성 · 계속 추가</small></h3><div class="lib-docs">${REFERENCE_DOCS.map(byId).filter(Boolean).map(docCard).join('')}</div></section>
+      <p class="lib-disclaimer">${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 공식 배포 링크를 겁니다. 해설과 참고 자료는 Cubestow가 원문을 읽고 직접 쓴 글이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다.')}</p>`;
   }
   function renderDoc(view, doc) {
     view.innerHTML = `<nav class="lib-crumb"><a href="#library">← 자료실</a></nav><article class="lib-article"><span class="lib-tag">${esc(doc.tag)}</span><h2>${esc(doc.title)}</h2>${doc.body.replace('<!--lib-map-->', mapTable())}</article>`;
@@ -854,7 +891,6 @@
   window.CUBESTOW_LIBRARY = {
     docs: DOCS.map(d => d.id),
     official: OFFICIAL.length,
-    plan: PLAN.length,
-    done: PLAN.filter(([, id]) => hasDoc(id)).length
+    listed: [...SECTIONS.flatMap(g => g.docs), ...REFERENCE_DOCS]
   };
 })();

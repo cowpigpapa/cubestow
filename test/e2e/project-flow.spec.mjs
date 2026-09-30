@@ -762,10 +762,22 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
-  await expect(page.locator('.lib-doc')).toHaveCount(16);
-  // 진행표는 해설이 있는 항목을 완료로 센다.
-  await expect(page.locator('.lib-plan li')).toHaveCount(16);
-  await expect(page.locator('.lib-plan li[data-state="done"]')).toHaveCount(16);
+  // 해설 16개 + 번역 준비 중 카드 2개. 원문별 구간에 공식 원문과 해설이 함께 있다.
+  await expect(page.locator('a.lib-doc')).toHaveCount(16);
+  const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
+  await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
+  await expect(section('CTU Code 본문').locator('a.lib-doc[href="#library/a7-securing"]')).toHaveCount(1);
+  await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="#library/qlg-c"]')).toHaveCount(1);
+  await expect(section('CTU Code 정보자료').locator('a.lib-card[href*="Quick-Lashing-Guide"]')).toHaveCount(1);
+  // 한국어 번역은 IMO 허가 전까지 준비 중 표시만
+  await expect(section('한국어 번역').locator('.lib-soon')).toHaveCount(2);
+  await expect(section('한국어 번역')).toContainText('IMO에 게시 허가를 요청해 두었습니다');
+  // 참고 자료는 Cubestow가 쓴 글만(외부 사이트 링크 없음), 해설 진행표는 없음
+  await expect(section('참고 자료').locator('a.lib-card')).toHaveCount(0);
+  await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(2);
+  await expect(page.locator('.lib-plan')).toHaveCount(0);
+  // 안내 문구는 문장마다 줄을 바꾼다
+  await expect(page.locator('.lib-head p br')).toHaveCount(2);
   // 구조 안내: 1497·1498·1531 비교와, 참조 항목마다 해설 링크가 있는 지도
   await page.locator('.lib-head a[href="#library/structure"]').click();
   await expect(page.locator('.lib-article h2')).toContainText('1497·1498·1531');

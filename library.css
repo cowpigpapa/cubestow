@@ -238,3 +238,34 @@
   color: #0071e3;
   font-weight: 600;
 }
+/* 자료실 목록: 공식 원문 카드 표시와 준비 중 카드 */
+.library-view .lib-card > .lib-kind {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1d1d1f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.library-view .lib-soon {
+  border-style: dashed;
+  background: #fafbfa;
+  cursor: default;
+}
+.library-view .lib-doc.lib-soon:hover {
+  border-color: var(--lib-line);
+  transform: none;
+  box-shadow: none;
+}
+.library-view .lib-soon .lib-tag {
+  background: #fff4d6;
+  color: #7a4d00;
+}
+.library-view .lib-doc.lib-soon > .lib-open {
+  color: var(--lib-muted) !important;
+}
+.library-view .lib-head p,
+.library-view .lib-disclaimer {
+  line-height: 1.7;
+}
