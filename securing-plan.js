@@ -16,7 +16,7 @@ const VOID_SUM_LIMIT = 150,
   CTU_FRICTION = 0.3;
 // [CTU 정보자료 5(빠른 래싱 가이드) §3.1 표] 합판 바닥 위 화물 밑면별 마찰계수. 확인할 수 없으면 0.3(§3.2), 기름기·슬립시트는 0.1.
 const FRICTION_CHOICES = {
-  unknown: { mu: 0.3, label: '확인 안 됨' },
+  unknown: { mu: 0.3, label: '재질 미확인' },
   'wood-pallet': { mu: 0.45, label: '목재 팔레트·각재' },
   'planed-wood': { mu: 0.3, label: '대패질 목재' },
   'plastic-pallet': { mu: 0.2, label: '플라스틱 팔레트' },

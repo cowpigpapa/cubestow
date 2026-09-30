@@ -6,11 +6,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 const openMenu = (page, name) => page.locator('details.menu>summary', { hasText: name }).click();
+// 샘플 창: 대표 셋 아래 "전체 샘플" 이 접혀 있으므로 펼친 뒤 고른다.
+async function pickSample(page, number) {
+  const all = page.locator('#sampleAll');
+  if (!(await all.evaluate(d => d.open))) await all.locator('summary').click();
+  await page.locator(`[data-sample="${number}"]`).click();
+}
 async function loadSample(page, number = 1) {
   await openMenu(page, '불러오기');
   await page.getByRole('button', { name: '샘플', exact: true }).click();
   await expect(page.getByRole('heading', { name: '샘플 시나리오 선택' })).toBeVisible();
-  await page.locator(`[data-sample="${number}"]`).click();
+  await pickSample(page, number);
   await expect(page.locator('#loadedCount')).not.toHaveText('—', { timeout: 20000 });
 }
 
@@ -35,9 +41,11 @@ test('sample picker lists twenty scenarios and filters them by category', async 
   await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(20);
   await expect(page.locator('#sampleDialog')).toContainText('혼합 화물');
   await expect(page.locator('#sampleDialog')).toContainText('양문형 냉장고');
+  // 전체 목록은 접혀 있다 - 펼쳐야 분류 단추가 보인다
+  await page.locator('#sampleAll > summary').click();
   await page.locator('[data-sample-filter="원통"]').click();
   await expect(page.locator('#sampleDialog [data-sample]')).toHaveCount(3);
-  await page.locator('[data-sample="16"]').click();
+  await pickSample(page, 16);
   await expect(page.locator('#containerType')).toHaveValue('40ft');
   await expect(page.locator('#transportMode')).toHaveValue('sea');
   await expect(page.locator('#loadedCount')).toHaveText('24개', { timeout: 30000 });
@@ -150,7 +158,8 @@ test('metrics follow the 3D view and dense sections collapse', async ({ page }) 
   await expect(page.locator('.simulation-config-bar #transportMode')).toHaveValue('combined');
   await expect(page.locator('#toggleBands')).toHaveCount(0);
   await expect(page.locator('.result-header #recalculateOptions')).toBeVisible();
-  await expect(page.locator('#canvasWrap + #stats')).toHaveCount(1);
+  // 3D 바로 아래 결과 첫 줄, 그다음 지표 카드
+  await expect(page.locator('#canvasWrap + #resultHeadline + #stats')).toHaveCount(1);
   await expect(page.locator('#balanceCard + .loading-plan')).toHaveCount(1);
   await expect(page.locator('#securingPanel')).not.toHaveAttribute('open', '');
   await expect(page.locator('.loading-plan + #securingPanel')).toHaveCount(1);
@@ -488,7 +497,7 @@ test('a change made while a plan is calculating discards the stale result', asyn
   await page.goto('/');
   await openMenu(page, '불러오기');
   await page.getByRole('button', { name: '샘플', exact: true }).click();
-  await page.locator('[data-sample="13"]').click();
+  await pickSample(page, 13);
   await expect(page.locator('#simulationStatus')).toHaveClass(/busy/);
   await page.locator('[data-qty-up="0"]').click();
   await expect(page.locator('#simulationStatus')).toBeHidden({ timeout: 60000 });
@@ -500,7 +509,7 @@ test('loading another sample while calculating recalculates for the new sample',
   await page.goto('/');
   await openMenu(page, '불러오기');
   await page.getByRole('button', { name: '샘플', exact: true }).click();
-  await page.locator('[data-sample="13"]').click();
+  await pickSample(page, 13);
   await expect(page.locator('#simulationStatus')).toHaveClass(/busy/);
   await loadSample(page, 2).catch(() => {});
   await expect(page.locator('#loadedCount')).toHaveText('42개', { timeout: 60000 });
@@ -847,7 +856,7 @@ test('the empty planner offers two starts: a sample or my own products', async (
   await expect(page.locator('#productName')).toBeFocused();
   await page.locator('#emptySample').click();
   await expect(page.locator('#sampleDialog')).toBeVisible();
-  await page.locator('[data-sample="1"]').click();
+  await pickSample(page, 1);
   await expect(page.locator('#loadedCount')).not.toHaveText('—', { timeout: 20000 });
   await expect(empty).toBeHidden();
   // 선택 입력 표시
@@ -933,7 +942,7 @@ test('the summary cards separate this container from the shipment total', async 
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.locator('#emptySample').click();
-  await page.locator('[data-sample="6"]').click();
+  await pickSample(page, 6);
   await expect(page.locator('#loadedCount')).not.toHaveText('—', { timeout: 120000 });
   await expect(page.locator('#containerCount')).toHaveText(/^[2-9]대$/);
   await expect(page.locator('.stats span', { hasText: '이 컨테이너 수량' })).toBeVisible();
@@ -1051,4 +1060,24 @@ test('on a wide screen the scroll-to-top button sits beside the document and lin
       return b.x >= a.x + a.width + 8 && Math.abs(b.y + b.height - (a.y + a.height)) <= 2;
     })
     .toBe(true);
+});
+
+test('the sample dialog leads with three purpose-picked samples and folds the full list', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('#emptySample').click();
+  const featured = page.locator('#sampleFeatured [data-featured-sample]');
+  await expect(featured).toHaveCount(3);
+  await expect(featured.nth(0)).toContainText('처음 써보기');
+  // 전체 20개는 접혀 있다
+  await expect(page.locator('#sampleList [data-sample="20"]')).toBeHidden();
+  await featured.nth(0).click();
+  await expect(page.locator('#currentProjectName')).toHaveText('샘플 2 · 단일 규격 반복', { timeout: 60000 });
+  // 결과 첫 줄: 실렸는지 · 몇 대 · 자동 평가를 크게
+  const headline = page.locator('#resultHeadline');
+  await expect(headline).toBeVisible({ timeout: 60000 });
+  await expect(headline).toContainText('전량 적재');
+  await expect(headline).toContainText(/대/);
+  await expect(headline).toContainText(/자동 평가 (양호|주의|재검토 필요)/);
 });

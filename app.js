@@ -678,9 +678,24 @@ function productFitIssue(p, c) {
   if (long > c.l) return `긴 변 ${mm(long)}가 ${c.name} 길이 ${mm(c.l)}를 넘습니다`;
   return '';
 }
+// 처음 여는 사람에게 먼저 보여 줄 샘플 셋(목적별). 나머지는 "전체 샘플" 아래에 접어 둔다.
+const FEATURED_SAMPLES = [
+  [2, '처음 써보기'],
+  [1, '혼합 적재 보기'],
+  [14, '안전 검토 보기']
+];
 function renderSampleList(filter = '전체') {
   const modes = { sea: '해상', combined: '복합', road: '육상' },
     units = s => s.products.reduce((sum, p) => sum + p.qty, 0);
+  $('sampleFeatured').innerHTML = FEATURED_SAMPLES.filter(([id]) => SAMPLE_SETS[id])
+    .map(
+      ([id, purpose]) =>
+        `<button type="button" data-featured-sample="${id}"><em>${esc(purpose)}</em><strong>${esc(SAMPLE_SETS[id].name)}</strong><small>${esc(SAMPLE_SETS[id].description)}</small></button>`
+    )
+    .join('');
+  document
+    .querySelectorAll('[data-featured-sample]')
+    .forEach(button => (button.onclick = () => loadDemo(+button.dataset.featuredSample)));
   $('sampleFilters').innerHTML = ['전체', ...SAMPLE_CATEGORIES]
     .map(c => `<button type="button" data-sample-filter="${c}" aria-pressed="${c === filter}">${c}</button>`)
     .join('');
@@ -898,7 +913,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260930-10');
+      engineWorker = new Worker('engine-worker.js?v=20260930-11');
     } catch {
       engineWorker = null;
     }
@@ -925,6 +940,26 @@ function runPackingEngine(input, onProgress = () => {}) {
 function updateSimulationProgress(status, progress, label = '배치 후보 계산 중') {
   const percent = Math.max(0, Math.min(100, Math.round(progress)));
   status.innerHTML = `<i></i><span>${label}</span><b>${percent}%</b><em><u style="width:${percent}%"></u></em>`;
+}
+// 결과 첫 줄: 사용자가 가장 먼저 알아야 할 판단(실렸는지 · 몇 대 · 자동 평가)을 크게 한 줄로.
+function renderResultHeadline() {
+  const el = $('resultHeadline');
+  if (!el) return;
+  if (!shipment) {
+    el.hidden = true;
+    return;
+  }
+  const outcome = shipmentOutcome(shipment),
+    grade = window.LoadwiseReview ? LoadwiseReview.review(shipment).grade : null,
+    first = shipment.containers[0]?.container?.name || '',
+    state = { complete: '전량 적재', partial: `일부 미적재 ${outcome.left}개`, failed: '적재 불가' }[outcome.state],
+    level =
+      outcome.state !== 'complete' || grade?.key === 'bad' ? 'danger' : grade?.key === 'warn' ? 'caution' : 'safe';
+  el.dataset.level = level;
+  el.innerHTML =
+    `<strong>${esc(state)}</strong><span>${esc(first)} ${shipment.containers.length}대</span>` +
+    (grade ? `<span>자동 평가 ${esc(grade.label)}</span>` : '');
+  el.hidden = false;
 }
 function shipmentOutcome(s) {
   const loaded = s.containers.reduce((sum, load) => sum + load.placed.length, 0),
@@ -1145,6 +1180,7 @@ function updateResults() {
   const r = result,
     total = shipment ? shipment.totalUnits : products.reduce((s, p) => s + p.qty, 0);
   $('emptyState').style.display = 'none';
+  renderResultHeadline();
   renderContainerTabs();
   renderResultSummary();
   renderFieldResult();

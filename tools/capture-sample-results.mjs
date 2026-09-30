@@ -92,6 +92,11 @@ try {
       });
       await page.locator('details.menu>summary', { hasText: '불러오기' }).click();
       await page.getByRole('button', { name: '샘플', exact: true }).click();
+      // 전체 샘플 목록은 접혀 있다(대표 셋만 먼저 보인다)
+      await page.evaluate(() => {
+        const all = document.getElementById('sampleAll');
+        if (all) all.open = true;
+      });
       await page.click(`[data-sample="${sample.id}"]`);
       await page.waitForTimeout(300);
       await settle();

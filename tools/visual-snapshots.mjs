@@ -86,6 +86,11 @@ try {
     await page.getByRole('button', { name: '샘플', exact: true }).click();
     await page.waitForTimeout(300);
     await shot('sampledialog');
+    // 전체 샘플 목록은 접혀 있다(대표 셋만 먼저 보인다)
+    await page.evaluate(() => {
+      const all = document.getElementById('sampleAll');
+      if (all) all.open = true;
+    });
     await page.click('[data-sample="6"]');
     await page.waitForFunction(
       () => typeof shipment !== 'undefined' && shipment && !document.getElementById('recalculateOptions').disabled,

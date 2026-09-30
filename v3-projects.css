@@ -4449,3 +4449,121 @@ details.account-menu[open] > summary::after {
     display: none !important;
   }
 }
+
+/* 결과 첫 줄: 전량 적재 여부 · 대수 · 자동 평가를 크게. 색은 나쁜 쪽을 따른다. */
+.result-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin: 14px 0 0;
+  padding: 14px 18px;
+  border: 1px solid #cfe6d8;
+  border-left: 5px solid #1f8a4c;
+  border-radius: 12px;
+  background: #f1faf4;
+  font-size: 15px;
+  color: #33413a;
+}
+.result-headline[hidden] {
+  display: none;
+}
+.result-headline strong {
+  font-size: 22px;
+  font-weight: 800;
+  color: #145c33;
+}
+.result-headline span + span::before {
+  content: '·';
+  margin-right: 14px;
+  color: #9aa4a0;
+}
+.result-headline[data-level='caution'] {
+  border-color: #f0d9a8;
+  border-left-color: #c98a00;
+  background: #fff8e8;
+}
+.result-headline[data-level='caution'] strong {
+  color: #8a5a00;
+}
+.result-headline[data-level='danger'] {
+  border-color: #f2c6c2;
+  border-left-color: #c62828;
+  background: #fdf1f0;
+}
+.result-headline[data-level='danger'] strong {
+  color: #b3261e;
+}
+@media (max-width: 640px) {
+  .result-headline strong {
+    font-size: 19px;
+  }
+}
+/* 샘플: 대표 셋을 먼저, 전체는 접어 둔다 */
+.sample-featured {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+.project-dialog .sample-featured button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 0;
+  padding: 14px;
+  border: 1px solid #d5dbe1;
+  border-radius: 12px;
+  background: #fff;
+  color: #1d1d1f;
+  text-align: left;
+  cursor: pointer;
+}
+.project-dialog .sample-featured button:hover {
+  border-color: #0071e3;
+}
+.sample-featured em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0071e3;
+}
+.sample-featured strong {
+  font-size: 15px;
+}
+.sample-featured small {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #5f6763;
+}
+.sample-all {
+  margin-top: 16px;
+}
+.sample-all > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #d5dbe1;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.sample-all > summary::-webkit-details-marker {
+  display: none;
+}
+.sample-all > summary::after {
+  content: '▾';
+  font-size: 11px;
+}
+.sample-all[open] > summary::after {
+  content: '▴';
+}
+@media (max-width: 640px) {
+  .sample-featured {
+    grid-template-columns: 1fr;
+  }
+}
