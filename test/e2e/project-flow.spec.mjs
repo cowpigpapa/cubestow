@@ -1013,6 +1013,14 @@ test('a scroll-to-top button appears after scrolling down a long page and takes 
   await page.evaluate(() => window.scrollTo(0, 3000));
   await expect(top).toBeVisible();
   await expect(top).toHaveAttribute('aria-label', '맨 위로');
+  // 맨 아래에서는 바닥글 위에 서서 방문자 수와 겹치지 않는다
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect
+    .poll(async () => {
+      const [b, f] = await Promise.all([top.boundingBox(), page.locator('.site-footer').boundingBox()]);
+      return b.y + b.height <= f.y;
+    })
+    .toBe(true);
   await top.click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
   await expect(top).toBeHidden();

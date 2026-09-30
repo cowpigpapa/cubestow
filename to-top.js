@@ -11,8 +11,13 @@
   const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   button.addEventListener('click', () => window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' }));
   // 보이는 높이의 60%(최소 400px) 넘게 내려갔을 때만 보인다. 짧은 쪽에서는 나타나지 않는다.
+  // 바닥글이 화면에 들어오면 단추를 그 위로 올려 방문자 수·저작권 줄과 겹치지 않게 한다.
   const update = () => {
     button.hidden = window.scrollY < Math.max(400, window.innerHeight * 0.6);
+    if (button.hidden) return;
+    const footer = document.querySelector('.site-footer'),
+      overlap = footer ? window.innerHeight - footer.getBoundingClientRect().top : 0;
+    button.style.setProperty('--to-top-lift', `${Math.max(0, Math.round(overlap))}px`);
   };
   const mount = () => {
     document.body.append(button);
