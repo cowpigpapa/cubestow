@@ -85,12 +85,22 @@ test('product list title and mobile layout do not wrap or overflow', async ({ pa
   expect(positions.scrollWidth).toBe(positions.clientWidth);
 });
 
-test('CTU Code guide opens inside the app', async ({ page }) => {
+test('the algorithm policy holds the CTU Code scope and the CTU Code menu opens the reference library', async ({
+  page
+}) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'CTU Code' }).click();
-  await expect(page.locator('#ctuDialog')).toHaveAttribute('open', '');
-  await expect(page.getByRole('heading', { name: 'CTU Code란?' })).toBeVisible();
-  await expect(page.getByText('Cubestow의 현재 반영 범위')).toBeVisible();
+  // 상단 메뉴: 사용 가이드 · 알고리즘 정책 · 샘플 결과 · CTU Code (CTU Code 팝업 단추는 없다)
+  await expect(page.locator('#ctuButton')).toHaveCount(0);
+  await expect(page.locator('.topbar nav a[href="#library"]')).toHaveText('CTU Code');
+  await page.getByRole('button', { name: '알고리즘 정책' }).click();
+  const policy = page.locator('#policyDialog');
+  await expect(policy.locator('summary', { hasText: 'CTU Code 반영 범위' })).toBeVisible();
+  await policy.locator('summary', { hasText: 'CTU Code 반영 범위' }).click();
+  await expect(policy).toContainText('빠른 래싱 가이드 C 표와 고른 고정 조건');
+  await policy.locator('a[href="#library"]').click();
+  await expect(policy).not.toBeVisible();
+  await expect(page.locator('#libraryView')).toBeVisible();
+  await expect(page.locator('.lib-head h2')).toHaveText('CTU Code');
 });
 
 test('validation warning uses the in-app notice dialog', async ({ page }) => {
@@ -614,7 +624,7 @@ test('the header menu stays visible on phones and every item fits the screen', a
   await page.goto('/');
   const nav = page.locator('.topbar nav');
   await expect(nav).toBeVisible();
-  // 다섯 메뉴가 모두 화면 안에 들어오고 가로 스크롤이 생기지 않는다(적재 플래너는 로고로 간다).
+  // 네 메뉴가 모두 화면 안에 들어오고 가로 스크롤이 생기지 않는다(적재 플래너는 로고로 간다).
   const fit = await nav.evaluate(el => ({
     items: [...el.children].map(c => {
       const b = c.getBoundingClientRect();
@@ -623,7 +633,7 @@ test('the header menu stays visible on phones and every item fits the screen', a
     width: document.documentElement.clientWidth,
     scroll: document.documentElement.scrollWidth
   }));
-  expect(fit.items).toHaveLength(5);
+  expect(fit.items).toHaveLength(4);
   for (const [l, r] of fit.items) {
     expect(l).toBeGreaterThanOrEqual(0);
     expect(r).toBeLessThanOrEqual(fit.width);
@@ -758,7 +768,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   // 빠른 래싱 가이드도 IMO 공식 파일로만 링크한다(다른 곳의 사본은 걸지 않는다).
   await expect(page.locator('#libraryView a[href*="mariterm"]')).toHaveCount(0);
   await expect(page.locator('#libraryView')).toContainText('사전 서면 허가 없이 복제할 수 없습니다');
-  // 해설을 열고 자료실로 돌아온다.
+  // 해설을 열고 CTU Code 목록으로 돌아온다.
   await page.locator('a.lib-doc[href="#library/qlg-c"]').click();
   await expect(page).toHaveURL(/#library\/qlg-c$/);
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
@@ -817,10 +827,10 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('#planner')).toBeVisible();
   await expect(page.locator('#samplesView')).toBeHidden();
   await expect(page.locator('#libraryView')).toBeHidden();
-  // CTU Code 창에서도 자료실로 간다.
-  await page.click('#ctuButton');
-  await page.locator('#ctuDialog a[href="#library"]').click();
-  await expect(page.locator('#ctuDialog')).not.toBeVisible();
+  // 알고리즘 정책 창에서도 CTU Code 메뉴로 간다.
+  await page.click('#policyButton');
+  await page.locator('#policyDialog a[href="#library"]').click();
+  await expect(page.locator('#policyDialog')).not.toBeVisible();
   await expect(page.locator('#libraryView')).toBeVisible();
 });
 
@@ -991,7 +1001,7 @@ test('long dialogs fit inside a short phone screen and scroll inside', async ({ 
   await page.setViewportSize({ width: 390, height: 640 });
   await page.goto('/');
   for (const [button, dialog] of [
-    ['#ctuButton', '#ctuDialog'],
+    ['#guideButton', '#guideDialog'],
     ['#policyButton', '#policyDialog']
   ]) {
     await page.locator(button).click();

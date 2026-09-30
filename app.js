@@ -388,7 +388,6 @@ function enhanceSelect(select) {
 function bindEvents() {
   $('guideButton').onclick = () => $('guideDialog').showModal();
   $('policyButton').onclick = () => $('policyDialog').showModal();
-  $('ctuButton').onclick = () => $('ctuDialog').showModal();
   $('openImport').onclick = () => $('importDialog').showModal();
   // 입력칸을 누르면 값 전체를 선택해 바로 덮어쓸 수 있게 한다. 포커스 즉시 선택하고, 클릭을 뗄 때 선택이 풀리는 기본 동작만 한 번 막는다.
   document.addEventListener('focusin', e => {
@@ -899,7 +898,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20260930-9');
+      engineWorker = new Worker('engine-worker.js?v=20260930-10');
     } catch {
       engineWorker = null;
     }

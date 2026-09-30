@@ -74,7 +74,7 @@ try {
     await page.reload();
     await page.waitForTimeout(800);
     await shot('empty');
-    for (const id of ['guideButton', 'policyButton', 'ctuButton']) {
+    for (const id of ['guideButton', 'policyButton']) {
       await page.click('#' + id);
       await page.waitForTimeout(300);
       await shot(id);

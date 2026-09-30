@@ -1,4 +1,4 @@
-// 자료실(#library): CTU Code 등 공식 원문 링크, Cubestow가 직접 쓴 한국어 해설, 참고 자료.
+// CTU Code 메뉴(#library, 예전 이름 자료실): CTU Code 등 공식 원문 링크, Cubestow가 직접 쓴 한국어 해설, 참고 자료.
 // 원문 파일은 다시 올리지 않는다(CTU Code 저작권: IMO, 사전 서면 허가 없이 복제 금지). 공식 무료 링크만 건다.
 // 해설은 Cubestow가 작성한 요약이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아니다. 주소 #library/<id>로 해설 하나를 연다.
 (function () {
@@ -109,10 +109,10 @@
       <tr><td>IM7~IM10</td><td>수작업 취급·신선 화물·봉인·유해가스 시험</td><td>128~181</td></tr>
       </tbody></table>
       <h3>Cubestow가 참조하는 항목과 해설 진행</h3>
-      <p>중요도 <b>핵심</b>은 Cubestow가 숫자를 가져다 계산하는 곳, <b>참고</b>는 현장 절차라 계산에는 쓰지 않지만 적입자가 알아야 하는 곳입니다. 해설 상태는 이 자료실에 한국어 해설이 올라왔는지입니다.</p>
+      <p>중요도 <b>핵심</b>은 Cubestow가 숫자를 가져다 계산하는 곳, <b>참고</b>는 현장 절차라 계산에는 쓰지 않지만 적입자가 알아야 하는 곳입니다. 해설 상태는 이 CTU Code 메뉴에 한국어 해설이 올라왔는지입니다.</p>
       <!--lib-map-->
       <h3>번역 상태</h3>
-      <p>1497·1498 전체의 한국어 번역 초안은 완성되어 있고(비공개), 2026-09-29에 원문 대조 검토(역자 주 46건)를 마쳤습니다. CTU Code는 IMO의 사전 서면 허가 없이 번역·복제할 수 없어, 전체 번역본은 IMO 허가를 받은 뒤 공개합니다. 그 전까지 이 자료실에는 Cubestow가 직접 쓴 요약 해설만 올립니다.</p>
+      <p>1497·1498 전체의 한국어 번역 초안은 완성되어 있고(비공개), 2026-09-29에 원문 대조 검토(역자 주 46건)를 마쳤습니다. CTU Code는 IMO의 사전 서면 허가 없이 번역·복제할 수 없어, 전체 번역본은 IMO 허가를 받은 뒤 공개합니다. 그 전까지 이 CTU Code 메뉴에는 Cubestow가 직접 쓴 요약 해설만 올립니다.</p>
       <h3>처음 읽는다면</h3>
       <ol><li>CTU Code 전체 요약(무엇이 들어 있고 무엇을 알아야 하나)</li><li>5장 가속도 → 부속서 7 §4 고정·평가 → 빠른 래싱 가이드 C(래싱 수를 어떻게 정하는지)</li><li>부속서 7 §3 하중 분포 → IM6 → 한국 도로 중량 한도(무게를 어떻게 나누는지)</li><li>현장 절차: 3장 → 9장 → 11장 → 부속서 5</li></ol>
       ${note}`
@@ -357,7 +357,7 @@
       <li>적입 전에 명판 사진을 남기고 최대 총질량과 뒤쪽의 자중을 확인합니다. 두 곳의 최대 총질량이 다르면 명판 값을 씁니다.</li>
       <li>다음 검사 날짜나 ACEP 표시를 확인합니다. 기한이 도착 예정일보다 앞서면 컨테이너 교체를 요청합니다.</li>
       <li>화물 한도는 명판 최대 총질량에서 자중, 부착 장비, 고정재 무게를 모두 뺀 값으로 계산합니다.</li>
-      <li>도로 구간이 있으면 명판보다 도로 중량 한도가 먼저 걸릴 수 있습니다(자료실 "한국 도로 운송 중량 한도" 참고).</li>
+      <li>도로 구간이 있으면 명판보다 도로 중량 한도가 먼저 걸릴 수 있습니다(참고 자료 "한국 도로 운송 중량 한도" 참고).</li>
       <li>형식 코드 네 번째 글자가 영문자이거나 적층 능력 감소 데칼이 있으면 해상 적재 제한을 운송인에게 확인합니다.</li>
       </ul>
       <h3>Cubestow 적용</h3>
@@ -920,7 +920,7 @@
           .map(o => card(o) + (TRANSLATIONS[o.url] ? soonCard(TRANSLATIONS[o.url]) : ''))
           .join('')}${g.docs.map(byId).filter(Boolean).map(docCard).join('')}</div></section>`
     ).join('');
-    view.innerHTML = `<div class="lib-head"><h2>자료실</h2><p>${lines('컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 ')}<a href="#library/structure">자료 구조 안내</a>와 <a href="#library/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
+    view.innerHTML = `<div class="lib-head"><h2>CTU Code</h2><p>${lines('컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 ')}<a href="#library/structure">자료 구조 안내</a>와 <a href="#library/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
       ${sections}
       <section class="lib-section"><h3>참고 자료 <small>Cubestow 작성 · 계속 추가</small></h3><div class="lib-docs">${REFERENCE_DOCS.map(byId).filter(Boolean).map(docCard).join('')}</div></section>
       <section class="lib-section lib-notes"><h3>안내</h3>
@@ -928,7 +928,7 @@
         <p class="lib-disclaimer"><b>저작권과 해설</b><br>${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 공식 배포 링크를 겁니다. 해설과 참고 자료는 Cubestow가 원문과 법령을 읽고 직접 쓴 글이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다.')}</p></section>`;
   }
   function renderDoc(view, doc) {
-    view.innerHTML = `<nav class="lib-crumb"><a href="#library">← 자료실</a></nav><article class="lib-article"><span class="lib-tag">${esc(doc.tag)}</span><h2>${esc(doc.title)}</h2>${doc.body.replace('<!--lib-map-->', mapTable())}</article>`;
+    view.innerHTML = `<nav class="lib-crumb"><a href="#library">← CTU Code</a></nav><article class="lib-article"><span class="lib-tag">${esc(doc.tag)}</span><h2>${esc(doc.title)}</h2>${doc.body.replace('<!--lib-map-->', mapTable())}</article>`;
   }
   function show() {
     const view = document.getElementById('libraryView');

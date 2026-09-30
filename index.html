@@ -18,10 +18,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260930-9">
-  <link rel="stylesheet" href="sample-results.css?v=20260930-9">
-  <link rel="stylesheet" href="library.css?v=20260930-9">
-  <link rel="stylesheet" href="v3-projects.css?v=20260930-9">
+  <link rel="stylesheet" href="styles.css?v=20260930-10">
+  <link rel="stylesheet" href="sample-results.css?v=20260930-10">
+  <link rel="stylesheet" href="library.css?v=20260930-10">
+  <link rel="stylesheet" href="v3-projects.css?v=20260930-10">
 </head>
 <body>
   <header class="topbar">
@@ -33,9 +33,8 @@
     <nav aria-label="주 메뉴">
       <button id="guideButton" type="button">사용 가이드</button>
       <button id="policyButton" type="button">알고리즘 정책</button>
-      <button id="ctuButton" type="button">CTU Code</button>
       <a class="nav-link" href="#samples">샘플 결과</a>
-      <a class="nav-link" href="#library">자료실</a>
+      <a class="nav-link" href="#library">CTU Code</a>
     </nav>
     <div class="account-actions"><span id="localNotice" class="local-notice">로그인 전에는 이 브라우저에만 저장됩니다.</span><button class="account-button" id="accountButton" hidden>로그인</button><details class="menu account-menu" id="accountMenu" hidden><summary id="accountIdentity" class="account-identity"></summary><div class="menu-list"><button class="admin-button" id="adminButton" type="button" hidden>관리</button><button id="logoutButton" type="button">로그아웃</button></div></details></div>
   </header>
@@ -177,7 +176,7 @@
     </section>
 
     <section class="samples-view" id="samplesView" data-route="#samples" hidden aria-label="샘플 결과 미리보기"></section>
-    <section class="library-view" id="libraryView" data-route="#library" hidden aria-label="자료실"></section>
+    <section class="library-view" id="libraryView" data-route="#library" hidden aria-label="CTU Code 자료"></section>
   </main>
 
   <dialog id="messageDialog" class="project-dialog message-dialog" aria-labelledby="messageTitle" aria-describedby="messageText">
@@ -282,36 +281,16 @@
     <div class="policy-sections">
       <details open><summary>현재 계산 로직</summary><ol><li>입력 데이터를 공통 제품 모델로 정규화하고 부피·중량으로 필요한 컨테이너 대수의 하한을 계산합니다.</li><li>허용 회전과 Extreme Point 후보를 만들고, 후보를 아래·안쪽·좌측으로 밀착시킵니다.</li><li>경계·충돌·중량·상부 금지·지지율·중심 지지·측면 지지·상부 허용하중·스택 합성 무게중심을 검사합니다. 하나라도 통과하지 못하면 배치하지 않습니다. 측면 지지는 적재를 마친 최종 상태에서 다시 확인합니다. CTU 기준 적용은 모든 화물의 안쪽·좌·우 3면이 막혀야 하고(문쪽은 각재로 막음) 다른 크기 화물 위 얹힘을 금지합니다. 먼저 화물끼리 막히는 배치를 찾고, 그 때문에 컨테이너가 늘면 기본 배치를 쓰되 화물로 막히지 않은 면을 에어백·충전재·래싱으로 막도록 안내합니다. 래싱을 쓰지 않으면 CTU 전도 기준을 모든 화물에 적용합니다. 적재량 우선은 적재량을 우선합니다.</li><li>배치 규칙 6종(같은 규격 기둥 쌓기, 균형 기둥 쌓기, 바닥 우선, 공간 집약, 폭 채움, 무게중심)과 투입 순서 4종을 계산하고, CTU 기준은 벽 쌓기·전폭 벽을 더합니다. 화물이 남거나 무게배분이 위험하면 제품 순서를 고정 시드로 섞은 순서 24종을 예산 안에서 더 계산합니다. 전부 싣고 무게배분이 양호한 안이 나오면 계산을 일찍 마칩니다.</li><li>컨테이너마다 적재 부피가 가장 큰 결과를 고르고, 같으면 우선 기준으로 고릅니다. 남은 화물은 다음 컨테이너에서 같은 방식으로 계산합니다. 첫 적재는 예외 없이 안쪽 벽에 붙입니다. 서로 걸치지 않는 구간(슬라이스)은 순서를 바꾸거나 좌우·앞뒤로 뒤집어 무게중심을 가운데로 맞추고, 고른 안은 화물 묶음을 안쪽 벽으로 밀어 빈틈을 문쪽에 모읍니다. 가벼운 마지막 컨테이너가 무게배분 위험이면 앞 컨테이너와 화물을 반씩 다시 나눕니다. 남는 쏠림은 사전검사 경고로 알립니다.</li><li>후보 비교는 가중치 합산이 아니라 항목별 순서 비교로 하며, 결과는 생성 엔진과 분리된 validator로 다시 검사합니다.</li><li>이전 결과가 한 대로 완료됐고 조건이 같으면, 유효한 기존 배치를 유지하고 바뀐 화물만 다시 배치합니다.</li></ol></details>
       <details><summary>절대 우회하지 않는 안전 조건</summary><ul><li>컨테이너 경계, 제품 충돌과 최대 중량 준수</li><li>상부 적재 금지 화물 위 배치 금지</li><li>상부 화물 중심이 실제 지지 영역 안에 존재</li><li>원통 위 박스 금지, 원통 적층 정렬 조건 적용</li><li>첫 화물은 예외 없이 컨테이너 안쪽 벽에 밀착</li><li>입력 수량 = 적재 수량 + 미배치 수량</li></ul></details>
-      <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>래싱은 위치와 대략 수량(스트랩 1줄 6.1t 기준)만 권고하고 3D 경로·각도·앵커 강도는 계산하지 않습니다. 재배치 또는 현장 고정이 필요한 이유를 함께 표시합니다.</li></ul></details>
-      <details><summary>CTU Code 반영 범위</summary><ul><li>모든 기준값은 CTU Code를 기본으로 하고, CTU가 정하지 않은 값은 제조사 값 또는 Cubestow 설정으로 구분해 표시합니다(알고리즘 정책 문서 5장).</li><li>안전 수준 "CTU 기준 적용"은 CTU Code의 배치 규칙(3면 막힘·얹힘 금지·전도 한계)을 적용한 검토용 결과입니다.</li><li>운송모드별 가속도 계수(IMO Quick Lashing Guide)로 막히지 않은 방향의 미끄럼 억제력과 전도 위험을 참고 계산합니다. 마찰계수는 재질을 확인하지 못했을 때의 최대값 0.3을 쓰고, 문은 막힌 경계로 보지 않습니다.</li><li>본 결과는 CTU Code 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
+      <details><summary>운송모드별 안정성 기준</summary><ul><li>해상은 피칭·롤링·히빙을 고려해 높은 적층과 측면 지지를 가장 보수적으로 선별합니다.</li><li>복합운송은 해상과 육상 구간을 함께 고려하는 기본 권장값입니다.</li><li>육상은 동일 위험을 검사하되 높이와 측면 지지 임계값을 일부 완화합니다.</li><li>래싱은 위치와 줄 수(빠른 래싱 가이드 C 표, 고른 마찰·래싱 MSL·고정점 기준)를 권고하고, 3D 경로·각도·STF는 계산하지 않습니다. 재배치 또는 현장 고정이 필요한 이유를 함께 표시합니다.</li></ul></details>
+      <details><summary>CTU Code 반영 범위</summary><ul><li>CTU Code(IMO·ILO·UNECE 화물운송단위 적입 실무규칙)를 모든 기준값의 기본으로 삼고, CTU가 정하지 않은 값은 제조사 값 또는 Cubestow 설정으로 구분해 표시합니다(알고리즘 정책 문서 5장).</li><li>경계·충돌·중량·지지·미배치 검증과 3축 무게중심, 중심 편차, 수직 무게중심, 50% 길이 구간의 최대 질량 집중도를 제공합니다.</li><li>상부 허용하중이 입력된 제품은 상부 화물의 누적하중을 검사하고, 미입력 제품은 미검증으로 구분합니다.</li><li>운송 경로별 가속도 계수(CTU Code 5장·정보자료 IM5)로 막히지 않은 방향의 미끄럼 억제력과 전도 위험을 참고 계산합니다. 마찰계수는 고정 조건에서 고르고(확인하지 못했으면 0.3), 문은 막힌 경계로 보지 않습니다.</li><li>해상·복합·육상 운송별로 높은 적층, 측면 간극, 문측 노출과 원통 구름 위험을 선별합니다.</li><li>에어백(제조사 최대 간극 500mm)·충전재·바닥 각재(못 1개 1kN으로 못 수 계산)·도어 스트랩·윗단 되잡기 래싱을 권고하고, 래싱 줄 수는 빠른 래싱 가이드 C 표와 고른 고정 조건(마찰·래싱 MSL·고정점)으로 계산합니다.</li><li>안전 수준 "CTU 기준 적용"은 모든 화물의 안쪽·좌·우를 화물이나 고정재로 막고 얹힘을 금지한 배치를 만듭니다(3면 막힘·얹힘 금지·전도 한계).</li><li>결과는 CTU Code 기반 사전 검토 자료이며 적합성 인증이나 현장 책임자의 승인을 대신하지 않습니다.</li></ul></details>
       <details><summary>현재 계산하지 않는 한계</summary><ul><li>허용하중 미입력 제품의 압축강도, 면압과 포장재 열화</li><li>바닥 집중하중과 실제 차량 제원에 따른 축하중(결과 요약의 축하중은 일반 20ft·40ft 샤시 제원으로 추정한 값)</li><li>화물별로 다른 마찰계수(지금은 고정 조건에서 하나를 고름), 충격·진동, 래싱 STF·각도와 벽 자체 허용하중</li><li>위험물 격리, 냉동 공기 순환과 법규 적합성</li><li>모든 조합을 탐색하는 전역 최적화</li></ul></details>
       <details><summary>데이터 저장과 수집</summary><ul><li>로그인하지 않으면 프로젝트는 이 브라우저에만 저장됩니다.</li><li>로그인하면 프로젝트를 계정에 저장하며, 본인만 열 수 있습니다.</li><li>방문자 수는 날짜별 합계만 셉니다. 개인을 구분하는 정보는 남기지 않습니다.</li><li>자동 평가가 알고리즘 이상을 발견하면 개선을 위해 점검 기록을 익명으로 보냅니다. 제품명·제품군은 보내지 않고 치수·무게·수량·형상과 계산 조건, 지적 내용만 보내며, 한 브라우저에서 하루 최대 10건입니다. 기록은 관리자만 볼 수 있습니다.</li></ul></details>
       <details><summary>알고리즘 변경 원칙</summary><ul><li>공통 안전 조건을 우회하지 않습니다.</li><li>기존 전략과 같은 입력으로 결과를 비교합니다.</li><li>경계·충돌·중량·지지 회귀 테스트를 통과해야 합니다.</li><li>미배치와 실패 이유를 숨기지 않고 정책 버전과 변경 이력을 갱신합니다.</li></ul></details>
     </div>
+    <p class="ctu-library-link">CTU Code가 무엇인지, 공식 원문과 Cubestow 한국어 해설은 상단 <a href="#library" data-close-dialog>CTU Code</a> 메뉴에서 볼 수 있습니다.</p>
     <div class="policy-warning"><strong>현장 확인 필수</strong><span>실제 상차 전 화물 사양, 컨테이너 상태, 고정재 제조사 지침과 운송 규정을 확인하세요.</span></div>
   </dialog>
 
-  <dialog id="ctuDialog" class="project-dialog policy-dialog">
-    <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
-
-    <h2>CTU Code란?</h2>
-    <p>IMO·ILO·UNECE가 공동 발행한 Cargo Transport Unit 포장·적입 실무 지침입니다. 컨테이너에 무엇을 얼마나 싣는지뿐 아니라 작업 준비, 중량 배분, 화물 고정과 운송 중 위험까지 다룹니다.</p>
-    <div class="policy-summary">
-      <article><b>BEFORE</b><strong>작업 전 확인</strong><span>컨테이너 상태·화물 정보·작업 계획 점검</span></article>
-      <article><b>PACKING</b><strong>안전한 적입</strong><span>중량 분배·바닥 하중·빈 공간과 작업 동선 검토</span></article>
-      <article><b>SECURING</b><strong>이동 방지</strong><span>블로킹·쇼어링·래싱·마찰을 조합해 검증</span></article>
-      <article><b>AFTER</b><strong>출발 전 확인</strong><span>문 개방 위험·표시·서류·최종 상태 점검</span></article>
-    </div>
-    <div class="policy-sections">
-      <details open><summary>1. CTU Code의 성격</summary><ul><li>정식 명칭은 IMO/ILO/UNECE Code of Practice for Packing of Cargo Transport Units입니다.</li><li>전 세계 CTU 작업의 공통 실무 기준을 제시하지만 그 자체가 모든 국가에서 동일하게 강제되는 법률이나 인증서는 아닙니다.</li><li>송하인, 포장 작업자, 운송인과 현장 책임자의 역할 및 정보 전달을 함께 다룹니다.</li></ul></details>
-      <details><summary>2. 적입 전·중·후 핵심 확인</summary><ul><li>적입 전에는 CTU의 구조 손상, 청결·건조 상태, 내부 돌출물과 문 작동 상태를 확인합니다.</li><li>적입 중에는 총중량, 무게중심, 바닥 하중 분산, 화물 강도, 적재 순서와 작업자 안전을 검토합니다.</li><li>적입 후에는 화물 이동과 문을 열 때 쏟아질 위험을 방지하고, 고정 상태와 필요한 표시·서류를 확인합니다.</li></ul></details>
-      <details><summary>3. 고정의 기본 원칙</summary><ul><li>화물 질량만으로 움직이지 않는다고 가정하지 않으며 마찰만을 단독 고정 수단으로 의존하지 않습니다.</li><li>블로킹·쇼어링은 힘을 CTU 구조로 전달하고, 직접 래싱은 목표 방향에 저항하며, 톱오버 래싱은 추가 압력으로 마찰을 높입니다.</li><li>원통과 구름 가능 화물은 초크·웨지·크래들 등 구름 방지 수단을 먼저 검토합니다.</li><li>밴드, 앵커, 화물 고정점과 컨테이너 벽체는 각각의 허용하중을 확인해야 합니다.</li></ul></details>
-      <details><summary>4. 운송 중 작용하는 힘</summary><ul><li>CTU Code는 화물 질량과 도로·철도·해상 조건별 가속도계수로 방향별 관성력을 검토합니다.</li><li>미끄럼과 전도는 서로 다른 위험이므로 전·후·좌·우 방향별 힘과 모멘트를 각각 확인해야 합니다.</li><li>복합운송은 각 운송 구간 중 더 불리한 조건을 고려해야 합니다.</li></ul></details>
-      <details><summary>5. Cubestow의 현재 반영 범위</summary><ul><li>경계·충돌·중량·지지·미배치 검증과 3축 무게중심, 중심 편차, 수직 무게중심, 50% 길이 구간의 최대 질량 집중도를 제공합니다.</li><li>상부 허용하중이 입력된 제품은 상부 화물의 누적하중을 검사하고, 미입력 제품은 미검증으로 구분합니다.</li><li>해상·복합·육상 운송별로 높은 적층, 측면 간극, 문측 노출과 원통 구름 위험을 선별합니다.</li><li>에어백(제조사 최대 간극 500mm)·충전재·문쪽 각재(못 1개 1kN으로 못 수 계산)·도어 스트랩·윗단 되잡기 래싱의 위치를 권고하고, 래싱은 대략 수량만 어림합니다. 래싱 경로·각도·STF와 앵커 허용하중은 현장에서 확인해야 합니다.</li><li>"CTU 기준 적용"을 고르면 모든 화물의 안쪽·좌·우를 화물이나 고정재로 막고 얹힘을 금지한 배치를 만듭니다.</li><li>따라서 현재 결과는 CTU Code 기반 사전 검토 자료이며 적합성 인증이나 현장 승인을 대신하지 않습니다.</li></ul></details>
-    </div>
-    <p class="ctu-library-link">CTU Code 원문 링크와 Cubestow 한국어 해설은 <a href="#library" data-close-dialog>자료실</a>에서 볼 수 있습니다.</p>
-    <div class="policy-warning"><strong>현장 책임자 확인</strong><span>실제 적입 전 최신 CTU Code, 운송 구간별 규정, 컨테이너 제작사와 고정재 제조사 지침을 확인하세요.</span></div>
-  </dialog>
 
   <dialog id="projectsDialog" class="project-dialog wide">
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
@@ -322,23 +301,23 @@
     <form method="dialog"><button class="dialog-close" aria-label="닫기">×</button></form>
 <h2>저장 이름</h2><p>나중에 쉽게 찾을 수 있는 이름을 입력하세요.</p><label>저장 이름<input id="saveNameInput" maxlength="80" placeholder="예: 부산 수출 8월 1차"></label><button id="confirmSave" class="dialog-primary" type="button">이 이름으로 저장</button>
   </dialog>
-  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.103</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
+  <footer class="site-footer"><div class="footer-brand"><strong>Cubestow</strong><span>Load wisely. Ship safely.</span></div><div class="visitor-count" aria-label="방문자 수"><span>오늘 <b id="todayVisitors">—</b></span><span>누적 <b id="totalVisitors">—</b></span></div><div class="footer-meta"><span id="appVersion">v1.1.104</span><i>·</i><span>Made by JUAN.HJLEE</span><small>© 2026 Cubestow. All rights reserved.</small></div></footer>
   <script src="vendor/three.min.js?v=0.160.0"></script>
   <script src="vendor/supabase.js?v=2.112.2"></script>
   <script src="supabase-config.js"></script>
-  <script src="project-model.js?v=20260930-9"></script>
-  <script src="packing-engine.js?v=20260930-9"></script>
-  <script src="load-insights.js?v=20260930-9"></script>
-  <script src="solution-validator.js?v=20260930-9"></script>
-  <script src="sample-scenarios.js?v=20260930-9"></script>
-  <script src="result-review.js?v=20260930-9"></script>
-  <script src="library.js?v=20260930-9"></script>
-  <script src="sample-results.js?v=20260930-9"></script>
-  <script src="securing-plan.js?v=20260930-9"></script>
-  <script src="view-3d.js?v=20260930-9"></script>
-  <script src="import-export.js?v=20260930-9"></script>
-  <script src="app.js?v=20260930-9"></script>
-  <script src="project-store.js?v=20260930-9"></script>
-  <script src="to-top.js?v=20260930-9"></script>
+  <script src="project-model.js?v=20260930-10"></script>
+  <script src="packing-engine.js?v=20260930-10"></script>
+  <script src="load-insights.js?v=20260930-10"></script>
+  <script src="solution-validator.js?v=20260930-10"></script>
+  <script src="sample-scenarios.js?v=20260930-10"></script>
+  <script src="result-review.js?v=20260930-10"></script>
+  <script src="library.js?v=20260930-10"></script>
+  <script src="sample-results.js?v=20260930-10"></script>
+  <script src="securing-plan.js?v=20260930-10"></script>
+  <script src="view-3d.js?v=20260930-10"></script>
+  <script src="import-export.js?v=20260930-10"></script>
+  <script src="app.js?v=20260930-10"></script>
+  <script src="project-store.js?v=20260930-10"></script>
+  <script src="to-top.js?v=20260930-10"></script>
 </body>
 </html>
