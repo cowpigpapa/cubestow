@@ -233,7 +233,7 @@
       summary: '적입자가 보장할 계획·중량 한도·무게 분포·고정 원칙과 부속서 7 연결, Cubestow 반영 범위.',
       body: `
       <p>9장은 적입자(packer)가 CTU 안에 화물을 실을 때 보장해야 할 결과를 정합니다. 장 자체는 짧고, 각 절이 "무엇을 보장하라"만 말한 뒤 구체적 방법은 부속서 7로 넘깁니다. 그래서 9장은 부속서 7을 읽는 목차 역할을 하며, 적입 품질의 책임이 적입자에게 있다는 점을 분명히 합니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/packing-sequence.webp" alt="지게차로 팔레트를 싣는 컨테이너 안: 첫 화물은 앞벽에 붙이고, 무거운 화물은 아래, 화물 사이 빈 공간에만 더니지 백" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 적입은 앞벽부터 빈틈없이 채웁니다. 무거운 화물은 바닥에 두고, 화물 사이 빈 공간은 더니지 백으로 메웁니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/packing-rows.webp" alt="문쪽에서 본 컨테이너 안: 앞벽부터 줄마다 폭 전체를 채우고 화물 사이에만 더니지 백을 넣었으며, 지게차가 열린 문으로 다음 줄 화물을 싣는 모습" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 적입은 앞벽부터 줄마다 폭 전체를 빈틈없이 채웁니다. 무거운 화물은 바닥에 두고, 화물 사이 빈 공간은 더니지 백으로 메웁니다.</figcaption></figure>
       <h3>적입자가 보장할 것</h3>
       <table class="lib-table"><thead><tr><th>절</th><th>핵심 요구</th><th>세부 규정</th></tr></thead><tbody>
       <tr><td>§9.1 적입 계획</td><td>가능한 한 미리 계획, 혼재 불가 화물 격리, 특별 취급 지시 준수, 최대 허용 적재중량 준수, 집중하중 제한과 무게중심 편심 제한 준수, 해당하면 화물·고정 자재의 국제식물검역기준(ISPM) 준수</td><td>부속서 7 제1절</td></tr>
@@ -953,7 +953,7 @@
         '컨테이너 벽·바닥·고정점의 설계 강도, 냉동·오픈탑·플랫랙·스왑바디·트레일러·화차의 차이와 적입자가 알아야 할 숫자.',
       body: `
           <p>6장은 CTU 종류별로 구조와 강도를 설명합니다. 적입자가 꼭 알아야 할 것으로 원문은 실을 수 있는 질량, 바닥 강도, 고정점, 온도 유지 성능, 봉인, 풍우밀성 여섯 가지를 꼽습니다(§6.1.2). 고정 계획에서 "벽이 얼마나 버티나", "바닥이 지게차를 견디나", "고리에 몇 톤까지 걸 수 있나"를 판단하는 숫자가 모두 이 장에 있습니다. 화물과 경로에 가장 맞는 CTU를 고르는 일은 화주의 몫이며, 확신이 없으면 CTU 운영자에게 묻습니다(§6.1.1).</p>
-      <figure class="lib-figure"><img src="/images/ctu/container-structure.webp" alt="20ft 드라이 컨테이너 구조: 측벽, 앞벽, 문쪽 끝, 바닥, 코너 기둥, 래싱 고정점" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 벽·바닥·고정점은 버틸 수 있는 힘이 정해져 있습니다. 측벽과 앞벽·문쪽 끝, 바닥과 고정점의 설계 강도는 아래 표에서 확인합니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/container-structure-v2.webp" alt="20ft 드라이 컨테이너 구조: 측벽, 앞벽, 문쪽 끝, 바닥, 코너 기둥, 래싱 고정점" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 벽·바닥·고정점은 버틸 수 있는 힘이 정해져 있습니다. 측벽과 앞벽·문쪽 끝, 바닥과 고정점의 설계 강도는 아래 표에서 확인합니다.</figcaption></figure>
           <h3>일반 화물컨테이너의 강도 (§6.2.1~§6.2.6)</h3>
           <p>대부분의 화물컨테이너는 내·외부 치수가 ISO로 표준화되어 있습니다. 최대 총질량은 CSC 안전 승인 명판에, 자중과 적재중량은 문이나 뒤쪽 끝에 페인트로 적혀 있습니다(부속서 4 참고).</p>
           <table class="lib-table"><thead><tr><th>부위</th><th>설계 기준</th><th>현장에서의 뜻</th></tr></thead><tbody>
@@ -1016,7 +1016,7 @@
         '승인 명판과 구조 결함 확인, 화물 성질(기후·온도·중량·치수·산적)과 운송 방식(적층·도로·철도·로로선)에 맞는 CTU 선택.',
       body: `
           <p>6장이 CTU 종류별 성능을 설명했다면, 7장은 "이 화물을 이 경로로 보낼 때 이 CTU가 맞는가"를 판단하는 장입니다. 판단은 세 단계입니다. 운송에 쓸 수 있는 상태인가(§7.1), 화물에 맞는가(§7.2), 운송 방식에 맞는가(§7.3). CTU를 잘못 고르면 고정을 아무리 잘해도 메울 수 없으므로, 부킹 단계에서 먼저 정해야 하는 일입니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/ctu-for-cargo.webp" alt="화물에 맞는 CTU: 일반 상자는 드라이, 위에서 싣는 기계는 오픈탑, 폭이 넓은 기계는 플랫랙, 신선 화물은 냉동 컨테이너" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 화물의 크기, 싣는 방법, 온도 조건에 맞는 CTU를 고릅니다. 위에서 싣는 화물은 오픈탑, 폭·높이를 넘는 화물은 플랫랙, 신선 화물은 냉동 컨테이너를 씁니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/ctu-for-cargo-v2.webp" alt="화물에 맞는 CTU: 일반 상자는 지게차로 문을 통해 싣는 드라이, 키 큰 기계는 지붕 보를 떼어 내고 크레인으로 위에서 넣는 오픈탑, 폭이 넓은 기계는 래싱으로 고정한 플랫랙, 신선 화물은 냉동 컨테이너" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 화물의 크기, 싣는 방법, 온도 조건에 맞는 CTU를 고릅니다. 위에서 싣는 화물은 오픈탑, 폭·높이를 넘는 화물은 플랫랙, 신선 화물은 냉동 컨테이너를 씁니다.</figcaption></figure>
           <h3>운송에 쓸 수 있는 CTU인가 (§7.1)</h3>
           <ul>
           <li>화물컨테이너와 유럽 철도용 스왑바디처럼 형식 승인이 필요한 CTU는 유효한 승인 명판이 없으면 운송에 쓸 수 없습니다. 종류에 따라 정기 검사나 연속 검사 확인도 필요합니다(§7.1.1, 부속서 4).</li>
@@ -1278,7 +1278,7 @@
         '컨테이너를 드는 방법별 허용 조건, 터미널 반입 점검(무게 60%/50% 규칙 포함), 야적 적층과 바람, 차량·철도·선박에 CTU를 고정하는 방법.',
       body: `
           <p>부속서 2는 적입이 끝난 CTU를 운송 수단 사이에서 옮기고, 터미널에 쌓고, 차량·화차·선박에 고정할 때의 안전 수칙입니다. 주로 터미널 운영자와 운송인이 읽는 내용이지만, 적입자에게도 의미가 있습니다. 컨테이너 안에서 무게가 한쪽으로 쏠렸거나 총중량이 서류와 다르면, 들어 올리는 순간 그 결과가 드러나기 때문입니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/ctu-lifting.webp" alt="크레인 톱 스프레더로 컨테이너를 들어 올리고 작업자는 통제 구역 밖에 선 모습과, 지게차가 포크 포켓으로 컨테이너를 드는 모습" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 컨테이너는 톱 스프레더처럼 정해진 방법으로 들어 올리고, 매단 짐 아래에는 들어가지 않습니다. 포크 포켓으로 들 때는 포켓 종류에 따라 빈 컨테이너만 들 수 있는 경우가 있습니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/ctu-lifting-methods.webp" alt="크레인 스프레더가 컨테이너 네 모서리를 물고 들어 올리고 작업자는 통제 구역 밖에 선 모습과, 지게차가 긴 옆면 쪽에서 포크를 두 포크 포켓에 넣어 빈 컨테이너를 드는 모습" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 컨테이너는 스프레더처럼 정해진 방법으로 들어 올리고, 매단 짐 아래에는 들어가지 않습니다. 포크 포켓은 긴 옆면에 있으며, 포켓 종류에 따라 빈 컨테이너만 들 수 있습니다.</figcaption></figure>
           <h3>기본 원칙 (§1)</h3>
           <ul>
           <li>크레인, 지게차, 터미널 이동 장비는 상태가 좋고 용도에 맞아야 합니다(§1.2).</li>
@@ -1391,7 +1391,7 @@
         '고정 부족, 습도 관리 실패, 부적합한 CTU, 과적·신고 초과, 잘못된 서류가 각각 어떤 사고와 손해로 이어지는지 정리.',
       body: `
           <p>정보자료 IM1은 CTU Code의 규칙을 지키지 않았을 때 실제로 무슨 일이 생기는지를 사진 사례와 함께 보여 줍니다. 원인을 다섯 가지로 나누는데, 적입 작업 하나가 화물 손해에서 끝나지 않고 작업자 부상, 차량 전복, 선박 기울어짐과 해양 오염까지 이어질 수 있다는 점이 요지입니다. 규칙을 왜 지켜야 하는지 설명할 때 쓰기 좋은 자료입니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/poor-packing-consequences.webp" alt="커브 길에서 안쪽 화물이 한쪽으로 쏠린 트레일러와, 문을 열자 쏟아진 화물" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 제대로 고정하지 않은 화물은 커브와 급제동에서 쏠리고, 문을 열 때 쏟아져 사람을 다치게 할 수 있습니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/poor-packing-results.webp" alt="커브 길을 도는 트럭의 닫힌 컨테이너 안에서 화물이 한쪽으로 쏠린 모습(옆벽 단면)과, 문 한 짝을 열자 기운 화물이 쏟아져 나오는 모습" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 제대로 고정하지 않은 화물은 커브와 급제동에서 쏠리고, 문을 열 때 쏟아져 사람을 다치게 할 수 있습니다. 문은 문짝 옆에 서서 천천히 엽니다.</figcaption></figure>
           <h3>고정 부족 (§1)</h3>
           <p>제대로 고정하지 않은 화물은 도로의 급제동이나 바다에서 배가 크게 흔들릴 때 생기는 가속도를 받아 CTU 안에서 움직입니다. 무거운 화물은 관성력으로 CTU의 벽이나 문을 뚫고 나가 사람과 환경, 제3자의 재산을 위협합니다(§1.1).</p>
           <ul>
