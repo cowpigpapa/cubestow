@@ -1521,7 +1521,22 @@ test('the CTU Code references hold the securing case collection with sources, an
     'a7-calc',
     'anchor-points',
     'kr-road',
-    'cargo-cases'
+    'cargo-cases',
+    'ch9-packing',
+    'im6-load-distribution',
+    'ch4-chain',
+    'ch6-ctu',
+    'ch7-suitability',
+    'ch13-training',
+    'a1-info',
+    'a2-handling',
+    'a3-condensation',
+    'im1-consequences',
+    'im2-documents',
+    'im3-types',
+    'im7-manual',
+    'im9-seals',
+    'ch12-unpacking'
   ]) {
     await page.goto(`/library/ctu-code/${id}`);
     const img = page.locator('.lib-figure img');
