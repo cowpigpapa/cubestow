@@ -824,10 +824,11 @@
       title: '고박·포장 불량과 보험·소송 사례집',
       tag: '사례집',
       summary:
-        '화주 쪽 적입·고박·포장이 부족해 보험금을 받지 못하거나 운송인 상대 소송에서 진 국내외 사례와, 기록으로 결과가 바뀐 사례. 사례마다 출처 표기.',
+        '화주 쪽 적입·고박·포장이 부족해 보험금을 받지 못하거나 운송인 상대 소송에서 진 국내외 사례와, 기록으로 결과가 바뀐 사례. 사례마다 바로 아래 출처.',
       body: `
         <p>컨테이너 화물 손상의 상당 부분은 바다나 도로가 아니라 적입과 고박에서 시작됩니다. 운송 책임보험사 TT Club은 자사 사고 경험을 근거로 "화물 손상의 65%가 CTU 안에서 잘못 적입·블로킹·고박된 화물에서 생긴다"고 밝혔습니다(2017년 2월).</p>
-        <p>고박이 부족해 화물이 손상되면 화주는 두 번 막힐 수 있습니다. 적하보험은 "포장 불충분"을 면책으로 두고, 운송인도 같은 이유로 책임을 면할 수 있기 때문입니다. 아래는 판결문과 전문 매체 보도로 확인한 사례입니다. 사례마다 출처를 적었습니다.</p>
+        <p class="lib-source">출처: TT Club, 「Incorrect container packing leads to 65% of damaged cargo」(2017-02) — <a href="https://www.ttclub.com/news-and-resources/news/article/incorrect-container-packing-leads-to-65-of-damaged-cargo/" target="_blank" rel="noopener noreferrer">ttclub.com</a></p>
+        <p>고박이 부족해 화물이 손상되면 화주는 두 번 막힐 수 있습니다. 적하보험은 "포장 불충분"을 면책으로 두고, 운송인도 같은 이유로 책임을 면할 수 있기 때문입니다. 아래는 판결문과 전문 매체 보도로 확인한 사례입니다. 출처는 사례마다 바로 아래에 원문 링크와 함께 적었습니다.</p>
         <p class="lib-disclaimer">이 사례집은 공개된 판결과 보도를 Cubestow가 요약한 참고 자료이며 법률 자문이 아닙니다. 결과는 계약 조건, 보험 약관, 준거법과 사실관계에 따라 달라집니다.</p>
   
         <h3>먼저 알아둘 규칙</h3>
@@ -836,6 +837,7 @@
           <li><b>운송인의 면책</b> — 상법 제796조와 헤이그-비스비 규칙 제4조 제2항은 운송물 포장의 불충분과 송하인의 행위를 운송인이 책임을 면하는 사유로 둡니다. 화주가 직접 적입·고박한 컨테이너(Shipper's Load, Stow and Count)는 이 주장이 받아들여지기 쉽습니다.</li>
           <li><b>CTU Code</b> — 컨테이너를 채우는 적입자(packer)가 화물을 올바르게 싣고 고정할 책임을 집니다(4장 책임과 정보의 흐름, 부속서 7 적입과 고박).</li>
         </ul>
+        <p class="lib-source">출처: 상법 제796조(운송인의 면책사유), 헤이그-비스비 규칙 제4조 제2항, 협회적하약관 ICC(A) 2009 제4.3조, IMO·ILO·UNECE CTU Code 4장·부속서 7 — <a href="https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EC%83%81%EB%B2%95/%EC%A0%9C796%EC%A1%B0" target="_blank" rel="noopener noreferrer">국가법령정보센터(상법 제796조)</a></p>
   
         <h3>사례 1 · 컨테이너 안 화물 사이 빈 공간 — 보험금 청구 기각 (국내)</h3>
         <ul>
@@ -844,8 +846,8 @@
           <li><b>무슨 일이</b> — 컨테이너 2개에서 화물 3개가 한쪽으로 기울어 수리할 수 없을 정도로 손상(전손). 같은 선적 안에서도 와이어 고박 방식이 화물마다 달랐는데, 컨테이너 측벽과 화물 윗부분을 와이어로 이어 묶은 화물은 전혀 움직이거나 손상되지 않았습니다. 손상된 쪽은 화물과 화물 사이에 빈 공간이 있었고 완충재가 부족했습니다.</li>
           <li><b>판단</b> — 보험은 전위험담보(ICC All Risks)였지만, 보험사는 "보험목적물 고유의 하자나 성질"(불충분한 포장) 면책을 주장했습니다. 법원은 불충분한 포장도 통상의 항해를 견디지 못하는 상태로서 이 면책에 해당하고, 빈 공간 없이 완충재를 채웠어야 했다고 보아 수입자의 보험금 청구를 기각했습니다.</li>
           <li><b>교훈</b> — 같은 컨테이너 안에서도 고박 방식 하나와 빈 공간 메우기 여부가 보상과 전손을 갈랐습니다. 전위험담보라도 고박 불량은 보상되지 않을 수 있습니다.</li>
-          <li><b>출처</b> — 카고뉴스 법률칼럼 「화물 포장불충분과 적하보험 담보 여부」(김시오, 2022-07-10). 판결문 원문이 아니라 이 칼럼이 전한 사실관계를 요약했습니다.</li>
         </ul>
+        <p class="lib-source">출처: 카고뉴스 법률칼럼 「화물 포장불충분과 적하보험 담보 여부」(김시오, 2022-07-10) — <a href="https://www.cargonews.co.kr/news/articleView.html?idxno=49984" target="_blank" rel="noopener noreferrer">cargonews.co.kr</a>. 판결문 원문이 아니라 이 칼럼이 전한 사실관계를 요약했습니다.</p>
   
         <h3>사례 2 · 무거운 화물에 맞지 않은 나무상자 — 보험사 구상 기각 (국내)</h3>
         <ul>
@@ -854,8 +856,8 @@
           <li><b>무슨 일이</b> — 마산항에서 와이어로프와 벨트로 하역하는 중 가장 무거운 화물(21,300kg)의 상자 밑틀판이 내부 화물 무게를 견디지 못하고 휘다가 부서졌습니다. 나머지 18개는 손상이 없었습니다. 보험사는 보험금 328,970,926원을 지급한 뒤 물류회사에 같은 금액을 청구했습니다.</li>
           <li><b>판단</b> — 1심은 보험사가 이겼지만 항소심에서 뒤집혔습니다. 감정 결과 밑받침목의 강도가 부족했고(허용 휨응력보다 필요한 휨응력이 큼), 법원은 화물의 특성과 무게에 맞게 설계된 밑틀판에 포장하지 않은 잘못을 원인으로 보았습니다. 보험 개시 전에 이뤄진 불완전한 포장은 협회적하약관(A)의 면책 사유이므로 보험사에 원래 지급 의무가 없었고, 따라서 물류회사에 대한 구상도 할 수 없다고 판결했습니다.</li>
           <li><b>교훈</b> — 포장이나 받침 구조가 화물 무게를 견디지 못하면 보험이 보상하지 않는 손해가 되고, 하역한 쪽에도 책임을 묻기 어렵습니다. 무거운 단일 화물은 하중에 맞는 받침 설계가 필요합니다.</li>
-          <li><b>출처</b> — 서울중앙지방법원 2016나5565 판결(CaseNote 판결문 수록).</li>
         </ul>
+        <p class="lib-source">출처: 서울중앙지방법원 2017. 5. 11. 선고 2016나5565 판결 — <a href="https://casenote.kr/%EC%84%9C%EC%9A%B8%EC%A4%91%EC%95%99%EC%A7%80%EB%B0%A9%EB%B2%95%EC%9B%90/2016%EB%82%985565" target="_blank" rel="noopener noreferrer">CaseNote 판결문</a></p>
   
         <h3>사례 3 · 플랫랙 위 방수포 포장 — 운송인 상대 청구 기각 (국내)</h3>
         <ul>
@@ -864,8 +866,8 @@
           <li><b>무슨 일이</b> — 송하인이 화물을 방수포(타폴린)로 싸고 끈으로 묶어 플랫랙에 실었고, 운임 견적에는 "송하인의 위험으로 갑판 적재"가 적혀 있었습니다. 출항 당일 시속 30~57km의 강풍과 비 속에 방수포가 찢어져 바닷물이 들어갔고, 환적항에서 다시 포장했지만 목적지 창고에서 녹 손상이 발견됐습니다. 원고는 손해 160,044,917원을 청구했습니다.</li>
           <li><b>판단</b> — 법원은 한국 법원의 관할을 인정하고 영국법(헤이그-비스비 규칙)을 적용했습니다. 송하인의 동의 아래 이뤄진 갑판 운송은 유효하고, 손상의 원인은 포장 불충분이며 이는 운송인의 면책 사유라고 보았습니다. 송하인이 환적항 재포장 비용을 직접 낸 점과 운송장의 "송하인 적입·적부·수량 확인" 문구도 근거가 됐습니다. 송하인이 고박한 포장이 바람에 찢어질 것까지 운송인이 예견할 의무는 없다고 보아 항소를 기각했습니다.</li>
           <li><b>교훈</b> — 갑판에 실리는 플랫랙·오픈탑 화물은 비바람과 파도를 견디는 포장과 고박이 필요합니다. 화주가 직접 포장·고박했다면 손상은 대부분 화주 몫이 됩니다.</li>
-          <li><b>출처</b> — 서울고등법원 2021나2010140 판결(국가법령정보센터).</li>
         </ul>
+        <p class="lib-source">출처: 서울고등법원 2021. 11. 25. 선고 2021나2010140 판결 — <a href="https://law.go.kr/LSW/precInfoP.do?mode=0&amp;precSeq=219349" target="_blank" rel="noopener noreferrer">국가법령정보센터 판결문</a></p>
   
         <h3>사례 4 · 코일을 잠그지 않은 적재 — 선주 면책 (영국)</h3>
         <ul>
@@ -874,8 +876,8 @@
           <li><b>무슨 일이</b> — 악천후 속에 코일이 움직여 손상됐습니다. 법원은 실질 원인을 부적절한 적재, 특히 잠금 코일(locking coil)을 쓰지 않은 것과 예상 항해 조건에 맞는 체계적 래싱이 부족했던 것으로 보았습니다.</li>
           <li><b>판단</b> — 선하증권이 편입한 용선계약(Gencon 1994 제5조)에 "화물의 적재·적부는 용선자가 하며 선주는 위험·책임·비용을 지지 않는다"는 조항이 있었습니다. 적재 책임이 화주 쪽(용선자)에 있었으므로 선주는 책임이 없다고 판단했습니다.</li>
           <li><b>교훈</b> — 컨테이너가 아닌 선창 적재 사례지만 원리는 같습니다. 적재·고박을 맡은 쪽이 그 결과를 집니다. 코일·드럼처럼 구르는 화물은 잠금과 래싱이 핵심입니다.</li>
-          <li><b>출처</b> — Steamship Mutual, 「Cargo Damage — Poor Stowage: Who is Responsible?」(2013-11).</li>
         </ul>
+        <p class="lib-source">출처: Steamship Mutual, 「Cargo Damage — Poor Stowage: Who is Responsible?」(2013-11), EEMS Solar [2013] Lloyd's Rep. Plus 75 — <a href="https://www.steamshipmutual.com/publications/articles/consequencesofpoorstowage1113" target="_blank" rel="noopener noreferrer">steamshipmutual.com</a></p>
   
         <h3>사례 5 · 외부 업체가 적입했다면 — 보험사 거절이 뒤집힘 (스페인)</h3>
         <ul>
@@ -883,8 +885,8 @@
           <li><b>무슨 일이</b> — 문전에서 문전까지(house-to-house) FCL 운송 중 화물이 손상됐습니다. 송하인이 고용한 외부 업체가 송하인 창고에서 화물을 포장하고 컨테이너에 실었습니다. 보험사는 ICC(A) 제4.3조 포장 불충분 면책으로 지급을 거절했습니다.</li>
           <li><b>판단</b> — 법원은 1982년판과 2009년판 약관을 비교해, 2009년판의 면책은 피보험자나 그 직원이 포장한 경우로 한정되고 직원에 독립 계약자는 포함되지 않는다고 보았습니다. 포장을 피보험자가 통제할 수 없는 외부 업체가 했으므로 면책이 적용되지 않아 보험금을 지급해야 한다고 판결했습니다.</li>
           <li><b>교훈</b> — 누가 적입했는지가 보험 결과를 바꿉니다. 자사 직원이 직접 적입한다면 고박 품질이 곧 보험 보상 여부가 됩니다. 보험 조건이 1982년판인지 2009년판인지도 확인해야 합니다.</li>
-          <li><b>출처</b> — Garrigues, 「Spanish court revisits Institute Cargo Clauses on inadequate packing」(2015-05-21).</li>
         </ul>
+        <p class="lib-source">출처: Garrigues, 「Spanish court revisits Institute Cargo Clauses on inadequate packing」(2015-05-21) — <a href="https://www.garrigues.com/en_GB/new/spanish-court-revisits-institute-cargo-clauses-inadequate-packing" target="_blank" rel="noopener noreferrer">garrigues.com</a></p>
   
         <h3>사례 6 · 출발 전 사진과 기록으로 거절을 되돌림 (폴란드)</h3>
         <ul>
@@ -892,8 +894,8 @@
           <li><b>무슨 일이</b> — 수리를 위해 일본으로 보낸 기계에서 운송 중 부식이 발견됐고, 보험사는 ICC(A) 제4.3조 포장 불충분 면책으로 지급을 거절했습니다. 포장과 적재는 외부 업체가 했습니다.</li>
           <li><b>판단</b> — 중개사가 운송 시작 전에 찍은 사진, 보험 개시 전 상태 기록, 외부 업체와의 계약서를 제출해 손상이 포장 불충분이 아니라 숨은 결함(통상의 마모) 때문일 수 있음을 보였고, 보험사가 거절을 철회했습니다.</li>
           <li><b>교훈</b> — 면책은 자동으로 적용되지 않습니다. 출발 전 사진, 적입·고박 기록, 작업 계약서가 결과를 바꿉니다.</li>
-          <li><b>출처</b> — STBU 보험중개, 「Can the insurer always invoke exclusion 4.3 ICC(A)?」(2024-03-27).</li>
         </ul>
+        <p class="lib-source">출처: STBU 보험중개, 「Can the insurer always invoke exclusion 4.3 ICC(A)?」(2024-03-27) — <a href="https://www.stbu.pl/en/can-the-insurer-always-invoke-exclusion-4-3-icc-a-in-cases-of-damage-occurring-during-transportation/" target="_blank" rel="noopener noreferrer">stbu.pl</a></p>
   
         <h3>사례에서 배우는 것</h3>
         <ul>
@@ -903,19 +905,7 @@
           <li><b>문을 닫기 전에 기록한다</b> — 적입 계획, 고박 위치, 문 닫기 전 사진이 분쟁에서 결과를 바꿉니다(사례 6).</li>
         </ul>
         <p>Cubestow의 적재 순서, 고정재 권고(에어백·충전재·각재 못·래싱 줄 수), PDF 내보내기와 현장 결과 기록은 이런 적입 계획과 기록을 남기는 데 쓸 수 있습니다. 다만 Cubestow 결과는 사전 검토 자료이며 현장 책임자의 확인을 대신하지 않습니다.</p>
-  
-        <h3>출처</h3>
-        <ul class="lib-sources">
-          <li>TT Club, 「Incorrect container packing leads to 65% of damaged cargo」, 2017-02 — <a href="https://www.ttclub.com/news-and-resources/news/article/incorrect-container-packing-leads-to-65-of-damaged-cargo/" target="_blank" rel="noopener noreferrer">ttclub.com</a></li>
-          <li>사례 1 · 카고뉴스, 「법률칼럼 / 화물 포장불충분과 적하보험 담보 여부」, 김시오, 2022-07-10 (서울중앙지방법원 2017가합532480) — <a href="https://www.cargonews.co.kr/news/articleView.html?idxno=49984" target="_blank" rel="noopener noreferrer">cargonews.co.kr</a></li>
-          <li>사례 2 · 서울중앙지방법원 2017. 5. 11. 선고 2016나5565 판결 — <a href="https://casenote.kr/%EC%84%9C%EC%9A%B8%EC%A4%91%EC%95%99%EC%A7%80%EB%B0%A9%EB%B2%95%EC%9B%90/2016%EB%82%985565" target="_blank" rel="noopener noreferrer">casenote.kr</a></li>
-          <li>사례 3 · 서울고등법원 2021. 11. 25. 선고 2021나2010140 판결 — <a href="https://law.go.kr/LSW/precInfoP.do?mode=0&amp;precSeq=219349" target="_blank" rel="noopener noreferrer">국가법령정보센터</a></li>
-          <li>사례 4 · Steamship Mutual, 「Cargo Damage — Poor Stowage: Who is Responsible?」, 2013-11 (EEMS Solar [2013] Lloyd's Rep. Plus 75) — <a href="https://www.steamshipmutual.com/publications/articles/consequencesofpoorstowage1113" target="_blank" rel="noopener noreferrer">steamshipmutual.com</a></li>
-          <li>사례 5 · Garrigues, 「Spanish court revisits Institute Cargo Clauses on inadequate packing」, 2015-05-21 — <a href="https://www.garrigues.com/en_GB/new/spanish-court-revisits-institute-cargo-clauses-inadequate-packing" target="_blank" rel="noopener noreferrer">garrigues.com</a></li>
-          <li>사례 6 · STBU, 「Can the insurer always invoke exclusion 4.3 ICC(A) in cases of damage occurring during transportation?」, 2024-03-27 — <a href="https://www.stbu.pl/en/can-the-insurer-always-invoke-exclusion-4-3-icc-a-in-cases-of-damage-occurring-during-transportation/" target="_blank" rel="noopener noreferrer">stbu.pl</a></li>
-          <li>법령 · 상법 제796조(운송인의 면책사유), 협회적하약관 ICC(A) 2009 제4.3조, IMO·ILO·UNECE CTU Code 4장·부속서 7</li>
-        </ul>
-        <p class="lib-disclaimer">확인 기준일 2026-10-01. 사례 1은 판결문 원문이 아니라 보도 내용을 기준으로 했습니다. 판결과 보도의 표현을 옮겨 적지 않고 Cubestow가 요약했습니다.</p>
+        <p class="lib-disclaimer">확인 기준일 2026-10-01. 판결과 보도의 표현을 옮겨 적지 않고 Cubestow가 요약했습니다.</p>
     `
     }
   ];

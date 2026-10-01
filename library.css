@@ -303,3 +303,13 @@
 .library-view .lib-disclaimer {
   line-height: 1.7;
 }
+/* 사례집 등: 단락·사례 바로 아래 출처 줄 */
+.library-view .lib-source {
+  margin: -4px 0 20px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--lib-line);
+  color: var(--lib-muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}

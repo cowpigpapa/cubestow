@@ -1482,14 +1482,26 @@ test('the CTU Code references hold the securing case collection with sources, an
   const article = page.locator('#libraryView .lib-article');
   await expect(article.locator('h2')).toHaveText('고박·포장 불량과 보험·소송 사례집');
   await expect(article.locator('h3', { hasText: /^사례 \d/ })).toHaveCount(6);
-  // 사례마다 출처 줄이 있고, 끝의 출처 목록은 원문으로 새 창 링크를 건다
-  await expect(article.locator('li', { hasText: /^출처 — / })).toHaveCount(6);
-  const sources = article.locator('ul.lib-sources a');
-  await expect(sources).toHaveCount(7);
-  for (const a of await sources.all()) {
-    await expect(a).toHaveAttribute('target', '_blank');
-    await expect(a).toHaveAttribute('rel', /noopener/);
-  }
+  // 출처는 사례마다 바로 아래(사례 목록 다음 줄)에 원문 새 창 링크로 단다. 끝에 따로 모은 출처 목록은 없다.
+  const placement = await article.evaluate(el =>
+    [...el.querySelectorAll('h3')]
+      .filter(h => /^사례 \d/.test(h.textContent))
+      .map(h => {
+        const list = h.nextElementSibling,
+          source = list?.nextElementSibling;
+        return [
+          list?.tagName,
+          source?.className,
+          /^출처: /.test(source?.textContent || ''),
+          source?.querySelector('a[target="_blank"][rel*="noopener"]') ? 'link' : 'no-link'
+        ];
+      })
+  );
+  expect(placement).toEqual(Array(6).fill(['UL', 'lib-source', true, 'link']));
+  await expect(article.locator('h3', { hasText: /^출처$/ })).toHaveCount(0);
+  // 들어가는 말의 통계와 규칙에도 바로 아래 근거를 단다
+  await expect(article.locator('p.lib-source')).toHaveCount(8);
+  await expect(article.locator('p.lib-source').first()).toContainText('TT Club');
   await expect(article).toContainText('2017가합532480');
   await expect(article).toContainText('2021나2010140');
   await expect(article).toContainText('법률 자문이 아닙니다');

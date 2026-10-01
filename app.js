@@ -923,7 +923,7 @@ function runPackingEngine(input, onProgress = () => {}) {
     );
   if (!engineWorker && typeof Worker !== 'undefined' && location.protocol !== 'file:')
     try {
-      engineWorker = new Worker('engine-worker.js?v=20261001-02');
+      engineWorker = new Worker('engine-worker.js?v=20261001-03');
     } catch {
       engineWorker = null;
     }
