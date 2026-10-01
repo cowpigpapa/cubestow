@@ -276,7 +276,7 @@
       summary: '문 닫기와 봉인, 위험물 표찰, 총중량(VGM)·CTU 번호·봉인 번호 전달, Cubestow가 하지 않는 일.',
       body: `
       <p>11장은 마지막 화물을 실은 뒤부터 CTU를 운송인에게 넘기기까지의 일을 다룹니다. 닫기와 봉인(§11.1), 외부 표시와 표찰(§11.2), 서류와 총중량(§11.3) 세 가지입니다. 적입이 잘 되었어도 총중량이 틀리거나 봉인 번호가 서류와 다르면 선적 지연이나 사고로 이어지므로, 적입 작업의 마지막 단계로 보아야 합니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/packing-completion.webp" alt="컨테이너 적입 완료 후 문 잠금, 봉인, VGM 확인과 서류 전달 절차" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 적입 완료는 문을 닫는 것으로 끝나지 않습니다. 잠금·봉인·총중량 확인과 정확한 정보 전달까지가 한 절차입니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/packing-completion-v2.webp" alt="컨테이너 적입 완료 후 문 잠금, 봉인, VGM 확인과 서류 전달 절차" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 적입 완료는 문을 닫는 것으로 끝나지 않습니다. 잠금·봉인·총중량 확인과 정확한 정보 전달까지가 한 절차입니다.</figcaption></figure>
       <h3>CTU 닫기와 봉인 (§11.1)</h3>
       <ul>
       <li>문을 닫은 뒤 모든 잠금장치가 제대로 걸렸는지 적입자가 확인합니다. 문을 잠근다면 비상시 바로 열 수 있는 방식이어야 합니다.</li>
@@ -1174,7 +1174,7 @@
         '적입 계획·감독자와 작업자가 일을 맡기 전에 받아야 할 교육, 경영진의 책임과 교육 기록, 부속서 10의 15개 교육 주제.',
       body: `
           <p>13장은 CTU Code가 현장에서 지켜지려면 결국 사람이 알아야 한다는 데서 출발합니다. 적입에 관계된 모든 사람이 위험을 알고 규칙을 자세히 이해해야 하며, 이는 처음 교육과 재교육을 계획해 꾸준히 운영해야만 이룰 수 있다고 봅니다(§13.1.1). 부속서 10은 그 교육에 넣을 만한 주제를 15개 묶음으로 제시합니다. 주제 목록은 "고려할" 항목이므로 맡은 일에 맞게 골라 씁니다(§13.3.2).</p>
-      <figure class="lib-figure"><img src="/images/ctu/packing-training.webp" alt="강사가 화이트보드의 컨테이너 적입 그림을 설명하고 작업자들이 컨테이너 안에서 래싱을 실습하는 교육 장면" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 적입 교육은 계획과 고정의 이론에 더해, 실제 컨테이너에서 래싱을 걸어 보는 실습을 함께 합니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/packing-training-v2.webp" alt="강사가 화이트보드의 컨테이너 적입 그림을 설명하고 작업자들이 컨테이너 안에서 래싱을 실습하는 교육 장면" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 적입 교육은 계획과 고정의 이론에 더해, 실제 컨테이너에서 래싱을 걸어 보는 실습을 함께 합니다.</figcaption></figure>
           <h3>누가 무엇을 알아야 하나 (§13.1~§13.2)</h3>
           <table class="lib-table"><thead><tr><th>대상</th><th>요구 수준</th><th>근거</th></tr></thead><tbody>
           <tr><td>적입 계획·감독자</td><td>업무의 기술적·법적·상업적 요구사항과 관련 위험을 모두 알아야 합니다. 송하인, 포워더, 작업자와 말이 통하도록 업계에서 쓰는 용어도 알아야 합니다.</td><td>§13.1.2</td></tr>
@@ -1233,7 +1233,7 @@
         '송하인·적입자·화주·운송인·수하인 사이에서 화물 명세, 검증된 총중량(VGM), 위험물 정보, 봉인 번호가 오가는 길과 역할이 겹칠 때의 정리.',
       body: `
           <p>부속서 1은 CTU 한 대가 출발지에서 목적지까지 가는 동안 관계자들이 주고받아야 할 정보를 다룹니다. 원문은 짧지만 요지는 분명합니다. 화물을 안전하게 옮기려면 정보가 끊기지 않고 제때, 국제적으로 통하는 용어로 전달되어야 한다는 것입니다(§1, §4). 적입자는 실은 포장화물을 빠짐없이 확인해 서류에 올리고, 실제 총질량을 정하며, 운송 구간 어디에서든 생길 수 있는 위험을 알려야 합니다(§2, §3). 역할별 책임은 4장에 있고, 부속서 1은 그 사이의 정보 흐름을 그림으로 보여 줍니다(§5).</p>
-      <figure class="lib-figure"><img src="/images/ctu/information-flow.webp" alt="화주에서 운송인과 항만으로 넘어가는 총질량(VGM), 봉인 번호, 화물 정보, 위험물 서류" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 총질량(VGM), 봉인 번호, 화물 정보, 위험물 서류는 화물이 움직이기 전에 다음 당사자에게 넘어가야 합니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/information-flow-v2.webp" alt="화주에서 운송인과 항만으로 넘어가는 총질량(VGM), 봉인 번호, 화물 정보, 위험물 서류" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 총질량(VGM), 봉인 번호, 화물 정보, 위험물 서류는 화물이 움직이기 전에 다음 당사자에게 넘어가야 합니다.</figcaption></figure>
           <h3>계약의 중심은 화주와 운송인 (§6~§7)</h3>
           <p>CTU Code에서 주된 계약은 화주와 운송인 사이에 있습니다. 터미널이나 도로 운송업자도 실제로 일을 하지만, 둘 중 한쪽에 대해 책임을 지는 위치입니다(§6). 화주는 송하인에게서 화물 정보를, 적입자·혼재업자에게서 적입 정보를 받아 운송인에게 넘기는 정보 처리자 역할을 할 수 있습니다(§7). 현장에서는 한 회사가 여러 역할을 겸하는 일이 많아, 원문은 조합을 셋으로 나눕니다.</p>
           <ul>
@@ -1626,7 +1626,7 @@
         <p>고박이 부족해 화물이 손상되면 화주는 두 번 막힐 수 있습니다. 적하보험은 "포장 불충분"을 면책으로 두고, 운송인도 같은 이유로 책임을 면할 수 있기 때문입니다. 아래는 판결문과 전문 매체 보도로 확인한 사례입니다. 출처는 사례마다 바로 아래에 원문 링크와 함께 적었습니다.</p>
         <p class="lib-disclaimer">이 사례집은 공개된 판결과 보도를 Cubestow가 요약한 참고 자료이며 법률 자문이 아닙니다. 결과는 계약 조건, 보험 약관, 준거법과 사실관계에 따라 달라집니다.</p>
   
-        <figure class="lib-figure"><img src="/images/ctu/collapsed-cargo.webp" alt="고박이 부족해 운송 중 무너지고 쏟아진 화물을 문을 열고 안전 거리에서 확인하는 작업자" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 화물 사이 빈 공간과 풀린 고박은 운송 중 붕괴로 이어집니다. 이런 손상은 보험과 운송인 모두에게서 보상받지 못할 수 있습니다.</figcaption></figure>
+        <figure class="lib-figure"><img src="/images/ctu/collapsed-cargo-v2.webp" alt="고박이 부족해 운송 중 무너진 화물을 컨테이너 문쪽 끝의 열린 문 사이로 안전 거리에서 확인하는 작업자" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 화물 사이 빈 공간과 풀린 고박은 운송 중 붕괴로 이어집니다. 이런 손상은 보험과 운송인 모두에게서 보상받지 못할 수 있습니다.</figcaption></figure>
       <h3>먼저 알아둘 규칙</h3>
         <ul>
           <li><b>적하보험의 포장 불충분 면책</b> — 협회적하약관 ICC(A) 2009 제4.3조는 포장·준비가 불충분하거나 부적절해 생긴 손해를 보상하지 않습니다. 여기서 포장에는 컨테이너 안 적입(stowage)도 포함됩니다. 다만 보험 개시 전에 했거나, 피보험자 본인 또는 그 직원이 한 경우에만 적용되고, 외부 업체(독립 계약자)가 한 경우는 빠집니다. 가장 넓은 담보인 (A) 조건에도 들어 있는 면책입니다.</li>
