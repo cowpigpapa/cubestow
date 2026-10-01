@@ -1587,3 +1587,40 @@ test('every two- and three-star CTU Code item has its own commentary', async ({ 
   await page.goto('/library/ctu-code/a4-plates');
   await expect(page.locator('img[src*="receiving-inspection"]')).toHaveCount(0);
 });
+
+// 해설 표: 한국어 단어가 중간에서 쪼개지지 않고, 짧은 항목(제목·이름·근거 등)은 한 줄에 들어간다.
+test('commentary tables never split a word and keep short items on one line', async ({ page }) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/library/ctu-code');
+  const ids = await page.evaluate(() => window.CUBESTOW_LIBRARY.docs);
+  const problems = [];
+  for (const id of ids) {
+    await page.goto(`/library/ctu-code/${id}`);
+    await page.locator('.lib-article').waitFor();
+    const found = await page.locator('.lib-article').evaluate(article => {
+      const tops = range =>
+        new Set([...range.getClientRects()].filter(r => r.width > 1).map(r => Math.round(r.top))).size;
+      const out = [];
+      article.querySelectorAll('table td, table th').forEach(cell => {
+        const text = cell.textContent.trim(),
+          whole = document.createRange();
+        whole.selectNodeContents(cell);
+        if (text.length <= 12 && tops(whole) > 1) out.push(`짧은 항목 줄바꿈: ${text}`);
+        const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode()))
+          // 가운뎃점·괄호·쉼표·빗금·물결·따옴표·퍼센트·하이픈 자리에서 줄이 바뀌는 것은 자연스러우므로 그 사이 조각만 본다
+          for (const m of node.textContent.matchAll(/[^\s·(),/~"%-]+/g)) {
+            const r = document.createRange();
+            r.setStart(node, m.index);
+            r.setEnd(node, m.index + m[0].length);
+            if (tops(r) > 1) out.push(`단어 쪼개짐: ${m[0]}`);
+          }
+      });
+      return out;
+    });
+    found.forEach(f => problems.push(`${id} · ${f}`));
+  }
+  expect(problems).toEqual([]);
+});

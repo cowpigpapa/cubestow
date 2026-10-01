@@ -328,3 +328,19 @@
   background: #e5f5ec;
   color: #145c33;
 }
+/* 해설 표: 한국어는 띄어쓰기에서만 줄을 바꾸고(단어 중간에서 끊지 않음), 머리줄과 짧은 항목 열은 한 줄로 */
+.library-view .lib-article table th,
+.library-view .lib-article table td {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.library-view .lib-article table th,
+.library-view .lib-article table .lib-nowrap {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  /* 휴대폰: 긴 설명 열이 너무 좁아지지 않게 최소 폭을 두고, 표는 옆으로 밀어 본다 */
+  .library-view .lib-article table td:not(.lib-nowrap) {
+    min-width: 11em;
+  }
+}

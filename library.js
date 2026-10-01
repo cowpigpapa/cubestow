@@ -1478,7 +1478,7 @@
         '드라이·통풍·오픈탑·오픈사이드·냉동·탱크·벌크·플랫랙 컨테이너와 스왑바디·트레일러·화차의 특징, 벽·바닥·고정점 강도와 적입 때 볼 점.',
       body: `
           <p>정보자료 3(MSC.1/Circ.1498 IM3)은 적입자와 화주가 화물에 맞는 CTU를 고를 수 있도록 CTU 종류별 치수, 정격 질량, 벽·바닥 강도, 고정점, 대표 화물을 정리한 자료입니다. 겉모양이 비슷해도 종류에 따라 벽이 견디는 힘, 고정점의 유무와 강도, 바닥에 들어갈 수 있는 지게차가 다릅니다. 같은 고정 방법을 모든 CTU에 쓰면 안 되는 이유가 여기에 있습니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/ctu-types-v2.webp" alt="같은 축척으로 그린 20ft 드라이, 40ft 하이큐브, 오픈탑(지붕 보와 말아 둔 방수포), 플랫랙, 앞벽에 냉동기가 있는 40ft 냉동 컨테이너, 탱크 컨테이너" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> CTU 종류마다 벽 강도, 고정점, 싣는 방법이 다릅니다. Cubestow는 드라이 컨테이너만 계산합니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/ctu-types-v3.webp" alt="같은 축척으로 그린 20ft 드라이, 40ft 하이큐브, 오픈탑(지붕 보와 말아 둔 방수포), 플랫랙, 앞벽에 냉동기가 있는 40ft 냉동 컨테이너, 탱크 컨테이너" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> CTU 종류마다 벽 강도, 고정점, 싣는 방법이 다릅니다. Cubestow는 드라이 컨테이너만 계산합니다.</figcaption></figure>
           <h3>모든 컨테이너에 공통 (§1.1)</h3>
           <ul>
           <li><b>무게</b>: 적재중량 P = 최대 총질량 R − 자중 T이며, 고정재와 더니지 무게도 P 안에 들어갑니다. ISO 기준 정격은 10ft를 빼고 30,480kg이고, 20·40·45ft 박스형은 32,500kg이나 34,000kg인 것도 있습니다(§1.1.7.2).</li>
@@ -1886,6 +1886,22 @@
   }
   function renderDoc(view, doc) {
     view.innerHTML = `<nav class="lib-crumb"><a href="/library/ctu-code">← CTU Code</a></nav><article class="lib-article"><span class="lib-doc-head"><span class="lib-tag">${esc(doc.tag)}</span>${levelBadge(doc.id)}</span><h2>${esc(doc.title)}</h2>${doc.body.replace('<!--lib-map-->', mapTable())}</article>`;
+    fitTableColumns(view);
+  }
+  // 표의 열 가운데 칸이 모두 짧은 열(항목 이름·근거·방식 등)은 한 줄로 둔다. 그러면 표가 그 열에 필요한 폭을 먼저 주고,
+  // 긴 설명 열만 줄바꿈된다. 긴 칸이 섞인 열은 그대로 두되, 단어 중간에서는 끊지 않는다(CSS word-break: keep-all).
+  const SHORT_CELL = 14;
+  function fitTableColumns(root) {
+    root.querySelectorAll('.lib-article table').forEach(table => {
+      const columns = [];
+      [...table.rows].forEach(row => [...row.cells].forEach((cell, i) => (columns[i] = columns[i] || []).push(cell)));
+      columns.forEach(cells => {
+        const body = cells.filter(c => c.tagName === 'TD');
+        // 짧은 칸만 있는 열, 또는 조항 번호(§8.2.1.3~§8.2.1.4)만 있는 근거 열
+        const fits = c => c.textContent.trim().length <= SHORT_CELL || /^[§\d.,~·\s–-]+$/.test(c.textContent.trim());
+        if (body.length && body.every(fits)) cells.forEach(c => c.classList.add('lib-nowrap'));
+      });
+    });
   }
   function show() {
     const view = document.getElementById('libraryView');
