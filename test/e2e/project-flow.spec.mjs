@@ -819,8 +819,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
-  // 해설 16개 + 번역 준비 중 카드 2개. 원문별 구간에 공식 원문과 해설이 함께 있다.
-  await expect(page.locator('a.lib-doc')).toHaveCount(16);
+  // 해설 16개 + 사례집 1개 + 번역 준비 중 카드 2개. 원문별 구간에 공식 원문과 해설이 함께 있다.
+  await expect(page.locator('a.lib-doc')).toHaveCount(17);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
   await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
@@ -843,7 +843,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await page.goto('/library/ctu-code');
   // 참고 자료는 Cubestow가 쓴 글만(외부 사이트 링크 없음), 해설 진행표는 없음
   await expect(section('참고 자료').locator('a.lib-card')).toHaveCount(0);
-  await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(2);
+  // 고정점 강도 · 한국 도로 한도 · 고박 불량 사례집
+  await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(3);
   await expect(page.locator('.lib-plan')).toHaveCount(0);
   // 안내 문구는 문장마다 줄을 바꾼다
   await expect(page.locator('.lib-head p br')).toHaveCount(2);
@@ -856,6 +857,10 @@ test('the library links the official CTU Code sources and opens Korean commentar
   // 전체 요약: 본문 13장·부속서 10개·정보자료 10개가 중요도와 함께 나온다
   await page.goto('/library/ctu-code/ctu-overview');
   await expect(page.locator('.lib-article h2')).toContainText('CTU Code 전체 요약');
+  await expect(page.locator('.lib-figure img')).toHaveAttribute('src', '/images/ctu/ctu-code-scope.webp');
+  await page.locator('.lib-figure img').scrollIntoViewIfNeeded();
+  await expect.poll(() => page.locator('.lib-figure img').evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
+  await expect(page.locator('.lib-figure figcaption')).toContainText('AI 생성 도해');
   await expect(page.locator('.lib-item')).toHaveCount(33);
   await expect(page.locator('.lib-item[data-level="3"]').first()).toContainText('꼭 알아야 함');
   await page.goto('/library/ctu-code/structure');
@@ -1463,4 +1468,39 @@ test('on a phone the planner splits into input and result tabs and shows the res
   await expect(page.locator('#controlPanel')).toBeVisible();
   await expect(page.locator('#canvasWrap')).toBeVisible();
   await expect(page.locator('.simulation-config-bar')).toBeVisible();
+});
+
+// CTU Code 참고 자료: 고박·포장 불량 사례집(사례마다 출처, 끝에 전체 출처 목록)과 도해 이미지가 실제로 뜨는지
+test('the CTU Code references hold the securing case collection with sources, and every figure actually loads', async ({
+  page
+}) => {
+  test.setTimeout(60000);
+  await page.goto('/library/ctu-code');
+  const refs = page.locator('.lib-section', { has: page.locator('h3', { hasText: '참고 자료' }) });
+  await expect(refs.locator('a.lib-doc[href="/library/ctu-code/cargo-cases"]')).toContainText('사례집');
+  await refs.locator('a.lib-doc[href="/library/ctu-code/cargo-cases"]').click();
+  const article = page.locator('#libraryView .lib-article');
+  await expect(article.locator('h2')).toHaveText('고박·포장 불량과 보험·소송 사례집');
+  await expect(article.locator('h3', { hasText: /^사례 \d/ })).toHaveCount(6);
+  // 사례마다 출처 줄이 있고, 끝의 출처 목록은 원문으로 새 창 링크를 건다
+  await expect(article.locator('li', { hasText: /^출처 — / })).toHaveCount(6);
+  const sources = article.locator('ul.lib-sources a');
+  await expect(sources).toHaveCount(7);
+  for (const a of await sources.all()) {
+    await expect(a).toHaveAttribute('target', '_blank');
+    await expect(a).toHaveAttribute('rel', /noopener/);
+  }
+  await expect(article).toContainText('2017가합532480');
+  await expect(article).toContainText('2021나2010140');
+  await expect(article).toContainText('법률 자문이 아닙니다');
+
+  // 도해가 있는 해설마다 그림이 실제로 받아져 그려진다(깨진 이미지도 complete=true 이므로 naturalWidth로 본다)
+  for (const id of ['ctu-overview', 'a4-plates', 'ch11-after', 'a7-planning', 'a7-load-distribution', 'a7-securing']) {
+    await page.goto(`/library/ctu-code/${id}`);
+    const img = page.locator('.lib-figure img');
+    await expect(img).toHaveCount(1);
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(() => img.evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
+    await expect(page.locator('.lib-figure figcaption')).toContainText('AI 생성 도해');
+  }
 });

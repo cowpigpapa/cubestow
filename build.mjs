@@ -27,6 +27,7 @@ await cp('vendor/three.min.js', 'dist/client/vendor/three.min.js');
 await cp('vendor/xlsx.full.min.js', 'dist/client/vendor/xlsx.full.min.js');
 await cp('vendor/supabase.js', 'dist/client/vendor/supabase.js');
 await cp('public/og.png', 'dist/client/og.png');
+await cp('public/images', 'dist/client/images', { recursive: true });
 for (const icon of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icon-512.png'])
   await cp(`public/${icon}`, `dist/client/${icon}`);
 await cp('sample-results.html', 'dist/client/sample-results.html');

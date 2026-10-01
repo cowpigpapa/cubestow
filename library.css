@@ -142,6 +142,36 @@
 .library-view .lib-article li {
   color: #2b3230;
 }
+.library-view .lib-figure {
+  margin: 20px 0 24px;
+  overflow: hidden;
+  border: 1px solid var(--lib-line);
+  border-radius: 14px;
+  background: #f7f8f6;
+}
+.library-view .lib-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.library-view .lib-figure figcaption {
+  padding: 10px 14px 12px;
+  color: var(--lib-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.library-view .lib-figure figcaption span {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e8f1ec;
+  color: #285943;
+  font-size: 11px;
+  font-weight: 700;
+}
 .library-view .lib-table {
   width: 100%;
   border-collapse: collapse;
@@ -167,6 +197,10 @@
   .library-view .lib-table {
     display: block;
     overflow-x: auto;
+  }
+  .library-view .lib-figure {
+    margin: 16px -4px 20px;
+    border-radius: 12px;
   }
 }
 .library-view .lib-head a {
