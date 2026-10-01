@@ -1691,7 +1691,7 @@
       docs: ['structure', 'ctu-overview']
     },
     {
-      title: 'CTU Code 본문',
+      title: 'CTU Code 본문 해설',
       sub: 'MSC.1/Circ.1497 · 지켜야 할 실무규칙',
       official: '1497',
       docs: [
@@ -1714,7 +1714,7 @@
       ]
     },
     {
-      title: 'CTU Code 정보자료',
+      title: 'CTU Code 정보자료 해설',
       sub: 'MSC.1/Circ.1498 · 계산표와 참고 설명',
       official: '1498',
       docs: ['im1-consequences', 'im2-documents', 'qlg-c', 'im6-load-distribution', 'im7-manual', 'im9-seals']
@@ -1770,21 +1770,80 @@
           .join('')}</ul></div>`
     ).join('')}</div></section>`;
   function renderList(view) {
-    const sections = SECTIONS.map(
-      g =>
-        `<section class="lib-section"><h3>${esc(g.title)} <small>${esc(g.sub)}</small></h3><div class="lib-docs">${OFFICIAL.filter(
-          o => o.group === g.official
-        )
-          .map(o => card(o) + (TRANSLATIONS[o.url] ? soonCard(TRANSLATIONS[o.url]) : ''))
-          .join('')}${g.docs.map(byId).filter(Boolean).map(docCard).join('')}</div></section>`
-    ).join('');
+    // 공식 원문(배포처 PDF 링크)은 한 구간에 모아 접지 않고 늘 보이게 둔다. 번역 준비 중 카드는 원문 카드 바로 옆.
+    const official = `<section class="lib-section lib-official"><h3>공식 원문 <small>IMO 배포처 링크 · 본문 1497 · 정보자료 1498</small></h3><div class="lib-docs">${[
+      '1497',
+      '1498',
+      'other'
+    ]
+      .flatMap(group => OFFICIAL.filter(o => o.group === group))
+      .map(o => card(o) + (TRANSLATIONS[o.url] ? soonCard(TRANSLATIONS[o.url]) : ''))
+      .join('')}</div></section>`;
+    const sections = SECTIONS.filter(g => g.docs.length)
+      .map(
+        g =>
+          `<section class="lib-section"><h3>${esc(g.title)} <small>${esc(g.sub)}</small></h3><div class="lib-docs">${g.docs
+            .map(byId)
+            .filter(Boolean)
+            .map(docCard)
+            .join('')}</div></section>`
+      )
+      .join('');
     view.innerHTML = `<div class="lib-head"><h2>CTU Code</h2><p>${lines('컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 ')}<a href="/library/ctu-code/structure">자료 구조 안내</a>와 <a href="/library/ctu-code/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
+      ${official}
       ${stagePath()}
       ${sections}
       <section class="lib-section"><h3>참고 자료 <small>Cubestow 작성 · 계속 추가</small></h3><div class="lib-docs">${REFERENCE_DOCS.map(byId).filter(Boolean).map(docCard).join('')}</div></section>
       <section class="lib-section lib-notes"><h3>안내</h3>
         <p class="lib-disclaimer"><b>한국어 번역</b><br>${lines('CTU Code 본문과 정보자료의 전체 한국어 번역 초안은 준비되어 있습니다. 저작권자인 IMO의 사전 서면 허가 없이는 번역본을 게시할 수 없어, IMO에 게시 허가를 요청해 두었습니다. 허가를 받으면 원문 옆 "Coming soon" 카드에서 공개합니다. 그 전까지는 공식 원문 링크와 Cubestow 해설을 이용해 주세요.')}</p>
         <p class="lib-disclaimer"><b>저작권과 해설</b><br>${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 공식 배포 링크를 겁니다. 해설과 참고 자료는 Cubestow가 원문과 법령을 읽고 직접 쓴 글이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다.')}</p></section>`;
+    makeFoldable(view);
+  }
+  // 첫 화면 구간 접기: 처음에는 "작업 순서로 보기"만 펼친다. 펼친 상태는 같은 탭 안에서만 기억한다(sessionStorage).
+  const FOLD_KEY = 'loadwise.v3.libraryOpen';
+  const readOpen = () => {
+    try {
+      const v = JSON.parse(sessionStorage.getItem(FOLD_KEY) || 'null');
+      return Array.isArray(v) ? v : null;
+    } catch {
+      return null;
+    }
+  };
+  const saveOpen = list => {
+    try {
+      sessionStorage.setItem(FOLD_KEY, JSON.stringify(list));
+    } catch {}
+  };
+  function makeFoldable(view) {
+    const saved = readOpen();
+    const sections = [...view.querySelectorAll('section.lib-section:not(.lib-official)')].map((section, i) => {
+      const details = document.createElement('details'),
+        summary = document.createElement('summary'),
+        h3 = section.querySelector(':scope > h3');
+      details.className = section.className;
+      summary.append(h3);
+      details.append(summary, ...section.childNodes);
+      details.open = saved ? saved.includes(i) : section.classList.contains('lib-path');
+      section.replaceWith(details);
+      return details;
+    });
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'lib-fold';
+    const sync = () => {
+      const all = sections.every(d => d.open);
+      button.textContent = all ? '모두 접기' : '모두 펼치기';
+      button.setAttribute('aria-expanded', String(all));
+      saveOpen(sections.map((d, i) => (d.open ? i : -1)).filter(i => i >= 0));
+    };
+    button.onclick = () => {
+      const open = !sections.every(d => d.open);
+      sections.forEach(d => (d.open = open));
+      sync();
+    };
+    sections.forEach(d => d.addEventListener('toggle', sync));
+    view.querySelector('.lib-head')?.append(button);
+    sync();
   }
   // 2026-10-01 겹치는 해설을 합침: 흡수된 해설 → 남은 해설
   const MERGED = {

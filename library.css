@@ -401,3 +401,55 @@
   color: var(--lib-muted);
   font-size: 12.5px;
 }
+/* 첫 화면 구간 접기 */
+.library-view details.lib-section > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.library-view details.lib-section > summary::-webkit-details-marker {
+  display: none;
+}
+.library-view details.lib-section > summary::after {
+  content: '';
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-left: 2px;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform 0.15s;
+}
+.library-view details.lib-section[open] > summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+.library-view details.lib-section > summary > h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.library-view details.lib-section > summary > h3 small {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--lib-muted);
+}
+.library-view details.lib-section[open] > summary {
+  margin-bottom: 12px;
+}
+.library-view details.lib-section {
+  padding-top: 14px;
+  border-top: 1px solid var(--lib-line);
+}
+.library-view .lib-fold {
+  margin-top: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid #b9cdbf;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}

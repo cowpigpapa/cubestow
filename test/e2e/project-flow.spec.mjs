@@ -814,24 +814,25 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('#libraryView a[href*="mariterm"]')).toHaveCount(0);
   await expect(page.locator('#libraryView')).toContainText('사전 서면 허가 없이 복제할 수 없습니다');
   // 해설을 열고 CTU Code 목록으로 돌아온다.
+  await page.locator('.lib-fold').click(); // 해설 구간은 처음에 접혀 있으므로 모두 펼친다
   await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
   await expect(page).toHaveURL(/\/library\/ctu-code\/qlg-c$/);
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
-  // 해설 26개 + 사례집 1개(번역 준비 중 카드 2개는 a 가 아님). 원문별 구간에 공식 원문과 해설이 함께 있다.
+  // 해설 26개 + 사례집 1개(번역 준비 중 카드 2개는 a 가 아님). 공식 원문은 한 구간에 모여 늘 보이고, 해설은 원문별 구간에 있다.
   await expect(page.locator('a.lib-doc')).toHaveCount(27);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
-  await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
+  await expect(section('공식 원문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="/library/ctu-code/qlg-c"]')).toHaveCount(1);
-  await expect(section('CTU Code 정보자료').locator('a.lib-card[href$="1498.pdf#page=65"]')).toHaveCount(1);
+  await expect(section('공식 원문').locator('a.lib-card[href$="1498.pdf#page=65"]')).toHaveCount(1);
   // 한국어 번역은 원문 카드 바로 옆에 준비 중 카드로, 설명은 아래 안내에
   await expect(
-    section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 한국어 번역' })
+    section('공식 원문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 한국어 번역' })
   ).toHaveCount(1);
   await expect(
-    section('CTU Code 정보자료').locator('a.lib-card[href$="1498.pdf"] + .lib-soon', {
+    section('공식 원문').locator('a.lib-card[href$="1498.pdf"] + .lib-soon', {
       hasText: '정보자료 한국어 번역'
     })
   ).toHaveCount(1);
@@ -1407,6 +1408,7 @@ test('path addresses open each screen directly, move old hash links, and navigat
   await page.evaluate(() => (window.__sameDocument = true));
   await page.locator('.topbar nav a[href="/library/ctu-code"]').click();
   await expect(page).toHaveURL(/\/library\/ctu-code$/);
+  await page.locator('.lib-fold').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
   await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
   await expect(page).toHaveURL(/\/library\/ctu-code\/qlg-c$/);
   await expect(page.locator('#libraryView .lib-article')).toBeVisible();
@@ -1475,10 +1477,11 @@ test('on a phone the planner splits into input and result tabs and shows the res
 test('the CTU Code references hold the securing case collection with sources, and every figure actually loads', async ({
   page
 }) => {
-  test.setTimeout(60000);
+  test.setTimeout(240000); // 해설 27개의 도해 28장을 모두 실제로 받아 본다
   await page.goto('/library/ctu-code');
   const refs = page.locator('.lib-section', { has: page.locator('h3', { hasText: '참고 자료' }) });
   await expect(refs.locator('a.lib-doc[href="/library/ctu-code/cargo-cases"]')).toContainText('사례집');
+  await page.locator('.lib-fold').click(); // 참고 자료는 접혀 있으므로 펼친다
   await refs.locator('a.lib-doc[href="/library/ctu-code/cargo-cases"]').click();
   const article = page.locator('#libraryView .lib-article');
   await expect(article.locator('h2')).toHaveText('고박·포장 불량과 보험·소송 사례집');
@@ -1534,6 +1537,7 @@ test('commentary cards show their importance stars', async ({ page }) => {
   await expect(card('ctu-overview').locator('.lib-level')).toHaveCount(0);
   await expect(card('cargo-cases').locator('.lib-level')).toHaveCount(0);
   // 해설 화면 머리에도 같은 별
+  await page.locator('.lib-fold').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
   await card('a5-receiving').click();
   await expect(page.locator('.lib-article .lib-level')).toHaveText('★★ 알아두면 좋음');
 });
@@ -1636,4 +1640,44 @@ test('the CTU Code page offers a reading path by work stage', async ({ page }) =
   for (const h of starred) expect(hrefs).toContain(h);
   await path.locator('a[href="/library/ctu-code/ch8-arrival"]').click();
   await expect(page.locator('.lib-article h2')).toContainText('8장');
+});
+
+// CTU Code 첫 화면: 작업 순서만 펼치고 나머지 구간은 접어 둔다. "모두 펼치기/모두 접기" 단추 하나로 바꾸고, 같은 탭에서는 상태를 기억한다.
+test('the CTU Code page opens with only the work-stage path expanded and one button folds or unfolds all', async ({
+  page
+}) => {
+  await page.goto('/library/ctu-code');
+  const sections = page.locator('details.lib-section');
+  await expect(sections).toHaveCount(6);
+  // 공식 원문(PDF 링크)은 접지 않는 한 구간으로 늘 보인다
+  await expect(page.locator('section.lib-official .lib-card[href*="imo.org"]')).toHaveCount(5);
+  await expect(page.locator('section.lib-official .lib-card').first()).toBeVisible();
+  const openState = () =>
+    sections.evaluateAll(ds => ds.map(d => [d.querySelector('h3').firstChild.textContent.trim(), d.open]));
+  expect(await openState()).toEqual([
+    ['작업 순서로 보기', true],
+    ['시작하기', false],
+    ['CTU Code 본문 해설', false],
+    ['CTU Code 정보자료 해설', false],
+    ['참고 자료', false],
+    ['안내', false]
+  ]);
+  const toggle = page.locator('.lib-fold');
+  await expect(toggle).toHaveText('모두 펼치기');
+  await toggle.click();
+  await expect(toggle).toHaveText('모두 접기');
+  expect((await openState()).every(([, open]) => open)).toBe(true);
+  // 해설을 보고 돌아와도 펼친 상태 그대로
+  await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
+  await page.locator('.lib-crumb a').click();
+  expect((await openState()).every(([, open]) => open)).toBe(true);
+  await toggle.click();
+  await expect(toggle).toHaveText('모두 펼치기');
+  expect((await openState()).every(([, open]) => !open)).toBe(true);
+  // 구간 하나를 직접 펼치면 단추는 아직 "모두 펼치기"
+  await page.locator('details.lib-section > summary', { hasText: '참고 자료' }).click();
+  await expect(
+    page.locator('details.lib-section', { hasText: '참고 자료' }).locator('a.lib-doc').first()
+  ).toBeVisible();
+  await expect(toggle).toHaveText('모두 펼치기');
 });
