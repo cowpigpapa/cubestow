@@ -383,7 +383,7 @@
       summary: '봉인 대조, 훈증·유해가스 점검과 측정, 쏟아짐에 대비한 문 열기와 환기의 순서.',
       body: `
       <p>부속서 5는 적입된 CTU를 받는 쪽(인수자·수하인)이 문을 열고 적출에 들어가기까지의 안전 수칙입니다. 문 뒤에는 운송 중 무너진 화물이나 훈증제·유해가스가 있을 수 있어 순서를 건너뛰면 작업자가 다치거나 중독될 수 있습니다. 원문은 받기, 위치 잡기, 봉인 제거, 외부 점검, 가스 측정, 문 열기, 환기, 반환 순으로 되어 있습니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/receiving-check.webp" alt="화물이 든 컨테이너를 받으며 봉인 번호를 서류와 대조하고, 가스를 측정하고, 문 옆에 서서 한쪽 문만 조금 열어 문에 기댄 화물을 확인하는 작업자들" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 문을 열기 전에 봉인 번호와 외관을 확인하고 유해가스를 측정합니다. 문은 한쪽만 조금 열어 문 뒤로 기운 화물이 없는지 먼저 봅니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/receiving-steps.webp" alt="컨테이너를 여는 네 단계: 봉인 번호 대조, 볼트 커터로 봉인 자르기, 문을 열기 전 가스 측정, 문 옆에 서서 한쪽 문만 천천히 열기" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 문을 열기 전에 봉인 번호를 서류와 대조하고, 봉인을 자른 뒤 가스를 측정합니다. 문은 한쪽만 문 옆에 서서 천천히 열어 문에 기댄 화물이 없는지 먼저 봅니다.</figcaption></figure>
       <h3>받을 때와 봉인 제거 (§1~§3)</h3>
       <ul>
       <li>CTU 식별 번호가 운송서류와 같은지 확인합니다. 다르면 화주의 해명을 받을 때까지 인수하지 않습니다.</li>
@@ -1478,7 +1478,7 @@
         '드라이·통풍·오픈탑·오픈사이드·냉동·탱크·벌크·플랫랙 컨테이너와 스왑바디·트레일러·화차의 특징, 벽·바닥·고정점 강도와 적입 때 볼 점.',
       body: `
           <p>정보자료 3(MSC.1/Circ.1498 IM3)은 적입자와 화주가 화물에 맞는 CTU를 고를 수 있도록 CTU 종류별 치수, 정격 질량, 벽·바닥 강도, 고정점, 대표 화물을 정리한 자료입니다. 겉모양이 비슷해도 종류에 따라 벽이 견디는 힘, 고정점의 유무와 강도, 바닥에 들어갈 수 있는 지게차가 다릅니다. 같은 고정 방법을 모든 CTU에 쓰면 안 되는 이유가 여기에 있습니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/ctu-types.webp" alt="20ft 드라이, 40ft 하이큐브, 오픈탑, 플랫랙, 냉동, 탱크 컨테이너" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> CTU 종류마다 벽 강도, 고정점, 싣는 방법이 다릅니다. Cubestow는 드라이 컨테이너만 계산합니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/ctu-types-v2.webp" alt="같은 축척으로 그린 20ft 드라이, 40ft 하이큐브, 오픈탑(지붕 보와 말아 둔 방수포), 플랫랙, 앞벽에 냉동기가 있는 40ft 냉동 컨테이너, 탱크 컨테이너" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> CTU 종류마다 벽 강도, 고정점, 싣는 방법이 다릅니다. Cubestow는 드라이 컨테이너만 계산합니다.</figcaption></figure>
           <h3>모든 컨테이너에 공통 (§1.1)</h3>
           <ul>
           <li><b>무게</b>: 적재중량 P = 최대 총질량 R − 자중 T이며, 고정재와 더니지 무게도 P 안에 들어갑니다. ISO 기준 정격은 10ft를 빼고 30,480kg이고, 20·40·45ft 박스형은 32,500kg이나 34,000kg인 것도 있습니다(§1.1.7.2).</li>
