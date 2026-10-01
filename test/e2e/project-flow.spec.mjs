@@ -858,7 +858,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   // 전체 요약: 본문 13장·부속서 10개·정보자료 10개가 중요도와 함께 나온다
   await page.goto('/library/ctu-code/ctu-overview');
   await expect(page.locator('.lib-article h2')).toContainText('CTU Code 전체 요약');
-  await expect(page.locator('.lib-figure img')).toHaveAttribute('src', '/images/ctu/ctu-code-scope.webp');
+  await expect(page.locator('.lib-figure img')).toHaveAttribute('src', /^\/images\/ctu\/ctu-code-scope(-v\d+)?\.webp$/);
   await page.locator('.lib-figure img').scrollIntoViewIfNeeded();
   await expect.poll(() => page.locator('.lib-figure img').evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
   await expect(page.locator('.lib-figure figcaption')).toContainText('AI 생성 도해');
@@ -1580,7 +1580,10 @@ test('every two- and three-star CTU Code item has its own commentary', async ({ 
   await expect(page.locator('.lib-table td', { hasText: /^예정$/ })).toHaveCount(0);
   // 빈 컨테이너 점검 도해는 8장 해설로, 부속서 4는 명판만
   await page.goto('/library/ctu-code/ch8-arrival');
-  await expect(page.locator('.lib-figure img')).toHaveAttribute('src', '/images/ctu/receiving-inspection.webp');
+  await expect(page.locator('.lib-figure img')).toHaveAttribute(
+    'src',
+    /^\/images\/ctu\/receiving-inspection(-v\d+)?\.webp$/
+  );
   await page.goto('/library/ctu-code/a4-plates');
   await expect(page.locator('img[src*="receiving-inspection"]')).toHaveCount(0);
 });
