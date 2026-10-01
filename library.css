@@ -313,3 +313,18 @@
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
+/* 해설 카드·해설 머리의 중요도 별 */
+.library-view .lib-doc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.library-view .lib-level[data-level='3'] {
+  background: #e3efff;
+  color: #0b4a99;
+}
+.library-view .lib-level[data-level='2'] {
+  background: #e5f5ec;
+  color: #145c33;
+}

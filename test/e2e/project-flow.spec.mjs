@@ -819,8 +819,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
-  // 해설 16개 + 사례집 1개 + 번역 준비 중 카드 2개. 원문별 구간에 공식 원문과 해설이 함께 있다.
-  await expect(page.locator('a.lib-doc')).toHaveCount(17);
+  // 해설 31개 + 사례집 1개 + 번역 준비 중 카드 2개. 원문별 구간에 공식 원문과 해설이 함께 있다.
+  await expect(page.locator('a.lib-doc')).toHaveCount(32);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
   await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
@@ -852,7 +852,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await page.locator('.lib-head a[href="/library/ctu-code/structure"]').click();
   await expect(page.locator('.lib-article h2')).toContainText('1497·1498·1531');
   const map = page.locator('.lib-article table').filter({ hasText: 'Cubestow 반영' });
-  await expect(map.locator('tbody tr')).toHaveCount(16);
+  // 본문·부속서·정보자료의 ★★ 이상 항목과 참고 자료(고정점·도로 한도)
+  await expect(map.locator('tbody tr')).toHaveCount(30);
   await expect(map.locator('a[href="/library/ctu-code/ch5-accel"]')).toHaveText('완료');
   // 전체 요약: 본문 13장·부속서 10개·정보자료 10개가 중요도와 함께 나온다
   await page.goto('/library/ctu-code/ctu-overview');
@@ -1509,12 +1510,18 @@ test('the CTU Code references hold the securing case collection with sources, an
   // 도해가 있는 해설마다 그림이 실제로 받아져 그려진다(깨진 이미지도 complete=true 이므로 naturalWidth로 본다)
   for (const id of [
     'ctu-overview',
-    'a4-plates',
+    'ch8-arrival',
     'ch5-accel',
     'ch11-after',
     'a7-planning',
     'a7-load-distribution',
-    'a7-securing'
+    'a7-securing',
+    'a4-plates',
+    'a5-receiving',
+    'a7-calc',
+    'anchor-points',
+    'kr-road',
+    'cargo-cases'
   ]) {
     await page.goto(`/library/ctu-code/${id}`);
     const img = page.locator('.lib-figure img');
@@ -1523,4 +1530,42 @@ test('the CTU Code references hold the securing case collection with sources, an
     await expect.poll(() => img.evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
     await expect(page.locator('.lib-figure figcaption')).toContainText('AI 생성 도해');
   }
+});
+
+// 해설 카드에 중요도 별(★★★ 꼭 알아야 함 / ★★ 알아두면 좋음)을 붙여 구분한다. 안내·참고 자료 카드에는 없다.
+test('commentary cards show their importance stars', async ({ page }) => {
+  await page.goto('/library/ctu-code');
+  const card = id => page.locator(`a.lib-doc[href="/library/ctu-code/${id}"]`);
+  await expect(card('a7-securing').locator('.lib-level')).toHaveText('★★★ 꼭 알아야 함');
+  await expect(card('a7-securing').locator('.lib-level')).toHaveAttribute('data-level', '3');
+  await expect(card('a5-receiving').locator('.lib-level')).toHaveText('★★ 알아두면 좋음');
+  await expect(card('ctu-overview').locator('.lib-level')).toHaveCount(0);
+  await expect(card('cargo-cases').locator('.lib-level')).toHaveCount(0);
+  // 해설 화면 머리에도 같은 별
+  await card('a5-receiving').click();
+  await expect(page.locator('.lib-article .lib-level')).toHaveText('★★ 알아두면 좋음');
+});
+
+// ★★★·★★ 항목은 모두 해설이 있다: 전체 요약의 별 두 개 이상 항목마다 해설 링크, 목록 카드의 별 개수
+test('every two- and three-star CTU Code item has its own commentary', async ({ page }) => {
+  await page.goto('/library/ctu-code/ctu-overview');
+  const missing = await page
+    .locator('.lib-article')
+    .evaluate(el =>
+      [...el.querySelectorAll('.lib-item[data-level="3"], .lib-item[data-level="2"]')]
+        .filter(item => !item.querySelector('a[href^="/library/ctu-code/"]'))
+        .map(item => item.querySelector('b').textContent)
+    );
+  expect(missing).toEqual([]);
+  await page.goto('/library/ctu-code');
+  await expect(page.locator('a.lib-doc .lib-level[data-level="3"]')).toHaveCount(10);
+  await expect(page.locator('a.lib-doc .lib-level[data-level="2"]')).toHaveCount(17);
+  // 해설 구조표: 별 항목 해설 행은 모두 완료
+  await page.goto('/library/ctu-code/structure');
+  await expect(page.locator('.lib-table td', { hasText: /^예정$/ })).toHaveCount(0);
+  // 빈 컨테이너 점검 도해는 8장 해설로, 부속서 4는 명판만
+  await page.goto('/library/ctu-code/ch8-arrival');
+  await expect(page.locator('.lib-figure img')).toHaveAttribute('src', '/images/ctu/receiving-inspection.webp');
+  await page.goto('/library/ctu-code/a4-plates');
+  await expect(page.locator('img[src*="receiving-inspection"]')).toHaveCount(0);
 });
