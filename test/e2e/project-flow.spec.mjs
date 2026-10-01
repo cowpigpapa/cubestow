@@ -1543,7 +1543,7 @@ test('the CTU Code references hold the securing case collection with sources, an
     await expect(img).toHaveCount(1);
     await img.scrollIntoViewIfNeeded();
     await expect.poll(() => img.evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
-    await expect(page.locator('.lib-figure figcaption')).toContainText('AI 생성 도해');
+    await expect(page.locator('.lib-figure figcaption')).toContainText(/AI 생성 도해|Cubestow 도면/);
   }
 });
 
@@ -1623,4 +1623,29 @@ test('commentary tables never split a word and keep short items on one line', as
     found.forEach(f => problems.push(`${id} · ${f}`));
   }
   expect(problems).toEqual([]);
+});
+
+// CTU Code 첫 화면: 장 번호를 몰라도 작업 단계(적입 전 → 적입·고정 → 적입 후 → 받는 쪽)로 해설을 찾아간다.
+test('the CTU Code page offers a reading path by work stage', async ({ page }) => {
+  await page.goto('/library/ctu-code');
+  const path = page.locator('.lib-path');
+  await expect(path.locator('h3')).toContainText('작업 순서로 보기');
+  await expect(path.locator('.lib-stage > b')).toHaveText([
+    '시작',
+    '계획',
+    '적입 전 점검',
+    '적입·고정',
+    '적입 후',
+    '받는 쪽'
+  ]);
+  // 모든 링크는 실제 해설로 가고, 별 둘 이상 해설은 빠짐없이 어느 단계엔가 들어 있다
+  const hrefs = await path.locator('a').evaluateAll(as => as.map(a => a.getAttribute('href')));
+  const ids = await page.evaluate(() => window.CUBESTOW_LIBRARY.docs);
+  for (const h of hrefs) expect(ids).toContain(h.replace('/library/ctu-code/', ''));
+  const starred = await page
+    .locator('a.lib-doc:has(.lib-level)')
+    .evaluateAll(as => as.map(a => a.getAttribute('href')));
+  for (const h of starred) expect(hrefs).toContain(h);
+  await path.locator('a[href="/library/ctu-code/ch8-arrival"]').click();
+  await expect(page.locator('.lib-article h2')).toContainText('8장');
 });
