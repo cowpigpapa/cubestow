@@ -9,9 +9,12 @@
     );
   const IMO = 'https://wwwcdn.imo.org/localresources/en/OurWork/Safety/Documents/';
   // 공식 원문(배포처 링크만). group: 목록에서 어느 구간에 둘지.
+  // IMO의 CTU Code 소개 페이지(공식 배포 위치): 카드 대신 공식 원문 제목 옆에 한 줄 링크로 둔다.
+  const IMO_CTU_PAGE = 'https://www.imo.org/en/ourwork/safety/pages/ctu-code.aspx';
   const OFFICIAL = [
     {
       group: '1497',
+      circ: '1497',
       title: 'CTU Code 본문 원문 (영어 PDF)',
       org: 'IMO · ILO · UNECE',
       date: '2014-12-16',
@@ -21,22 +24,13 @@
     },
     {
       group: '1498',
+      circ: '1498',
       title: 'CTU Code 정보자료 원문 (영어 PDF)',
       org: 'IMO · ILO · UNECE',
       date: '2014-12-16',
       lang: '181쪽',
       url: IMO + '1498.pdf',
       note: 'Code를 보충하는 참고자료 IM1~IM10. 래싱 수량 표(IM5), 하중 분포(IM6)가 들어 있습니다.'
-    },
-    {
-      group: '1498',
-      title: '빠른 래싱 가이드 (정보자료 IM5)',
-      org: 'IMO · ILO · UNECE',
-      date: '2014-12-16',
-      lang: '영어 PDF 65~119쪽',
-      // 같은 정보자료 PDF 를 가이드가 시작하는 쪽에서 연다. 다른 곳의 사본 대신 IMO 공식 배포본만 링크한다.
-      url: IMO + '1498.pdf#page=65',
-      note: '래싱 몇 줄이 필요한지 표로 찾는 가이드 A·B·C. 정보자료 원문의 해당 쪽이 바로 열립니다.'
     },
     {
       group: 'other',
@@ -46,15 +40,6 @@
       lang: '영어 PDF',
       url: IMO + 'MSC.1-CIRC.1531%20(E).pdf',
       note: '적입·포장 업체를 고르거나 점검할 때 확인할 항목.'
-    },
-    {
-      group: 'other',
-      title: 'IMO CTU Code 소개 페이지',
-      org: 'IMO',
-      date: '',
-      lang: '영어 웹',
-      url: 'https://www.imo.org/en/ourwork/safety/pages/ctu-code.aspx',
-      note: '위 문서들의 공식 배포 위치.'
     },
     {
       group: 'other',
@@ -1650,7 +1635,7 @@
         `<tr><td>${esc(src)}</td><td>${esc(where)}</td><td>${esc(what)}</td><td>${level === '핵심' ? '<b>핵심</b>' : esc(level)}</td><td>${esc(used)}</td><td>${!id ? '—' : hasDoc(id) ? `<a href="/library/ctu-code/${id}">완료</a>` : '예정'}</td></tr>`
     ).join('')}</tbody></table>`;
   const card = o =>
-    `<a class="lib-card" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer"><span class="lib-kind">공식 원문</span><b>${esc(o.title)}</b><span class="lib-meta">${[o.org, o.date, o.lang].filter(Boolean).map(esc).join(' · ')}</span><span>${esc(o.note)}</span><span class="lib-open">원문 열기 ↗</span></a>`;
+    `<a class="lib-card" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer"><span class="lib-card-head"><span class="lib-kind">공식 원문</span>${o.circ ? `<span class="lib-circ">${esc(o.circ)}</span>` : ''}</span><b>${esc(o.title)}</b><span class="lib-meta">${[o.org, o.date, o.lang].filter(Boolean).map(esc).join(' · ')}</span><span>${esc(o.note)}</span><span class="lib-open">원문 열기 ↗</span></a>`;
   // 해설 중요도: CTU Code 전체 요약의 별과 같다(★★★ 꼭 알아야 함, ★★ 알아두면 좋음). 안내·참고 자료는 별이 없다.
   const LEVELS = {
     'ch3-key': 3,
@@ -1771,7 +1756,7 @@
     ).join('')}</div></section>`;
   function renderList(view) {
     // 공식 원문(배포처 PDF 링크)은 한 구간에 모아 접지 않고 늘 보이게 둔다. 번역 준비 중 카드는 원문 카드 바로 옆.
-    const official = `<section class="lib-section lib-official"><h3>공식 원문 <small>IMO 배포처 링크 · 본문 1497 · 정보자료 1498</small></h3><div class="lib-docs">${[
+    const official = `<section class="lib-section lib-official"><h3>공식 원문 <small>IMO 배포처 링크 · 본문 1497 · 정보자료 1498</small> <a class="lib-intro" href="${IMO_CTU_PAGE}" target="_blank" rel="noopener noreferrer">IMO CTU Code 소개 페이지 ↗</a></h3><div class="lib-docs">${[
       '1497',
       '1498',
       'other'
@@ -1789,14 +1774,11 @@
             .join('')}</div></section>`
       )
       .join('');
-    view.innerHTML = `<div class="lib-head"><h2>CTU Code</h2><p>${lines('컨테이너 적입·고정 기준 자료입니다. 공식 원문은 배포처 링크로 열고, Cubestow가 쓴 한국어 해설은 이 안에서 읽을 수 있습니다. 처음이면 ')}<a href="/library/ctu-code/structure">자료 구조 안내</a>와 <a href="/library/ctu-code/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
+    view.innerHTML = `<div class="lib-head"><h2>CTU Code</h2><div class="lib-notice"><b>저작권과 해설</b><p>${lines('CTU Code는 국제기준의 Cargo Transport Unit(컨테이너 등) 적재·고박 기준 자료입니다. CTU Code와 정보자료의 저작권은 IMO에 있으며 원문은 아래 공식 배포 사이트를 통해 내려받을 수 있습니다. 해설과 참고 자료는 AI가 원문과 법령을 읽고 직접 작성하였으며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다. CTU Code 본문(1497)과 정보자료(1498)의 전체 한국어 번역 초안은 준비되어 있으나 저작권자인 IMO의 사전 서면 허가 없이는 번역본을 게시할 수 없어, IMO의 게시 허가를 기다리는 중입니다.')}</p></div><p class="lib-start">처음이면 <a href="/library/ctu-code/structure">자료 구조 안내</a>와 <a href="/library/ctu-code/ctu-overview">CTU Code 전체 요약</a>부터 보세요.</p></div>
       ${official}
       ${stagePath()}
       ${sections}
-      <section class="lib-section"><h3>참고 자료 <small>Cubestow 작성 · 계속 추가</small></h3><div class="lib-docs">${REFERENCE_DOCS.map(byId).filter(Boolean).map(docCard).join('')}</div></section>
-      <section class="lib-section lib-notes"><h3>안내</h3>
-        <p class="lib-disclaimer"><b>한국어 번역</b><br>${lines('CTU Code 본문과 정보자료의 전체 한국어 번역 초안은 준비되어 있습니다. 저작권자인 IMO의 사전 서면 허가 없이는 번역본을 게시할 수 없어, IMO에 게시 허가를 요청해 두었습니다. 허가를 받으면 원문 옆 "Coming soon" 카드에서 공개합니다. 그 전까지는 공식 원문 링크와 Cubestow 해설을 이용해 주세요.')}</p>
-        <p class="lib-disclaimer"><b>저작권과 해설</b><br>${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 사전 서면 허가 없이 복제할 수 없습니다. 그래서 파일을 이곳에 다시 올리지 않고 공식 배포 링크를 겁니다. 해설과 참고 자료는 Cubestow가 원문과 법령을 읽고 직접 쓴 글이며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다.')}</p></section>`;
+      <section class="lib-section"><h3>참고 자료 <small>Cubestow 작성 · 계속 추가</small></h3><div class="lib-docs">${REFERENCE_DOCS.map(byId).filter(Boolean).map(docCard).join('')}</div></section>`;
     makeFoldable(view);
   }
   // 첫 화면 구간 접기: 처음에는 "작업 순서로 보기"만 펼친다. 펼친 상태는 같은 탭 안에서만 기억한다(sessionStorage).

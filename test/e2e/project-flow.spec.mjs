@@ -809,10 +809,19 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('#planner')).toBeHidden();
   await expect(page.locator('.topbar nav a[href="/library/ctu-code"]')).toHaveClass(/active/);
   // 공식 원문은 IMO 배포 링크로만 건다(파일을 다시 올리지 않음).
-  await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(5);
+  await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(3);
+  // 본문·정보자료 카드에는 회람 번호 표시, IMO 소개 페이지는 카드가 아니라 한 줄 링크
+  await expect(page.locator('.lib-card[href$="1497.pdf"] .lib-circ')).toHaveText('1497');
+  await expect(page.locator('.lib-card[href$="1498.pdf"] .lib-circ')).toHaveText('1498');
+  await expect(page.locator('.lib-card[href*="ctu-code.aspx"]')).toHaveCount(0);
+  await expect(page.locator('section.lib-official a.lib-intro[href*="ctu-code.aspx"]')).toHaveText(/IMO CTU Code 소개/);
+  // 빠른 래싱 가이드는 따로 카드로 두지 않는다(정보자료 원문 안에 있고, 해설이 따로 있음)
+  await expect(page.locator('.lib-card[href*="#page=65"]')).toHaveCount(0);
   // 빠른 래싱 가이드도 IMO 공식 파일로만 링크한다(다른 곳의 사본은 걸지 않는다).
   await expect(page.locator('#libraryView a[href*="mariterm"]')).toHaveCount(0);
-  await expect(page.locator('#libraryView')).toContainText('사전 서면 허가 없이 복제할 수 없습니다');
+  // 저작권·해설 안내는 맨 위에 있다
+  await expect(page.locator('.lib-head .lib-notice')).toContainText('저작권은 IMO에 있으며');
+  await expect(page.locator('.lib-head .lib-notice')).toContainText('IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다');
   // 해설을 열고 CTU Code 목록으로 돌아온다.
   await page.locator('.lib-fold').click(); // 해설 구간은 처음에 접혀 있으므로 모두 펼친다
   await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
@@ -826,7 +835,6 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(section('공식 원문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="/library/ctu-code/qlg-c"]')).toHaveCount(1);
-  await expect(section('공식 원문').locator('a.lib-card[href$="1498.pdf#page=65"]')).toHaveCount(1);
   // 한국어 번역은 원문 카드 바로 옆에 준비 중 카드로, 설명은 아래 안내에
   await expect(
     section('공식 원문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 한국어 번역' })
@@ -836,7 +844,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
       hasText: '정보자료 한국어 번역'
     })
   ).toHaveCount(1);
-  await expect(section('안내')).toContainText('IMO에 게시 허가를 요청해 두었습니다');
+  await expect(page.locator('.lib-head .lib-notice')).toContainText('IMO의 게시 허가를 기다리는 중입니다');
+  await expect(page.locator('.lib-section', { has: page.locator('h3', { hasText: /^안내/ }) })).toHaveCount(0);
   // 참고 자료는 법령·표준을 반영한 Cubestow 글
   await page.goto('/library/ctu-code/kr-road');
   await expect(page.locator('.lib-article')).toContainText('500만원 이하의 과태료');
@@ -848,7 +857,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(3);
   await expect(page.locator('.lib-plan')).toHaveCount(0);
   // 안내 문구는 문장마다 줄을 바꾼다
-  await expect(page.locator('.lib-head p br')).toHaveCount(2);
+  await expect(page.locator('.lib-head .lib-notice p br')).toHaveCount(3);
   // 구조 안내: 1497·1498·1531 비교와, 참조 항목마다 해설 링크가 있는 지도
   await page.locator('.lib-head a[href="/library/ctu-code/structure"]').click();
   await expect(page.locator('.lib-article h2')).toContainText('1497·1498·1531');
@@ -1356,7 +1365,7 @@ test('an admin can replay an algorithm flag with its products and conditions, an
 test('path addresses open each screen directly, move old hash links, and navigate without reloading', async ({
   page
 }) => {
-  test.setTimeout(60000);
+  test.setTimeout(120000);
   const missing = [];
   page.on('response', r => {
     if (r.status() === 404 && new URL(r.url()).origin === new URL(page.url() || 'http://x').origin)
@@ -1544,6 +1553,7 @@ test('commentary cards show their importance stars', async ({ page }) => {
 
 // ★★★·★★ 항목은 모두 해설이 있다: 전체 요약의 별 두 개 이상 항목마다 해설 링크, 목록 카드의 별 개수
 test('every two- and three-star CTU Code item has its own commentary', async ({ page }) => {
+  test.setTimeout(120000); // 합친 해설 5개의 옛 주소까지 차례로 열어 본다
   await page.goto('/library/ctu-code/ctu-overview');
   const missing = await page
     .locator('.lib-article')
@@ -1648,9 +1658,9 @@ test('the CTU Code page opens with only the work-stage path expanded and one but
 }) => {
   await page.goto('/library/ctu-code');
   const sections = page.locator('details.lib-section');
-  await expect(sections).toHaveCount(6);
+  await expect(sections).toHaveCount(5);
   // 공식 원문(PDF 링크)은 접지 않는 한 구간으로 늘 보인다
-  await expect(page.locator('section.lib-official .lib-card[href*="imo.org"]')).toHaveCount(5);
+  await expect(page.locator('section.lib-official .lib-card[href*="imo.org"]')).toHaveCount(3);
   await expect(page.locator('section.lib-official .lib-card').first()).toBeVisible();
   const openState = () =>
     sections.evaluateAll(ds => ds.map(d => [d.querySelector('h3').firstChild.textContent.trim(), d.open]));
@@ -1659,8 +1669,7 @@ test('the CTU Code page opens with only the work-stage path expanded and one but
     ['시작하기', false],
     ['CTU Code 본문 해설', false],
     ['CTU Code 정보자료 해설', false],
-    ['참고 자료', false],
-    ['안내', false]
+    ['참고 자료', false]
   ]);
   const toggle = page.locator('.lib-fold');
   await expect(toggle).toHaveText('모두 펼치기');

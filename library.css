@@ -273,7 +273,7 @@
   font-weight: 600;
 }
 /* 자료실 목록: 공식 원문 카드 표시와 준비 중 카드 */
-.library-view .lib-card > .lib-kind {
+.library-view .lib-card .lib-kind {
   align-self: flex-start;
   padding: 2px 8px;
   border-radius: 999px;
@@ -452,4 +452,48 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+}
+/* 공식 원문: 회람 번호 표시와 IMO 소개 페이지 한 줄 링크 */
+.library-view .lib-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.library-view .lib-circ {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f1fd;
+  color: #1b4f8f;
+  font-size: 12px;
+  font-weight: 800;
+}
+.library-view .lib-intro {
+  margin-left: 10px;
+  color: #0071e3;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* 첫 화면 맨 위 저작권·해설 안내 */
+.library-view .lib-notice {
+  max-width: 820px;
+  margin: 8px 0 10px;
+  padding: 14px 16px;
+  border: 1px solid #ead9ae;
+  border-radius: 12px;
+  background: #fffaf0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.library-view .lib-notice b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+.library-view .lib-notice p {
+  margin: 0;
+  color: #3a4148;
+}
+.library-view .lib-head .lib-start {
+  margin: 0 0 8px;
 }
