@@ -1495,7 +1495,15 @@ test('the CTU Code references hold the securing case collection with sources, an
   await expect(article).toContainText('법률 자문이 아닙니다');
 
   // 도해가 있는 해설마다 그림이 실제로 받아져 그려진다(깨진 이미지도 complete=true 이므로 naturalWidth로 본다)
-  for (const id of ['ctu-overview', 'a4-plates', 'ch11-after', 'a7-planning', 'a7-load-distribution', 'a7-securing']) {
+  for (const id of [
+    'ctu-overview',
+    'a4-plates',
+    'ch5-accel',
+    'ch11-after',
+    'a7-planning',
+    'a7-load-distribution',
+    'a7-securing'
+  ]) {
     await page.goto(`/library/ctu-code/${id}`);
     const img = page.locator('.lib-figure img');
     await expect(img).toHaveCount(1);

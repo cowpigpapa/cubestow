@@ -14,8 +14,8 @@ test('CTU 요약 도해는 접근 가능한 로컬 이미지와 설명을 사용
     )
   ];
 
-  assert.equal(figures.length, 6);
-  assert.equal(new Set(figures.map(match => match[1])).size, 6);
+  assert.equal(figures.length, 7);
+  assert.equal(new Set(figures.map(match => match[1])).size, 7);
 
   for (const [, sourcePath, alt, caption] of figures) {
     assert.match(sourcePath, /^\/images\/ctu\/[a-z0-9-]+\.webp$/);
