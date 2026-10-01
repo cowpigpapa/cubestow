@@ -383,7 +383,7 @@
       summary: '봉인 대조, 훈증·유해가스 점검과 측정, 쏟아짐에 대비한 문 열기와 환기의 순서.',
       body: `
       <p>부속서 5는 적입된 CTU를 받는 쪽(인수자·수하인)이 문을 열고 적출에 들어가기까지의 안전 수칙입니다. 문 뒤에는 운송 중 무너진 화물이나 훈증제·유해가스가 있을 수 있어 순서를 건너뛰면 작업자가 다치거나 중독될 수 있습니다. 원문은 받기, 위치 잡기, 봉인 제거, 외부 점검, 가스 측정, 문 열기, 환기, 반환 순으로 되어 있습니다.</p>
-      <figure class="lib-figure"><img src="/images/ctu/receiving-before-opening.webp" alt="화물이 든 컨테이너를 받으며 봉인 번호를 서류와 대조하고, 가스를 측정하고, 문을 조금만 열어 문 뒤로 기운 화물을 확인하는 작업자들" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 문을 열기 전에 봉인 번호와 외관을 확인하고 유해가스를 측정합니다. 문은 한쪽만 조금 열어 문 뒤로 기운 화물이 없는지 먼저 봅니다.</figcaption></figure>
+      <figure class="lib-figure"><img src="/images/ctu/receiving-check.webp" alt="화물이 든 컨테이너를 받으며 봉인 번호를 서류와 대조하고, 가스를 측정하고, 문 옆에 서서 한쪽 문만 조금 열어 문에 기댄 화물을 확인하는 작업자들" loading="lazy" decoding="async"><figcaption><span>AI 생성 도해</span> 문을 열기 전에 봉인 번호와 외관을 확인하고 유해가스를 측정합니다. 문은 한쪽만 조금 열어 문 뒤로 기운 화물이 없는지 먼저 봅니다.</figcaption></figure>
       <h3>받을 때와 봉인 제거 (§1~§3)</h3>
       <ul>
       <li>CTU 식별 번호가 운송서류와 같은지 확인합니다. 다르면 화주의 해명을 받을 때까지 인수하지 않습니다.</li>
