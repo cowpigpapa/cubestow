@@ -295,7 +295,230 @@ function centerOfGravity() {
   return { svg: svg(b), a, b: bScene };
 }
 
+// 4) 고정점: ISO 1496-1 최소 허용하중 위치와 "가장 약한 곳이 전체의 한계"
+function anchorPoints() {
+  const s = 150, // px per m (내부 폭 2.35m, 높이 2.39m)
+    wc = 2.35 * s,
+    hc = 2.39 * s,
+    x0 = 150,
+    y0 = 200;
+  let b = panel(30, 30, 620, 880, '고정점 위치 (문쪽에서 본 단면, 실제 비율)');
+  b += rect(x0, y0, wc, hc, { fill: C.wallFill, stroke: C.wall, sw: 6 });
+  const ring = (x, y, color) => `<circle cx="${x}" cy="${y}" r="13" fill="#fff" stroke="${color}" stroke-width="6"/>`;
+  b += ring(x0 + 18, y0 + hc - 16, C.green) + ring(x0 + wc - 18, y0 + hc - 16, C.green);
+  b += ring(x0 + 18, y0 + 22, C.amber) + ring(x0 + wc - 18, y0 + 22, C.amber);
+  b += text(x0 + wc / 2, y0 - 24, '위쪽 래싱 고리(상부 측면 레일)', {
+    size: 19,
+    weight: 700,
+    fill: C.amber,
+    anchor: 'middle'
+  });
+  b += text(x0 + wc / 2, y0 + hc + 40, '바닥 고정점(하부 측면 레일)', {
+    size: 19,
+    weight: 700,
+    fill: C.green,
+    anchor: 'middle'
+  });
+  b += text(x0, y0 + hc + 110, '바닥 고정점', { size: 22, weight: 800, fill: C.green });
+  b += text(x0 + 170, y0 + hc + 110, '최소 1,000daN (약 1t)', { size: 22, weight: 700 });
+  b += text(x0, y0 + hc + 150, '위쪽 고리', { size: 22, weight: 800, fill: C.amber });
+  b += text(x0 + 170, y0 + hc + 150, '최소 500daN (약 0.5t)', { size: 22, weight: 700 });
+  b += text(x0, y0 + hc + 200, 'ISO 1496-1 최소값입니다. 각인·제조사 자료로', { size: 18, weight: 500, fill: C.muted });
+  b += text(x0, y0 + hc + 226, '확인하지 않았다면 이 값만 믿습니다.', { size: 18, weight: 500, fill: C.muted });
+
+  b += panel(676, 30, 966, 880, '가장 약한 곳이 전체의 한계');
+  const rows = [
+    ['래싱 2,000daN', '바닥 고정점 1,000daN', 1000, 2000, C.green, '벨트 능력의 절반'],
+    ['래싱 2,000daN', '위쪽 고리 500daN', 500, 2000, C.amber, '벨트 능력의 4분의 1'],
+    ['래싱 4,000daN × 2줄', '위쪽 고리 500daN × 2', 1000, 8000, C.amber, '"8,000daN 고정"이 아님']
+  ];
+  const unit = 0.07; // px per daN
+  rows.forEach(([belt, point, real, nominal, color, note], i) => {
+    const y = 140 + i * 240,
+      x = 720;
+    b += text(x, y, `${i + 1}. ${belt} → ${point}`, { size: 22, weight: 800 });
+    b += `<rect x="${x}" y="${y + 24}" width="${nominal * unit}" height="34" fill="#e8edf3" rx="4"/>`;
+    b += text(x + nominal * unit + 10, y + 49, `벨트 ${nominal.toLocaleString('en')}daN`, {
+      size: 18,
+      weight: 600,
+      fill: C.muted
+    });
+    b += `<rect x="${x}" y="${y + 70}" width="${real * unit}" height="34" fill="${color}" rx="4"/>`;
+    b += text(x + real * unit + 10, y + 95, `실제로 믿는 힘 ${real.toLocaleString('en')}daN`, {
+      size: 19,
+      weight: 800,
+      fill: color
+    });
+    b += text(x, y + 140, note, { size: 19, weight: 600, fill: C.muted });
+  });
+  b += text(720, 860, '한 고정점에 하프루프 양 끝을 걸면 그 고정점은 래싱 MSL의 1.4배 이상이어야 합니다(IM5 §5.3).', {
+    size: 17,
+    weight: 500,
+    fill: C.muted
+  });
+  return svg(b);
+}
+
+// 5) 부록 4 계산: 가로 각재 저항력과 더니지 백
+function securingCalc() {
+  // 원문 예: 5×10cm 각재 6개, 자유 길이 2.2m → F = n·w²·h/(28·L)
+  const n = 6,
+    w = 5,
+    h = 10,
+    Lfree = 2.2,
+    F = (n * w * w * h) / (28 * Lfree);
+  // 계산 예: 화물 10t, 도로 종방향 0.8g, cz 1.0, μ 0.3 / 백 1200×1800, 틈 0.2m, 0.5bar, 일회용 0.75
+  const m = 10,
+    fCargo = m * 9.81 * (0.8 - 0.3 * 0.75 * 1.0),
+    A = (1.2 - (Math.PI * 0.2) / 2) * (1.8 - (Math.PI * 0.2) / 2),
+    fDb = A * 10 * 9.81 * 0.5 * 0.75;
+  let b = panel(30, 30, 790, 880, '가로 각재(문 앞 울타리)의 저항력');
+  const s = 240,
+    x0 = 120,
+    y0 = 200,
+    wc = 2.2 * s;
+  b += `<rect x="${x0 - 22}" y="${y0 - 10}" width="22" height="${n * 0.1 * s + 20}" fill="${C.wall}"/>`;
+  b += `<rect x="${x0 + wc}" y="${y0 - 10}" width="22" height="${n * 0.1 * s + 20}" fill="${C.wall}"/>`;
+  for (let i = 0; i < n; i++)
+    b += rect(x0, y0 + i * 0.1 * s, wc, 0.1 * s, { fill: '#e2b77b', stroke: C.crateEdge, sw: 2 });
+  b += `<line x1="${x0}" y1="${y0 + n * 0.1 * s + 34}" x2="${x0 + wc}" y2="${y0 + n * 0.1 * s + 34}" stroke="${C.ink}" stroke-width="2" marker-start="url(#a-ink)" marker-end="url(#a-ink)"/>`;
+  b += text(x0 + wc / 2, y0 + n * 0.1 * s + 66, '자유 길이 L = 2.2m', { size: 20, weight: 700, anchor: 'middle' });
+  b += text(x0 + wc + 40, y0 + 0.1 * s - 4, 'h = 10cm', { size: 18, weight: 700 });
+  b += text(x0 + wc + 40, y0 + 0.1 * s + 22, '(두께 w = 5cm)', { size: 16, weight: 600, fill: C.muted });
+  b += text(x0 - 32, y0 + n * 0.05 * s + 8, '기둥', { size: 16, weight: 600, fill: C.muted, anchor: 'end' });
+  b += text(70, 120, 'F = n · w² · h / (28 · L)  [kN]', { size: 28, weight: 800, fill: C.strap });
+  b += text(70, 156, 'n 각재 수, w 두께·h 높이 [cm], L 자유 길이 [m]', { size: 18, weight: 600, fill: C.muted });
+  b += text(70, 620, `원문 예: 5×10cm 각재 ${n}개`, { size: 22, weight: 700 });
+  b += text(70, 656, `F = ${n} × ${w}² × ${h} / (28 × ${Lfree}) ≈ ${F.toFixed(0)}kN`, {
+    size: 24,
+    weight: 800,
+    fill: C.green
+  });
+  b += text(70, 700, '두께 w가 제곱으로 들어가므로 두꺼운 각재가 훨씬 강합니다.', {
+    size: 18,
+    weight: 600,
+    fill: C.muted
+  });
+  b += text(70, 728, '못 박은 블로킹은 못 1개당 1~4kN으로 작은 힘에만 씁니다.', {
+    size: 18,
+    weight: 600,
+    fill: C.muted
+  });
+
+  b += panel(846, 30, 796, 880, '더니지 백(에어백) 계산');
+  const px = 900,
+    py = 210,
+    sc = 160;
+  b += crate(px, py, 1.2 * sc, 1.8 * sc);
+  b += crate(px + 1.2 * sc + 0.2 * sc * 1.6, py, 1.2 * sc, 1.8 * sc);
+  const gx = px + 1.2 * sc,
+    gw = 0.2 * sc * 1.6;
+  b += `<rect x="${gx + 2}" y="${py + 10}" width="${gw - 4}" height="${1.8 * sc - 20}" rx="${gw / 2 - 2}" fill="#efe2c4" stroke="#b59a5b" stroke-width="3"/>`;
+  b += arrow(gx - 2, py + 1.8 * sc + 36, gx + gw + 2, py + 1.8 * sc + 36, 'ink', { width: 2, both: true });
+  b += text(gx + gw / 2, py + 1.8 * sc + 70, '틈 d = 200mm', { size: 18, weight: 700, anchor: 'middle' });
+  b += text(px + 1.2 * sc * 2 + gw + 30, py + 30, '위에서 본 모습', { size: 17, weight: 600, fill: C.muted });
+  b += text(886, 120, 'F_DB ≥ F_CARGO 이어야 합니다', { size: 26, weight: 800, fill: C.strap });
+  b += text(886, 156, '백 1200×1800mm, 파열 0.5bar, 일회용(SF 0.75)', { size: 18, weight: 600, fill: C.muted });
+  b += text(886, 640, `화물이 미는 힘 F_CARGO = 10 × 9.81 × (0.8 − 0.3 × 0.75) ≈ ${fCargo.toFixed(0)}kN`, {
+    size: 19,
+    weight: 700
+  });
+  b += text(886, 676, `접촉 면적 A = (1.2 − π·0.2/2)(1.8 − π·0.2/2) ≈ ${A.toFixed(2)}m²`, { size: 19, weight: 700 });
+  b += text(886, 712, `백 허용 힘 F_DB = A × 10 × 9.81 × 0.5 × 0.75 ≈ ${fDb.toFixed(0)}kN`, { size: 19, weight: 700 });
+  b += text(886, 760, `${fDb.toFixed(0)} &lt; ${fCargo.toFixed(0)}kN → 이 백으로는 모자랍니다`, {
+    size: 24,
+    weight: 800,
+    fill: C.red
+  });
+  b += text(886, 800, '도로 종방향 0.8g, 백 뒤 화물 10t, μ 0.3의 가정값입니다(부록 4 §4).', {
+    size: 17,
+    weight: 500,
+    fill: C.muted
+  });
+  return { svg: svg(b), F, fCargo, A, fDb };
+}
+
+// 6) IM6 화차 예: 무게중심이 0.31m 벗어나면 한 축이 선로 등급 C(20t)를 넘는다(§2.2.4 원문 예)
+function railAxles() {
+  const len = 12.78, // 바닥 길이(중심 6.39m의 두 배)
+    s = 100,
+    x0 = (W - len * s) / 2,
+    y0 = 180;
+  let b = text(x0, 70, 'IM6 원문 예: 2축 컨테이너 화차, 화물 29.2t', { size: 28, weight: 800 });
+  b += text(x0, 108, '화물 무게중심이 바닥 끝에서 6.7m(중심 6.39m보다 0.31m 뒤)에 오면 두 축의 질량이 달라집니다.', {
+    size: 19,
+    weight: 500,
+    fill: C.muted
+  });
+  b += rect(x0, y0, len * s, 150, { fill: C.wallFill, stroke: C.wall, sw: 5 });
+  b += `<rect x="${x0 - 10}" y="${y0 + 150}" width="${len * s + 20}" height="24" fill="${C.ink}"/>`;
+  const axL = x0 + 0.2 * len * s,
+    axR = x0 + 0.8 * len * s;
+  for (const ax of [axL, axR])
+    b += `<circle cx="${ax}" cy="${y0 + 205}" r="34" fill="#fff" stroke="${C.ink}" stroke-width="8"/><circle cx="${ax}" cy="${y0 + 205}" r="6" fill="${C.ink}"/>`;
+  b += `<line x1="${x0 - 40}" y1="${y0 + 240}" x2="${x0 + len * s + 40}" y2="${y0 + 240}" stroke="${C.muted}" stroke-width="4"/>`;
+  const mid = x0 + 6.39 * s,
+    cg = x0 + 6.7 * s;
+  b += `<line x1="${mid}" y1="${y0 - 40}" x2="${mid}" y2="${y0 + 150}" stroke="${C.ink}" stroke-width="2" stroke-dasharray="8 6"/>`;
+  b += text(mid - 10, y0 - 50, '중심 6.39m', { size: 18, weight: 700, anchor: 'end' });
+  b += `<line x1="${cg}" y1="${y0 - 40}" x2="${cg}" y2="${y0 + 150}" stroke="${C.red}" stroke-width="4"/>`;
+  b += text(cg + 10, y0 - 50, '화물 무게중심 6.7m', { size: 18, weight: 800, fill: C.red });
+  b += arrow(cg, y0 + 20, cg, y0 + 120, 'red', { width: 6 });
+  // 축질량 막대
+  const by = 740,
+    unit = 9; // px per t
+  const bar = (x, t, over) => {
+    let g = `<rect x="${x - 60}" y="${by - t * unit}" width="120" height="${t * unit}" fill="${over ? C.red : C.green}" rx="6"/>`;
+    g += text(x, by - t * unit - 12, `${t}t`, {
+      size: 24,
+      weight: 800,
+      fill: over ? C.red : C.green,
+      anchor: 'middle'
+    });
+    return g;
+  };
+  b += `<line x1="${x0}" y1="${by}" x2="${x0 + len * s}" y2="${by}" stroke="${C.ink}" stroke-width="2"/>`;
+  b += `<line x1="${x0}" y1="${by - 20 * unit}" x2="${x0 + len * s}" y2="${by - 20 * unit}" stroke="${C.red}" stroke-width="3" stroke-dasharray="10 8"/>`;
+  b += text(x0 + (len * s) / 2, by - 20 * unit - 10, '선로 등급 C 축질량 한도 20t', {
+    size: 18,
+    weight: 700,
+    fill: C.red,
+    anchor: 'middle'
+  });
+  b += bar(axL, 18.9, false) + bar(axR, 21.1, true);
+  b += text(axL, by + 34, '1번 축', { size: 18, weight: 700, anchor: 'middle' });
+  b += text(axR, by + 34, '2번 축', { size: 18, weight: 700, anchor: 'middle' });
+  b += text(
+    x0,
+    830,
+    '무게중심이 조금만 치우쳐도 한 축이 한도를 넘습니다. 가장 무거운 화물은 화차 정중앙에 무게중심이 와야 실을 수 있습니다(IM6 §2.2.4).',
+    {
+      size: 19,
+      weight: 600
+    }
+  );
+  b += text(
+    x0,
+    866,
+    '축 위치는 개략이고, 축질량은 원문 예의 값입니다(화차 자중 포함). 실제 화차·샤시 제원으로 다시 확인합니다.',
+    {
+      size: 17,
+      weight: 500,
+      fill: C.muted
+    }
+  );
+  return svg(b);
+}
+
 const cg = centerOfGravity();
+const calc = securingCalc();
+await writeFile('public/images/ctu/anchor-points.svg', anchorPoints());
+await writeFile('public/images/ctu/securing-calc.svg', calc.svg);
+await writeFile('public/images/ctu/rail-axles.svg', railAxles());
+console.log(
+  'calc',
+  `F=${calc.F.toFixed(1)}kN cargo=${calc.fCargo.toFixed(1)} A=${calc.A.toFixed(2)} db=${calc.fDb.toFixed(1)}`
+);
 await writeFile('public/images/ctu/accelerations.svg', accelerations());
 await writeFile('public/images/ctu/lashing-and-tipping.svg', lashing());
 await writeFile('public/images/ctu/center-of-gravity.svg', cg.svg);

@@ -819,8 +819,8 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
-  // 해설 31개 + 사례집 1개 + 번역 준비 중 카드 2개. 원문별 구간에 공식 원문과 해설이 함께 있다.
-  await expect(page.locator('a.lib-doc')).toHaveCount(32);
+  // 해설 26개 + 사례집 1개(번역 준비 중 카드 2개는 a 가 아님). 원문별 구간에 공식 원문과 해설이 함께 있다.
+  await expect(page.locator('a.lib-doc')).toHaveCount(27);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
   await expect(section('CTU Code 본문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
@@ -1507,44 +1507,21 @@ test('the CTU Code references hold the securing case collection with sources, an
   await expect(article).toContainText('2021나2010140');
   await expect(article).toContainText('법률 자문이 아닙니다');
 
-  // 도해가 있는 해설마다 그림이 실제로 받아져 그려진다(깨진 이미지도 complete=true 이므로 naturalWidth로 본다)
-  for (const id of [
-    'ctu-overview',
-    'ch8-arrival',
-    'ch5-accel',
-    'ch11-after',
-    'a7-planning',
-    'a7-load-distribution',
-    'a7-securing',
-    'a4-plates',
-    'a5-receiving',
-    'a7-calc',
-    'anchor-points',
-    'kr-road',
-    'cargo-cases',
-    'ch9-packing',
-    'im6-load-distribution',
-    'ch4-chain',
-    'ch6-ctu',
-    'ch7-suitability',
-    'ch13-training',
-    'a1-info',
-    'a2-handling',
-    'a3-condensation',
-    'im1-consequences',
-    'im2-documents',
-    'im3-types',
-    'im7-manual',
-    'im9-seals',
-    'ch12-unpacking'
-  ]) {
+  // 모든 해설의 도해가 실제로 받아져 그려진다(깨진 이미지도 complete=true 이므로 naturalWidth로 본다). 도해는 모두 28장.
+  const ids = await page.evaluate(() => window.CUBESTOW_LIBRARY.docs);
+  let total = 0;
+  for (const id of ids) {
     await page.goto(`/library/ctu-code/${id}`);
-    const img = page.locator('.lib-figure img');
-    await expect(img).toHaveCount(1);
-    await img.scrollIntoViewIfNeeded();
-    await expect.poll(() => img.evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
-    await expect(page.locator('.lib-figure figcaption')).toContainText(/AI 생성 도해|Cubestow 도면/);
+    const imgs = page.locator('.lib-figure img');
+    const n = await imgs.count();
+    total += n;
+    for (let i = 0; i < n; i++) {
+      await imgs.nth(i).scrollIntoViewIfNeeded();
+      await expect.poll(() => imgs.nth(i).evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
+      await expect(page.locator('.lib-figure figcaption').nth(i)).toContainText(/AI 생성 도해|Cubestow 도면/);
+    }
   }
+  expect(total).toBe(28);
 });
 
 // 해설 카드에 중요도 별(★★★ 꼭 알아야 함 / ★★ 알아두면 좋음)을 붙여 구분한다. 안내·참고 자료 카드에는 없다.
@@ -1573,19 +1550,30 @@ test('every two- and three-star CTU Code item has its own commentary', async ({ 
     );
   expect(missing).toEqual([]);
   await page.goto('/library/ctu-code');
-  await expect(page.locator('a.lib-doc .lib-level[data-level="3"]')).toHaveCount(10);
-  await expect(page.locator('a.lib-doc .lib-level[data-level="2"]')).toHaveCount(17);
+  await expect(page.locator('a.lib-doc .lib-level[data-level="3"]')).toHaveCount(9);
+  await expect(page.locator('a.lib-doc .lib-level[data-level="2"]')).toHaveCount(13);
   // 해설 구조표: 별 항목 해설 행은 모두 완료
   await page.goto('/library/ctu-code/structure');
   await expect(page.locator('.lib-table td', { hasText: /^예정$/ })).toHaveCount(0);
-  // 빈 컨테이너 점검 도해는 8장 해설로, 부속서 4는 명판만
+  // 겹치던 해설은 합쳤다: 옛 주소는 합친 해설로 넘어가고, 두 해설의 도해가 함께 있으며, 머리에 원문 대조 확인일이 있다
+  const merged = {
+    'a1-info': 'ch4-chain',
+    'im3-types': 'ch6-ctu',
+    'a4-plates': 'ch8-arrival',
+    'ch12-unpacking': 'a5-receiving',
+    'a7-planning': 'ch9-packing'
+  };
+  for (const [from, to] of Object.entries(merged)) {
+    await page.goto(`/library/ctu-code/${from}`);
+    await expect(page).toHaveURL(new RegExp(`/library/ctu-code/${to}$`));
+    await expect(page.locator('.lib-figure img')).toHaveCount(2);
+    await expect(page.locator('.lib-checked')).toContainText('원문 대조 확인 2026-10-01');
+  }
   await page.goto('/library/ctu-code/ch8-arrival');
-  await expect(page.locator('.lib-figure img')).toHaveAttribute(
-    'src',
-    /^\/images\/ctu\/receiving-inspection(-v\d+)?\.webp$/
-  );
-  await page.goto('/library/ctu-code/a4-plates');
-  await expect(page.locator('img[src*="receiving-inspection"]')).toHaveCount(0);
+  await expect(page.locator('img[src*="csc-plate"]')).toHaveCount(1);
+  await expect(page.locator('img[src*="receiving-inspection"]')).toHaveCount(1);
+  await page.goto('/library/ctu-code/kr-road');
+  await expect(page.locator('.lib-checked')).toContainText('국가법령정보센터');
 });
 
 // 해설 표: 한국어 단어가 중간에서 쪼개지지 않고, 짧은 항목(제목·이름·근거 등)은 한 줄에 들어간다.

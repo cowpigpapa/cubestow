@@ -395,3 +395,9 @@
   background: #e3efff;
   color: #0b4a99;
 }
+/* 해설 머리의 원문 대조 확인일 */
+.library-view .lib-checked {
+  margin: -6px 0 18px;
+  color: var(--lib-muted);
+  font-size: 12.5px;
+}

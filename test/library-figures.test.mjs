@@ -43,3 +43,18 @@ test('Cubestow 도면 SVG는 생성 도구의 결과와 같고 CTU Code 5장 계
   assert.match(lash, /30°~60°/);
   assert.match(lash, /c · d ≥ cz · b/);
 });
+
+test('추가 Cubestow 도면은 원문 계산 예·기준값과 같은 숫자를 보여 준다', async () => {
+  const read = f => readFile(path.join(root, 'public/images/ctu', f), 'utf8');
+  const calc = await read('securing-calc.svg');
+  assert.match(calc, /≈ 24kN/); // 5×10cm 각재 6개, 자유 길이 2.2m
+  assert.match(calc, /≈ 56kN/);
+  assert.match(calc, /≈ 48kN/);
+  assert.match(calc, /1\.32m²/);
+  const rail = await read('rail-axles.svg');
+  assert.match(rail, />18\.9t</);
+  assert.match(rail, />21\.1t</);
+  const anchor = await read('anchor-points.svg');
+  assert.match(anchor, /1,000daN/);
+  assert.match(anchor, /500daN/);
+});
