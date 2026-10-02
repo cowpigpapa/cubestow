@@ -586,3 +586,22 @@
     white-space: normal;
   }
 }
+/* 카드 격자: 사이트에 상관없이 넓은 화면 3열, 태블릿 2열, 휴대폰 1열(작업 순서 카드와 같게) */
+.library-view .lib-docs,
+.library-view .lib-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  .library-view .lib-docs,
+  .library-view .lib-cards,
+  .library-view .lib-stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .library-view .lib-docs,
+  .library-view .lib-cards,
+  .library-view .lib-stages {
+    grid-template-columns: 1fr;
+  }
+}

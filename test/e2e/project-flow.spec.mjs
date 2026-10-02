@@ -1703,3 +1703,23 @@ test('the CTU Code page opens with sources and the work-stage path expanded, wit
   ).toBeVisible();
   await expect(closeAll).toBeEnabled();
 });
+
+// 카드 격자는 폭에 따라 자동으로 열이 바뀌지 않고, 작업 순서 카드와 같은 3열(태블릿 2열, 휴대폰 1열)이다.
+test('library card grids use the same fixed column count as the stage cards', async ({ page }) => {
+  const cols = sel =>
+    page
+      .locator(sel)
+      .first()
+      .evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  for (const [width, expected] of [
+    [1440, 3],
+    [1100, 3],
+    [800, 2],
+    [390, 1]
+  ]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/library/ctu-code');
+    expect(await cols('.lib-official .lib-docs')).toBe(expected);
+    expect(await cols('.lib-stages')).toBe(expected);
+  }
+});
