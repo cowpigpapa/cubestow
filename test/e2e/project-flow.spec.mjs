@@ -111,7 +111,7 @@ test('the algorithm policy holds the CTU Code scope and the CTU Code menu opens 
   await policy.locator('a[href="/library/ctu-code"]').click();
   await expect(policy).not.toBeVisible();
   await expect(page.locator('#libraryView')).toBeVisible();
-  await expect(page.locator('.lib-head h2')).toHaveText('CTU Code');
+  await expect(page.locator('.lib-head .lib-hero')).toBeVisible();
 });
 
 test('validation warning uses the in-app notice dialog', async ({ page }) => {
@@ -803,6 +803,7 @@ test('securing conditions set friction, lashing MSL and lashing points for the l
 test('the library links the official CTU Code sources and opens Korean commentaries between the header and footer', async ({
   page
 }) => {
+  test.setTimeout(120000); // 해설·도해는 logistics.onharu.app에서 받아온다
   await page.goto('/');
   await page.locator('.topbar nav a[href="/library/ctu-code"]').click();
   await expect(page.locator('#libraryView')).toBeVisible();
@@ -811,10 +812,10 @@ test('the library links the official CTU Code sources and opens Korean commentar
   // 공식 원문은 IMO 배포 링크로만 건다(파일을 다시 올리지 않음).
   await expect(page.locator('.lib-card[href*="imo.org"]')).toHaveCount(3);
   // 본문·정보자료 카드에는 회람 번호 표시, IMO 소개 페이지는 카드가 아니라 한 줄 링크
-  await expect(page.locator('.lib-card[href$="1497.pdf"] .lib-circ')).toHaveText('1497');
-  await expect(page.locator('.lib-card[href$="1498.pdf"] .lib-circ')).toHaveText('1498');
+  await expect(page.locator('.lib-card[href$="1497.pdf"] b')).toContainText('1497');
+  await expect(page.locator('.lib-card[href$="1498.pdf"] b')).toContainText('1498');
   await expect(page.locator('.lib-card[href*="ctu-code.aspx"]')).toHaveCount(0);
-  await expect(page.locator('section.lib-official a.lib-intro[href*="ctu-code.aspx"]')).toHaveText(/IMO CTU Code 소개/);
+  await expect(page.locator('.lib-official a.lib-intro[href*="ctu-code.aspx"]')).toHaveText(/IMO CTU Code 소개/);
   // 빠른 래싱 가이드는 따로 카드로 두지 않는다(정보자료 원문 안에 있고, 해설이 따로 있음)
   await expect(page.locator('.lib-card[href*="#page=65"]')).toHaveCount(0);
   // 빠른 래싱 가이드도 IMO 공식 파일로만 링크한다(다른 곳의 사본은 걸지 않는다).
@@ -823,25 +824,25 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-head .lib-notice')).toContainText('저작권은 IMO에 있으며');
   await expect(page.locator('.lib-head .lib-notice')).toContainText('IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다');
   // 해설을 열고 CTU Code 목록으로 돌아온다.
-  await page.locator('.lib-fold').click(); // 해설 구간은 처음에 접혀 있으므로 모두 펼친다
+  await page.locator('.lib-fold-open').click(); // 해설 구간은 처음에 접혀 있으므로 모두 펼친다
   await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
   await expect(page).toHaveURL(/\/library\/ctu-code\/qlg-c$/);
   await expect(page.locator('.lib-article h2')).toHaveText('빠른 래싱 가이드 C — Cubestow가 쓰는 표');
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
   // 해설 26개 + 사례집 1개(번역 준비 중 카드 2개는 a 가 아님). 공식 원문은 한 구간에 모여 늘 보이고, 해설은 원문별 구간에 있다.
-  await expect(page.locator('a.lib-doc')).toHaveCount(27);
+  await expect(page.locator('a.lib-doc')).toHaveCount(26);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
   await expect(section('공식 원문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
   await expect(section('CTU Code 정보자료').locator('a.lib-doc[href="/library/ctu-code/qlg-c"]')).toHaveCount(1);
   // 한국어 번역은 원문 카드 바로 옆에 준비 중 카드로, 설명은 아래 안내에
   await expect(
-    section('공식 원문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 한국어 번역' })
+    section('공식 원문').locator('a.lib-card[href$="1497.pdf"] + .lib-soon', { hasText: '본문 1497 한국어 번역' })
   ).toHaveCount(1);
   await expect(
     section('공식 원문').locator('a.lib-card[href$="1498.pdf"] + .lib-soon', {
-      hasText: '정보자료 한국어 번역'
+      hasText: '정보자료 1498 한국어 번역'
     })
   ).toHaveCount(1);
   await expect(page.locator('.lib-head .lib-notice')).toContainText('IMO의 게시 허가를 기다리는 중입니다');
@@ -858,23 +859,25 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-plan')).toHaveCount(0);
   // 안내 문구는 문장마다 줄을 바꾼다
   await expect(page.locator('.lib-head .lib-notice p br')).toHaveCount(3);
-  // 구조 안내: 1497·1498·1531 비교와, 참조 항목마다 해설 링크가 있는 지도
-  await page.locator('.lib-head a[href="/library/ctu-code/structure"]').click();
-  await expect(page.locator('.lib-article h2')).toContainText('1497·1498·1531');
+  // 설명 및 요약(옛 구조 안내 포함): 왼쪽 소개 카드에서 열리고, 세 문서 비교와 참조 지도가 들어 있다
+  await page.locator('.lib-head a.lib-hero').click();
+  await expect(page.locator('.lib-article h2')).toContainText('CTU Code 설명 및 요약');
+  await expect(page.locator('.lib-article')).toContainText('자료 구조: 1497·1498·1531');
   const map = page.locator('.lib-article table').filter({ hasText: 'Cubestow 반영' });
   // 본문·부속서·정보자료의 ★★ 이상 항목과 참고 자료(고정점·도로 한도)
   await expect(map.locator('tbody tr')).toHaveCount(30);
   await expect(map.locator('a[href="/library/ctu-code/ch5-accel"]')).toHaveText('완료');
   // 전체 요약: 본문 13장·부속서 10개·정보자료 10개가 중요도와 함께 나온다
-  await page.goto('/library/ctu-code/ctu-overview');
-  await expect(page.locator('.lib-article h2')).toContainText('CTU Code 전체 요약');
+  await page.goto('/library/ctu-code/structure');
+  await expect(page).toHaveURL(/\/library\/ctu-code\/ctu-overview$/);
+  await expect(page.locator('.lib-article h2')).toContainText('CTU Code 설명 및 요약');
   await expect(page.locator('.lib-figure img')).toHaveAttribute('src', /^\/images\/ctu\/ctu-code-scope(-v\d+)?\.webp$/);
   await page.locator('.lib-figure img').scrollIntoViewIfNeeded();
   await expect.poll(() => page.locator('.lib-figure img').evaluate(el => el.naturalWidth)).toBeGreaterThan(800);
   await expect(page.locator('.lib-figure figcaption')).toContainText('AI 생성 도해');
   await expect(page.locator('.lib-item')).toHaveCount(33);
   await expect(page.locator('.lib-item[data-level="3"]').first()).toContainText('꼭 알아야 함');
-  await page.goto('/library/ctu-code/structure');
+  await page.goto('/library/ctu-code/ctu-overview');
   await map.locator('a[href="/library/ctu-code/a7-securing"]').click();
   await expect(page.locator('.lib-article')).toContainText('cx,y · d ≥ cz · b');
   await page.locator('.lib-crumb a').click();
@@ -1377,12 +1380,12 @@ test('path addresses open each screen directly, move old hash links, and navigat
   await page.goto('/library/ctu-code/qlg-c');
   await expect(page.locator('#libraryView .lib-article h2')).toBeVisible();
   await expect(page.locator('#planner')).toBeHidden();
-  await expect(page).toHaveTitle(/CTU Code · Cubestow/);
-  expect(await canonical()).toBe('https://cubestow.onharu.app/library/ctu-code/qlg-c');
+  await expect(page).toHaveTitle(/CTU Code · (Cubestow|Logistics Library)/); // 해설은 LogiLibrary가 원본
+  expect(await canonical()).toBe('https://logistics.onharu.app/library/ctu-code/qlg-c'); // 해설 원본은 LogiLibrary
   await page.goto('/library/ctu-code');
-  await expect(page.locator('#libraryView .lib-head h2')).toHaveText('CTU Code');
+  await expect(page.locator('#libraryView .lib-head .lib-hero')).toBeVisible();
   await expect(page.locator('.topbar nav a[href="/library/ctu-code"]')).toHaveClass(/active/);
-  expect(await canonical()).toBe('https://cubestow.onharu.app/library/ctu-code');
+  expect(await canonical()).toBe('https://logistics.onharu.app/library/ctu-code');
   await page.goto('/samples');
   await expect(page.locator('#samplesView')).toBeVisible();
   await expect(page).toHaveTitle(/샘플 결과 · Cubestow/);
@@ -1417,7 +1420,7 @@ test('path addresses open each screen directly, move old hash links, and navigat
   await page.evaluate(() => (window.__sameDocument = true));
   await page.locator('.topbar nav a[href="/library/ctu-code"]').click();
   await expect(page).toHaveURL(/\/library\/ctu-code$/);
-  await page.locator('.lib-fold').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
+  await page.locator('.lib-fold-open').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
   await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
   await expect(page).toHaveURL(/\/library\/ctu-code\/qlg-c$/);
   await expect(page.locator('#libraryView .lib-article')).toBeVisible();
@@ -1490,7 +1493,7 @@ test('the CTU Code references hold the securing case collection with sources, an
   await page.goto('/library/ctu-code');
   const refs = page.locator('.lib-section', { has: page.locator('h3', { hasText: '참고 자료' }) });
   await expect(refs.locator('a.lib-doc[href="/library/ctu-code/cargo-cases"]')).toContainText('사례집');
-  await page.locator('.lib-fold').click(); // 참고 자료는 접혀 있으므로 펼친다
+  await page.locator('.lib-fold-open').click(); // 참고 자료는 접혀 있으므로 펼친다
   await refs.locator('a.lib-doc[href="/library/ctu-code/cargo-cases"]').click();
   const article = page.locator('#libraryView .lib-article');
   await expect(article.locator('h2')).toHaveText('고박·포장 불량과 보험·소송 사례집');
@@ -1546,7 +1549,7 @@ test('commentary cards show their importance stars', async ({ page }) => {
   await expect(card('ctu-overview').locator('.lib-level')).toHaveCount(0);
   await expect(card('cargo-cases').locator('.lib-level')).toHaveCount(0);
   // 해설 화면 머리에도 같은 별
-  await page.locator('.lib-fold').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
+  await page.locator('.lib-fold-open').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
   await card('a5-receiving').click();
   await expect(page.locator('.lib-article .lib-level')).toHaveText('★★ 알아두면 좋음');
 });
@@ -1567,7 +1570,7 @@ test('every two- and three-star CTU Code item has its own commentary', async ({ 
   await expect(page.locator('a.lib-doc .lib-level[data-level="3"]')).toHaveCount(9);
   await expect(page.locator('a.lib-doc .lib-level[data-level="2"]')).toHaveCount(13);
   // 해설 구조표: 별 항목 해설 행은 모두 완료
-  await page.goto('/library/ctu-code/structure');
+  await page.goto('/library/ctu-code/ctu-overview');
   await expect(page.locator('.lib-table td', { hasText: /^예정$/ })).toHaveCount(0);
   // 겹치던 해설은 합쳤다: 옛 주소는 합친 해설로 넘어가고, 두 해설의 도해가 함께 있으며, 머리에 원문 대조 확인일이 있다
   const merged = {
@@ -1631,15 +1634,21 @@ test('commentary tables never split a word and keep short items on one line', as
 test('the CTU Code page offers a reading path by work stage', async ({ page }) => {
   await page.goto('/library/ctu-code');
   const path = page.locator('.lib-path');
-  await expect(path.locator('h3')).toContainText('작업 순서로 보기');
+  await expect(path.locator('h3')).toHaveText('작업 순서로 보기');
+  await expect(path.locator('.lib-stage-group h4')).toHaveText(['먼저 알아둘 것', '현장 순서']);
   await expect(path.locator('.lib-stage > b')).toHaveText([
-    '시작',
-    '계획',
-    '적입 전 점검',
-    '적입·고정',
-    '적입 후',
-    '받는 쪽'
+    '규칙과 용어',
+    '힘과 장비',
+    '왜 중요한가',
+    '1 계획',
+    '2 빈 CTU 받기',
+    '3 싣고 고정',
+    '4 닫고 보내기',
+    '5 받는 쪽'
   ]);
+  // 같은 해설이 두 곳에 나오지 않는다
+  const all = await path.locator('a').evaluateAll(as => as.map(a => a.getAttribute('href')));
+  expect(new Set(all).size).toBe(all.length);
   // 모든 링크는 실제 해설로 가고, 별 둘 이상 해설은 빠짐없이 어느 단계엔가 들어 있다
   const hrefs = await path.locator('a').evaluateAll(as => as.map(a => a.getAttribute('href')));
   const ids = await page.evaluate(() => window.CUBESTOW_LIBRARY.docs);
@@ -1653,40 +1662,45 @@ test('the CTU Code page offers a reading path by work stage', async ({ page }) =
 });
 
 // CTU Code 첫 화면: 작업 순서만 펼치고 나머지 구간은 접어 둔다. "모두 펼치기/모두 접기" 단추 하나로 바꾸고, 같은 탭에서는 상태를 기억한다.
-test('the CTU Code page opens with only the work-stage path expanded and one button folds or unfolds all', async ({
+test('the CTU Code page opens with sources and the work-stage path expanded, with separate expand-all and fold-all buttons', async ({
   page
 }) => {
   await page.goto('/library/ctu-code');
+  // 머리: 왼쪽 소개 카드, 오른쪽 저작권·해설. "처음이면…" 안내는 없다
+  await expect(page.locator('.lib-head-row .lib-hero')).toHaveAttribute('href', '/library/ctu-code/ctu-overview');
+  await expect(page.locator('.lib-head-row .lib-notice b')).toHaveText('저작권과 해설');
+  await expect(page.locator('.lib-head')).not.toContainText('처음이면');
   const sections = page.locator('details.lib-section');
-  await expect(sections).toHaveCount(5);
-  // 공식 원문(PDF 링크)은 접지 않는 한 구간으로 늘 보인다
-  await expect(page.locator('section.lib-official .lib-card[href*="imo.org"]')).toHaveCount(3);
-  await expect(page.locator('section.lib-official .lib-card').first()).toBeVisible();
+  await expect(sections).toHaveCount(6);
   const openState = () =>
     sections.evaluateAll(ds => ds.map(d => [d.querySelector('h3').firstChild.textContent.trim(), d.open]));
   expect(await openState()).toEqual([
+    ['공식 원문', true],
     ['작업 순서로 보기', true],
-    ['시작하기', false],
+    ['CTU Code 설명 및 요약', false],
     ['CTU Code 본문 해설', false],
     ['CTU Code 정보자료 해설', false],
     ['참고 자료', false]
   ]);
-  const toggle = page.locator('.lib-fold');
-  await expect(toggle).toHaveText('모두 펼치기');
-  await toggle.click();
-  await expect(toggle).toHaveText('모두 접기');
+  // 카드에는 제목만(설명 없음), 공식 원문 부제 없음
+  await expect(page.locator('.lib-official h3')).not.toContainText('배포처');
+  const openAll = page.locator('.lib-fold-open'),
+    closeAll = page.locator('.lib-fold-close');
+  await expect(openAll).toBeEnabled();
+  await openAll.click();
   expect((await openState()).every(([, open]) => open)).toBe(true);
+  await expect(openAll).toBeDisabled();
+  expect(await page.locator('a.lib-doc > span:not(.lib-doc-head)').count()).toBe(0);
   // 해설을 보고 돌아와도 펼친 상태 그대로
   await page.locator('a.lib-doc[href="/library/ctu-code/qlg-c"]').click();
   await page.locator('.lib-crumb a').click();
   expect((await openState()).every(([, open]) => open)).toBe(true);
-  await toggle.click();
-  await expect(toggle).toHaveText('모두 펼치기');
+  await closeAll.click();
   expect((await openState()).every(([, open]) => !open)).toBe(true);
-  // 구간 하나를 직접 펼치면 단추는 아직 "모두 펼치기"
+  await expect(closeAll).toBeDisabled();
   await page.locator('details.lib-section > summary', { hasText: '참고 자료' }).click();
   await expect(
     page.locator('details.lib-section', { hasText: '참고 자료' }).locator('a.lib-doc').first()
   ).toBeVisible();
-  await expect(toggle).toHaveText('모두 펼치기');
+  await expect(closeAll).toBeEnabled();
 });

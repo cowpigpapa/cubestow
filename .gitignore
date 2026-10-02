@@ -13,3 +13,4 @@ playwright-report/
 tmp/
 media/*.mp4
 debug.log
+.env*
