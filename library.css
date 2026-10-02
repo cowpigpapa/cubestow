@@ -561,3 +561,28 @@
 .library-view .lib-hero > span {
   color: #fff;
 }
+.library-view .lib-hero {
+  padding: 16px;
+  gap: 6px;
+}
+.library-view .lib-hero b {
+  font-size: 16px;
+  line-height: 1.35;
+  word-break: keep-all;
+  white-space: nowrap;
+}
+.library-view .lib-hero b small {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.library-view .lib-head-row {
+  grid-template-columns: minmax(330px, 1fr) minmax(0, 2fr);
+}
+@media (max-width: 760px) {
+  .library-view .lib-hero b {
+    white-space: normal;
+  }
+}

@@ -831,7 +831,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(page.locator('.lib-article')).toContainText('6.1t');
   await page.locator('.lib-crumb a').click();
   // 해설 26개 + 사례집 1개(번역 준비 중 카드 2개는 a 가 아님). 공식 원문은 한 구간에 모여 늘 보이고, 해설은 원문별 구간에 있다.
-  await expect(page.locator('a.lib-doc')).toHaveCount(26);
+  await expect(page.locator('a.lib-doc')).toHaveCount(25);
   const section = title => page.locator('.lib-section').filter({ has: page.locator('h3', { hasText: title }) });
   await expect(section('공식 원문').locator('a.lib-card[href$="1497.pdf"]')).toHaveCount(1);
   await expect(section('CTU Code 본문').locator('a.lib-doc[href="/library/ctu-code/a7-securing"]')).toHaveCount(1);
@@ -858,7 +858,7 @@ test('the library links the official CTU Code sources and opens Korean commentar
   await expect(section('참고 자료').locator('a.lib-doc')).toHaveCount(3);
   await expect(page.locator('.lib-plan')).toHaveCount(0);
   // 안내 문구는 문장마다 줄을 바꾼다
-  await expect(page.locator('.lib-head .lib-notice p br')).toHaveCount(3);
+  await expect(page.locator('.lib-head .lib-notice p br')).toHaveCount(2);
   // 설명 및 요약(옛 구조 안내 포함): 왼쪽 소개 카드에서 열리고, 세 문서 비교와 참조 지도가 들어 있다
   await page.locator('.lib-head a.lib-hero').click();
   await expect(page.locator('.lib-article h2')).toContainText('CTU Code 설명 및 요약');
@@ -1546,7 +1546,7 @@ test('commentary cards show their importance stars', async ({ page }) => {
   await expect(card('a7-securing').locator('.lib-level')).toHaveText('★★★ 꼭 알아야 함');
   await expect(card('a7-securing').locator('.lib-level')).toHaveAttribute('data-level', '3');
   await expect(card('a5-receiving').locator('.lib-level')).toHaveText('★★ 알아두면 좋음');
-  await expect(card('ctu-overview').locator('.lib-level')).toHaveCount(0);
+  await expect(page.locator('.lib-hero').locator('.lib-level')).toHaveCount(0);
   await expect(card('cargo-cases').locator('.lib-level')).toHaveCount(0);
   // 해설 화면 머리에도 같은 별
   await page.locator('.lib-fold-open').click(); // 해설 구간은 접혀 있으므로 모두 펼친다
@@ -1671,13 +1671,12 @@ test('the CTU Code page opens with sources and the work-stage path expanded, wit
   await expect(page.locator('.lib-head-row .lib-notice b')).toHaveText('저작권과 해설');
   await expect(page.locator('.lib-head')).not.toContainText('처음이면');
   const sections = page.locator('details.lib-section');
-  await expect(sections).toHaveCount(6);
+  await expect(sections).toHaveCount(5);
   const openState = () =>
     sections.evaluateAll(ds => ds.map(d => [d.querySelector('h3').firstChild.textContent.trim(), d.open]));
   expect(await openState()).toEqual([
     ['공식 원문', true],
     ['작업 순서로 보기', true],
-    ['CTU Code 설명 및 요약', false],
     ['CTU Code 본문 해설', false],
     ['CTU Code 정보자료 해설', false],
     ['참고 자료', false]

@@ -1662,11 +1662,6 @@
   // 목록 구간: 원문별로 공식 원문 링크와 Cubestow 해설을 함께 둔다.
   const SECTIONS = [
     {
-      title: 'CTU Code 설명 및 요약',
-      sub: '',
-      docs: ['ctu-overview']
-    },
-    {
       title: 'CTU Code 본문 해설',
       sub: 'MSC.1/Circ.1497 · 지켜야 할 실무규칙',
       official: '1497',
@@ -1771,7 +1766,7 @@
             .join('')}</div></section>`
       )
       .join('');
-    view.innerHTML = `<div class="lib-head"><div class="lib-head-row"><a class="lib-hero" href="/library/ctu-code/ctu-overview"><span class="lib-kind">CTU Code</span><b>IMO·ILO·UNECE 화물운송단위 적입 실무규칙</b><span>컨테이너 등 CTU에 화물을 싣고 고정하는 국제 기준입니다. 무엇이 들어 있고 무엇을 알아야 하는지 설명과 요약부터 보세요.</span><span class="lib-open">설명 및 요약 →</span></a><div class="lib-notice"><b>저작권과 해설</b><p>${lines('CTU Code는 국제기준의 Cargo Transport Unit(컨테이너 등) 적재·고박 기준 자료입니다. CTU Code와 정보자료의 저작권은 IMO에 있으며 원문은 아래 공식 배포 사이트를 통해 내려받을 수 있습니다. 해설과 참고 자료는 AI가 원문과 법령을 읽고 직접 작성하였으며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다. CTU Code 본문(1497)과 정보자료(1498)의 전체 한국어 번역 초안은 준비되어 있으나 저작권자인 IMO의 사전 서면 허가 없이는 번역본을 게시할 수 없어, IMO의 게시 허가를 기다리는 중입니다.')}</p></div></div><div class="lib-fold-row"><button type="button" class="lib-fold lib-fold-open">모두 펼치기</button><button type="button" class="lib-fold lib-fold-close">모두 접기</button></div></div>
+    view.innerHTML = `<div class="lib-head"><div class="lib-head-row"><a class="lib-hero" href="/library/ctu-code/ctu-overview"><span class="lib-kind">CTU Code</span><b>IMO·ILO·UNECE 화물운송단위 적입 실무규칙<br><small>(설명 및 요약)</small></b></a><div class="lib-notice"><b>저작권과 해설</b><p>${lines('CTU Code와 정보자료의 저작권은 IMO에 있으며 원문은 아래 공식 배포 사이트를 통해 내려받을 수 있습니다. 해설과 참고 자료는 AI가 원문과 법령을 읽고 직접 작성하였으며 IMO·ILO·UNECE가 만들거나 검토한 것이 아닙니다. CTU Code 본문(1497)과 정보자료(1498)의 전체 한국어 번역 초안은 준비되어 있으나 저작권자인 IMO의 사전 서면 허가 없이는 번역본을 게시할 수 없어, IMO의 게시 허가를 기다리는 중입니다.')}</p></div></div><div class="lib-fold-row"><button type="button" class="lib-fold lib-fold-open">모두 펼치기</button><button type="button" class="lib-fold lib-fold-close">모두 접기</button></div></div>
       ${official}
       ${stagePath()}
       ${sections}
