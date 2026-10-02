@@ -11,7 +11,7 @@ test('CTU 자료는 Logistics Library의 단일 원본을 사용한다', async (
   assert.match(html, /https:\/\/logistics\.onharu\.app\/ctu-library\.css\?v=/);
   assert.match(html, /https:\/\/logistics\.onharu\.app\/ctu-library\.js\?v=/);
   assert.doesNotMatch(html, /(?:src|href)="library\.(?:js|css)/);
-  const ctuAssets = [...html.matchAll(/(?:src|href)="(https?:\/\/[^\"]*ctu-library\.(?:js|css)\?v=[^\"]+)"/g)].map(
+  const ctuAssets = [...html.matchAll(/(?:src|href)="(https?:\/\/[^"]*ctu-library\.(?:js|css)\?v=[^"]+)"/g)].map(
     match => new URL(match[1])
   );
   assert.equal(ctuAssets.length, 2);
