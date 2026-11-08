@@ -2,7 +2,13 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/client",
   "framework": null,
+  "redirects": [
+    { "source": "/terms.html", "destination": "/terms", "permanent": true },
+    { "source": "/privacy.html", "destination": "/privacy", "permanent": true }
+  ],
   "rewrites": [
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
     {
       "source": "/((?!.*\\.).*)",
       "destination": "/index.html"

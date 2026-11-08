@@ -98,3 +98,15 @@ test('the algorithm flag rate limit migration counts per client and per user and
   assert.match(schema, /client_id text check/);
   assert.match(schema, /p_client text default null/);
 });
+
+test('the retired algorithm flag endpoint is revoked for public clients', async () => {
+  const sql = await readFile(
+    new URL('../supabase/migrations/20261003130000_disable_algorithm_flags.sql', import.meta.url),
+    'utf8'
+  );
+  assert.match(
+    sql,
+    /revoke execute on function public\.record_algorithm_flag\(text, text, jsonb, jsonb, jsonb, text, text\)[\s\S]*from anon, authenticated/i
+  );
+  assert.doesNotMatch(sql, /grant\s+execute/i);
+});

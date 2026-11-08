@@ -132,13 +132,30 @@ test('admin controls stay hidden before login', async ({ page }) => {
   await expect(page.locator('#adminButton')).toBeHidden();
 });
 
-test('login offers social, email and guest options', async ({ page }) => {
+test('login offers Google and guest options only', async ({ page }) => {
   await page.goto('/');
+  const accountDialog = page.locator('#accountDialog');
+  await expect(accountDialog).not.toBeVisible();
   await page.getByRole('button', { name: '로그인' }).click();
-  await expect(page.getByRole('button', { name: 'Google로 계속하기' })).toBeVisible();
+  await expect(accountDialog).toBeVisible();
+  const google = page.getByRole('button', { name: '동의하고 Google로 계속하기' });
+  await expect(google).toBeDisabled();
+  const consentBox = await page.locator('#authConsent').boundingBox();
+  const consentText = await page.locator('.auth-consent span').boundingBox();
+  expect(consentBox).not.toBeNull();
+  expect(consentText).not.toBeNull();
+  expect(consentBox.width).toBeLessThanOrEqual(20);
+  expect(consentBox.x).toBeLessThan(consentText.x);
   await expect(page.locator('#microsoftLogin')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '인증번호 받기' })).toBeVisible();
-  await expect(page.locator('#emailOtp')).toBeHidden();
+  await expect(page.locator('#emailLogin')).toHaveCount(0);
+  await expect(page.locator('#emailOtp')).toHaveCount(0);
+  await expect(page.locator('.auth-consent').getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
+  await expect(page.locator('.auth-consent').getByRole('link', { name: '개인정보처리방침' })).toHaveAttribute(
+    'href',
+    '/privacy'
+  );
+  await page.getByRole('checkbox', { name: /이용약관과 개인정보처리방침/ }).check();
+  await expect(google).toBeEnabled();
   await expect(page.locator('.guest-save-note')).toContainText('현재 브라우저');
 });
 
@@ -297,7 +314,7 @@ test('one run button, view controls inside the 3D view and an XYZ axis toggle', 
   await expect(page.locator('#viewAxes b')).toHaveText('OFF');
 });
 
-test('footer keeps professional contrast and shows visitors as one quiet line beside the version', async ({ page }) => {
+test('footer keeps professional contrast and presents the current metadata and family site', async ({ page }) => {
   for (const size of [
     { width: 1440, height: 900 },
     { width: 390, height: 844 }
@@ -305,38 +322,35 @@ test('footer keeps professional contrast and shows visitors as one quiet line be
     await page.setViewportSize(size);
     await page.goto('/');
     const footer = page.locator('.site-footer'),
-      visitors = page.locator('.site-footer .footer-meta .footer-visitors'),
       version = page.locator('#appVersion'),
-      made = page.locator('.footer-meta > span', { hasText: 'Made by' });
+      made = page.locator('.footer-meta > span', { hasText: 'Made by' }),
+      family = page.locator('.footer-family'),
+      legal = page.locator('.footer-legal');
     expect(await footer.evaluate(e => getComputedStyle(e).backgroundColor)).toBe('rgb(16, 21, 18)');
-    await expect(visitors).toHaveCount(1);
-    await expect(visitors).toContainText('오늘');
-    await expect(visitors).toContainText('누적');
-    const [versionBox, visitorBox, madeBox] = await Promise.all([
-      version.boundingBox(),
-      visitors.boundingBox(),
-      made.boundingBox()
-    ]);
-    // 한 줄: 버전 → 방문자 → 제작자 순서로 같은 줄에 놓인다
-    for (const box of [visitorBox, madeBox])
-      expect(Math.abs(box.y + box.height / 2 - (versionBox.y + versionBox.height / 2))).toBeLessThanOrEqual(2);
-    expect(visitorBox.x).toBeGreaterThan(versionBox.x + versionBox.width);
-    expect(madeBox.x).toBeGreaterThan(visitorBox.x + visitorBox.width);
-    // 배지 없이 버전과 같은 크기·색, 숫자는 고정폭
-    const look = await visitors.evaluate(el => {
-      const s = getComputedStyle(el),
-        v = getComputedStyle(document.getElementById('appVersion')),
-        inner = [...el.querySelectorAll('span')].map(x => getComputedStyle(x));
-      return {
-        sameSize: inner.every(x => x.fontSize === v.fontSize),
-        sameColor: inner.every(x => x.color === v.color),
-        badge: [s, ...inner].some(x => x.backgroundColor !== 'rgba(0, 0, 0, 0)' || x.borderTopWidth !== '0px'),
-        tabular: [...el.querySelectorAll('b')].every(b =>
-          getComputedStyle(b).fontVariantNumeric.includes('tabular-nums')
-        )
-      };
-    });
-    expect(look).toEqual({ sameSize: true, sameColor: true, badge: false, tabular: true });
+    await expect(version).toBeVisible();
+    await expect(made).toBeVisible();
+    await expect(legal.getByRole('link', { name: '이용약관' })).toBeVisible();
+    await expect(legal.getByRole('link', { name: '개인정보처리방침' })).toBeVisible();
+    await expect(family.getByText('Family Site')).toBeVisible();
+    await family.locator('summary').click();
+    await expect(family.getByRole('link', { name: /Logistics Library/ })).toBeVisible();
+    await page.locator('main').click({ position: { x: 8, y: 8 } });
+    await expect(family).not.toHaveAttribute('open', '');
+  }
+});
+
+test('privacy policy and terms are public web pages linked back to Cubestow', async ({ page }) => {
+  for (const item of [
+    { path: '/privacy.html', heading: '개인정보처리방침' },
+    { path: '/terms.html', heading: '이용약관' }
+  ]) {
+    await page.goto(item.path);
+    await expect(page.getByRole('heading', { level: 1, name: item.heading })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Cubestow' })).toHaveAttribute('href', '/');
+    await expect(page.getByRole('link', { name: 'support@onharu.app' }).first()).toHaveAttribute(
+      'href',
+      'mailto:support@onharu.app'
+    );
   }
 });
 
@@ -739,7 +753,7 @@ test('the header menu stays visible on phones and every item fits the screen', a
     .toBe(0);
 });
 
-test('algorithm flags leave out product names and stop at ten a day per browser', async ({ page }) => {
+test.skip('removed: algorithm flags leave out product names and stop at ten a day per browser', async ({ page }) => {
   const bodies = [];
   await page.route(/record_algorithm_flag/, async route => {
     bodies.push(route.request().postDataJSON());
@@ -1138,7 +1152,7 @@ test('the sample dialog leads with three purpose-picked samples and folds the fu
 });
 
 // 관리자 점검 기록: 가짜 관리자 세션과 가짜 Supabase 응답으로만 돌린다(운영 데이터에 닿지 않는다).
-test('an admin can replay an algorithm flag with its products and conditions, and still download or delete flags', async ({
+test.skip('removed: an admin can replay an algorithm flag with its products and conditions, and still download or delete flags', async ({
   page
 }) => {
   const now = Math.floor(Date.now() / 1000),

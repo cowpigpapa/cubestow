@@ -1,3 +1,19 @@
+(() => {
+  // Tests load app.js in a vm without a DOM; analytics is browser-only.
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  window.va =
+    window.va ||
+    function () {
+      (window.vaq = window.vaq || []).push(arguments);
+    };
+  if (!document.querySelector('script[src="/_vercel/insights/script.js"]')) {
+    const script = document.createElement('script');
+    script.defer = true;
+    script.src = '/_vercel/insights/script.js';
+    document.head.appendChild(script);
+  }
+})();
+
 const CONTAINERS = {
   '20ft': { name: '20ft Dry', l: 5898, w: 2352, h: 2393, maxWeight: 28200 },
   '40ft': { name: '40ft Dry', l: 12032, w: 2352, h: 2393, maxWeight: 26700 },
@@ -258,6 +274,21 @@ function enhanceUnitFields() {
   });
   document.fonts?.ready.then(() => fields.forEach(place => place()));
 }
+const contextTooltipTimers = new WeakMap();
+function flashContextTooltip(hint, duration = 1500) {
+  const help = hint?.closest('.context-help');
+  if (!help) return;
+  clearTimeout(contextTooltipTimers.get(help));
+  help.classList.remove('is-auto-visible');
+  requestAnimationFrame(() => help.classList.add('is-auto-visible'));
+  contextTooltipTimers.set(
+    help,
+    setTimeout(() => {
+      help.classList.remove('is-auto-visible');
+      contextTooltipTimers.delete(help);
+    }, duration)
+  );
+}
 function enhanceSafetySlider() {
   const select = $('safetyLevel'),
     slider = $('safetySlider');
@@ -272,7 +303,8 @@ function enhanceSafetySlider() {
   };
   slider.oninput = () => {
     const value = SAFETY_STEPS[+slider.value];
-    if (value !== select.value) {
+    const changed = value !== select.value;
+    if (changed) {
       select.value = value;
       select.dispatchEvent(new Event('change'));
     }
@@ -302,12 +334,8 @@ function enhanceSafetySlider() {
 }
 // 3칸 버튼: 숨긴 select의 값을 그대로 쓰고, 누르면 change를 보낸다.
 function enhanceSegmented(select, hints = {}) {
-  // 설명은 조작부(field-control) 뒤, 칸(option-field)의 둘째 요소로 둔다(넓은 화면에서 설명끼리 한 줄에 맞춘다).
   const group = select.parentElement.querySelector('.segmented'),
-    hint = document.createElement('p');
-  hint.className = 'segment-hint';
-  hint.setAttribute('aria-live', 'polite');
-  (select.closest('.option-field') || group.parentElement).append(hint);
+    hint = select.closest('.option-field')?.querySelector('.context-tooltip');
   const render = () => {
     group.innerHTML = [...select.options]
       .map(
@@ -315,7 +343,7 @@ function enhanceSegmented(select, hints = {}) {
           `<button type="button" role="radio" aria-checked="${o.selected}" data-value="${o.value}">${esc(o.textContent)}</button>`
       )
       .join('');
-    hint.textContent = hints[select.value] || '';
+    if (hint) hint.textContent = hints[select.value] || '';
   };
   group.onclick = event => {
     const button = event.target.closest('button[data-value]');
@@ -418,19 +446,30 @@ function bindEvents() {
       el.focus({ preventScroll: true });
     };
   renderSampleList();
-  // 드롭다운 메뉴는 항목을 누르거나 바깥을 누르면 닫는다. 고정 조건 펼침 칸도 바깥을 누르면 닫는다.
+  // 드롭다운 메뉴와 패밀리 사이트는 항목 또는 바깥을 누르면 닫는다. 고정 조건 펼침 칸도 바깥을 누르면 닫는다.
   document.addEventListener('click', event =>
-    document.querySelectorAll('details.menu[open], details.securing-conditions[open]').forEach(menu => {
-      if (!menu.contains(event.target) || event.target.closest('.menu-list button')) menu.open = false;
-    })
+    document
+      .querySelectorAll('details.menu[open], details.securing-conditions[open], details.footer-family[open]')
+      .forEach(menu => {
+        if (!menu.contains(event.target) || event.target.closest('.menu-list button, .menu-list a')) menu.open = false;
+      })
   );
   $('containerType').onchange = () => {
     updateContainerSpec();
     markSimulationChanged();
   };
-  $('safetyLevel').onchange = markSimulationChanged;
-  $('preference').onchange = markSimulationChanged;
-  $('transportMode').onchange = markSimulationChanged;
+  $('safetyLevel').onchange = () => {
+    markSimulationChanged();
+    flashContextTooltip($('safetyHint'));
+  };
+  $('preference').onchange = () => {
+    markSimulationChanged();
+    flashContextTooltip($('preferenceHint'));
+  };
+  $('transportMode').onchange = () => {
+    markSimulationChanged();
+    flashContextTooltip($('transportHint'));
+  };
   $('recalculateOptions').onclick = simulate;
   $('fileInput').onchange = async e => {
     await readFile(e.target.files[0]);
@@ -1301,57 +1340,8 @@ function renderAutoReview() {
   el.innerHTML =
     `<div class="auto-review-head"><span>자동 평가</span><strong>${r.grade.label}</strong><small>규칙 기반 점검 · 같은 결과면 같은 평가</small></div>` +
     `<ul>${r.items.map(it => `<li data-level="${it.level}"><i aria-hidden="true">${icon[it.level]}</i><div><b>${esc(it.title)}</b>${it.detail ? `<span>${esc(it.detail)}</span>` : ''}${it.fix ? `<em>${esc(it.fix)}</em>` : ''}</div></li>`).join('')}</ul>` +
-    `<p class="auto-review-scope">사전 검토용 평가입니다. CTU Code나 도로 법규 적합 판정이 아니며, 실제 적입 전 현장 책임자가 확인해야 합니다.${/-kr$/.test(shipment.containerKey || '') ? ' 한국 도로 한도는 적재중량 기준 값이며, 축하중은 일반 20ft·40ft 샤시 제원으로 추정한 값입니다(결과 요약 참조).' : ''}</p>` +
-    flagNoteHtml(r.anomalies.length);
+    `<p class="auto-review-scope">사전 검토용 평가입니다. CTU Code나 도로 법규 적합 판정이 아니며, 실제 적입 전 현장 책임자가 확인해야 합니다.${/-kr$/.test(shipment.containerKey || '') ? ' 한국 도로 한도는 적재중량 기준 값이며, 축하중은 일반 20ft·40ft 샤시 제원으로 추정한 값입니다(결과 요약 참조).' : ''}</p>`;
 }
-// 점검 기록 안내: 남겼는지, 오늘 한도(브라우저마다 하루 10건, 서버에서도 같은 한도)에 걸렸는지.
-function flagNoteHtml(count) {
-  if (!count) return '';
-  const q = window.loadwiseStorage?.flagQuota?.();
-  if (q?.global)
-    return `<p class="auto-review-flag">오늘 점검 기록이 전체 한도에 도달해 이 결과는 남기지 않았습니다(${count}건). 내일 다시 기록됩니다.</p>`;
-  if (q?.reached)
-    return `<p class="auto-review-flag">오늘 이 브라우저의 점검 기록 한도(하루 ${q.limit}건)에 도달해 이 결과는 남기지 않았습니다(${count}건). 내일 다시 기록됩니다.</p>`;
-  return `<p class="auto-review-flag">알고리즘 개선을 위해 이 결과를 점검 기록으로 남겼습니다(${count}건, 제품명 없이 치수·무게·조건만${q ? ` · 브라우저마다 하루 ${q.limit}건까지` : ''}).</p>`;
-}
-// 계산이 끝날 때 한 번: 알고리즘이 의심되는 결과면 입력·조건·지적을 점검 기록으로 보낸다(관리자만 열람).
-function recordReviewFlags() {
-  if (!shipment || !window.LoadwiseReview || !window.loadwiseStorage?.recordAlgorithmFlag) return;
-  const r = LoadwiseReview.review(shipment);
-  if (!r.anomalies.length) return;
-  const settings = {
-    container: shipment.containerKey,
-    safety: shipment.safety,
-    preference: shipment.preference,
-    transportMode: shipment.transportMode,
-    securing: { ...securingOptions }
-  };
-  // 제품명·제품군은 영업 정보일 수 있어 보내지 않는다. 재현에는 치수·무게·수량·형상·조건이면 충분하다.
-  const input = {
-    products: products.map(p => ({
-      shape: p.shape,
-      l: p.l,
-      w: p.w,
-      h: p.h,
-      weight: p.weight,
-      qty: p.qty,
-      rotate: p.rotate,
-      fragile: p.fragile,
-      maxTopLoadKg: p.maxTopLoadKg
-    }))
-  };
-  const engine = shipment.engine || LoadwiseEngine.ENGINE_VERSION,
-    appVersion = ($('appVersion')?.textContent || '').replace(/^v/, '');
-  window.loadwiseStorage.recordAlgorithmFlag({
-    appVersion,
-    engine,
-    settings,
-    flags: r.anomalies,
-    input,
-    fingerprint: LoadwiseReview.fingerprint({ engine, settings, input, codes: r.anomalies.map(a => a.code) })
-  });
-}
-if (typeof window !== 'undefined') window.addEventListener('loadwise:simulation-complete', recordReviewFlags);
 function renderResultSummary() {
   const el = $('resultSummary');
   if (!el) return;

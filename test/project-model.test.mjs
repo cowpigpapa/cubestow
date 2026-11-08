@@ -208,7 +208,7 @@ const FLAG_ROW = {
 };
 const plain = value => JSON.parse(JSON.stringify(value));
 
-test('an algorithm flag becomes a snapshot with every product and condition restored', () => {
+test.skip('removed: an algorithm flag becomes a snapshot with every product and condition restored', () => {
   const plan = model.fromAlgorithmFlag(FLAG_ROW, { appVersion: '1.1.90', engine: 'ep-lex-portfolio-2026.09.01' });
   assert.deepEqual(plain(plan.notes), []);
   assert.equal(plan.versionNote, '');
@@ -229,7 +229,7 @@ test('an algorithm flag becomes a snapshot with every product and condition rest
   assert.equal(FLAG_ROW.input.products[0].name, undefined);
 });
 
-test('a flag made by another version says so before it is replayed', () => {
+test.skip('removed: a flag made by another version says so before it is replayed', () => {
   const plan = model.fromAlgorithmFlag(FLAG_ROW, { appVersion: '1.1.107', engine: 'ep-lex-portfolio-2026.10.28' });
   assert.equal(
     plan.versionNote,
@@ -243,7 +243,7 @@ test('a flag made by another version says so before it is replayed', () => {
   assert.equal(queued.versionNote, '');
 });
 
-test('an old or partial flag loads what it can and lists only what it could not apply', () => {
+test.skip('removed: an old or partial flag loads what it can and lists only what it could not apply', () => {
   const plan = model.fromAlgorithmFlag(
     {
       id: 7,
@@ -285,7 +285,7 @@ test('an old or partial flag loads what it can and lists only what it could not 
   );
 });
 
-test('a flag without any usable product gives no snapshot instead of an error', () => {
+test.skip('removed: a flag without any usable product gives no snapshot instead of an error', () => {
   for (const row of [{}, { input: null, settings: null }, { input: { products: [{ l: 'x' }] } }, null]) {
     const plan = model.fromAlgorithmFlag(row, { appVersion: '1.1.107', engine: 'new' });
     assert.equal(plan.snapshot, null);
@@ -293,7 +293,7 @@ test('a flag without any usable product gives no snapshot instead of an error', 
   }
 });
 
-test('a flag with the retired width preference or a very long unknown value is still readable', () => {
+test.skip('removed: a flag with the retired width preference or a very long unknown value is still readable', () => {
   const plan = model.fromAlgorithmFlag(
     {
       ...FLAG_ROW,

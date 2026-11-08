@@ -7,6 +7,10 @@
   --v3-line: rgba(0, 0, 0, 0.08);
 }
 body {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
   font-family:
     Inter,
     'Noto Sans KR',
@@ -16,6 +20,17 @@ body {
     sans-serif;
   color: var(--v3-ink);
   letter-spacing: -0.01em;
+}
+body > main {
+  flex: 1 0 auto;
+}
+body > .site-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+/* 샘플 결과와 시뮬레이션·LL의 데스크톱 콘텐츠 폭을 맞춘다. */
+.library-view {
+  max-width: 1320px;
 }
 .account-actions,
 .project-toolbar,
@@ -959,6 +974,58 @@ button.collapse-toggle,
     text-align: center;
   }
 }
+
+.auth-legal {
+  display: block;
+  margin-top: 10px;
+  color: #6d746f;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.project-dialog .auth-consent {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: flex-start;
+  column-gap: 10px;
+  margin: 16px 0 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--v3-line);
+  border-radius: 10px;
+  background: #f7f8fa;
+  color: #3f4743;
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.project-dialog .auth-consent input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  border-radius: 4px;
+  accent-color: #0071e3;
+}
+.auth-consent a {
+  color: #005bb5;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+.auth-legal a,
+.footer-legal a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.footer-legal {
+  display: inline-flex;
+  gap: 10px;
+  margin-left: 4px;
+  font-style: normal;
+  font-size: 11px;
+}
+.footer-legal a:hover,
+.auth-legal a:hover {
+  color: #fff;
+}
 /* Result hierarchy: balance → load sequence → securing, with readable working text. */
 .loading-plan {
   margin-top: 14px;
@@ -1256,15 +1323,6 @@ body .workspace {
   font-weight: 600;
   color: #cbd5cf;
 }
-/* 방문자 수: 버전·제작자와 같은 크기·색의 한 줄. 숫자는 고정폭이라 자릿수가 바뀌어도 흔들리지 않는다. */
-.site-footer .footer-visitors {
-  display: inline-flex;
-  gap: 10px;
-}
-.site-footer .footer-visitors b {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
 .site-footer .footer-meta i {
   font-style: normal;
   color: #66776d;
@@ -1272,6 +1330,71 @@ body .workspace {
 .site-footer .footer-meta small {
   margin-left: 6px;
   color: #8d9d94;
+}
+.site-footer .footer-family {
+  position: relative;
+  grid-column: 3;
+  grid-row: 1/3;
+  align-self: center;
+  justify-self: end;
+}
+.site-footer .footer-family summary {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #4d6257;
+  border-radius: 8px;
+  color: #d3ddd7;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.site-footer .footer-family summary::-webkit-details-marker {
+  display: none;
+}
+.site-footer .footer-family summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.site-footer .footer-family[open] summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+.site-footer .footer-family .menu-list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  min-width: 240px;
+  padding: 6px;
+  border: 1px solid #d5ddd8;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+.site-footer .footer-family .menu-list a {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #1d1d1f;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.site-footer .footer-family .menu-list a:hover {
+  background: #f0f4f1;
+}
+.site-footer .footer-family .menu-list small {
+  color: #667068;
+  font-size: 12px;
+  font-weight: 500;
 }
 @media (max-width: 760px) {
   .site-footer {
@@ -1290,6 +1413,11 @@ body .workspace {
   .site-footer .footer-meta small {
     width: 100%;
     margin-left: 0;
+  }
+  .site-footer .footer-family {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: end;
   }
 }
 .social-login-buttons {
@@ -1320,56 +1448,9 @@ body .workspace {
   font-size: 18px;
   font-family: Arial, sans-serif;
 }
-.login-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 22px 0 0;
-  color: var(--v3-muted);
-  font-size: 12px;
-}
-.login-divider::before,
-.login-divider::after {
-  content: '';
-  height: 1px;
-  flex: 1;
-  background: var(--v3-line);
-}
 #signedOutPanel .guest-save-note {
   display: block;
   margin-top: 18px !important;
-}
-.email-otp {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: end;
-  margin-top: 14px;
-}
-.email-otp[hidden] {
-  display: none;
-}
-.email-otp label {
-  margin: 0 !important;
-}
-.email-otp input {
-  letter-spacing: 0.3em;
-  font-weight: 700;
-  text-align: center;
-}
-.project-dialog .email-otp button {
-  height: 48px;
-  border-radius: 11px;
-  background: var(--v3-ink);
-  color: #fff;
-}
-@media (max-width: 520px) {
-  .email-otp {
-    grid-template-columns: 1fr;
-  }
-  .project-dialog .email-otp button {
-    width: 100%;
-  }
 }
 .sample-dialog {
   width: min(760px, calc(100vw - 32px));
@@ -1605,6 +1686,12 @@ button.collapse-toggle,
   .loading-plan.expanded .sequence-list {
     padding: 0 10px 10px;
   }
+}
+
+/* CubeStow 푸터 Family Site는 공통 메뉴 규칙보다 우선해 위쪽으로 연다. */
+.site-footer details.footer-family .menu-list {
+  top: auto !important;
+  bottom: calc(100% + 42px) !important;
 }
 /* 글자 크기 체계: 12px 보조·메타 / 14px 본문·버튼 / 16px 카드 제목 / 21px 구역 제목 / 22px 지표. 12px 미만은 쓰지 않는다.
    앞선 스타일시트들이 같은 선택자를 여러 번 덮어쓰므로 마지막 파일에서 한 번에 정한다. */
@@ -1973,6 +2060,12 @@ details.menu > summary[aria-label]::after {
   border-radius: 999px;
   color: #fff;
   font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu > summary .account-email {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2348,58 +2441,103 @@ details.menu > summary[aria-label]::after {
   font-weight: 600;
   color: #7a847f;
 }
-.safety-hint {
-  margin-top: 2px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: 1px solid #cfe0f7;
-  background: #eef5ff;
+.option-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
-.segment-hint {
-  margin: 0;
-  min-height: 54px;
-  box-sizing: border-box;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: 1px solid #d8cffa;
-  background: #f4f1ff;
-  font-size: 13px;
-  font-weight: 600;
-  color: #3b2a82;
-  line-height: 1.45;
-  display: flex;
+.context-help {
+  position: relative;
+  display: inline-flex;
   align-items: center;
 }
-.route-field .segment-hint {
-  border-color: #bfe2e8;
-  background: #ebf7f9;
-  color: #0f4f5c;
+.context-help-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 1px solid #aeb9b3;
+  border-radius: 50%;
+  background: transparent;
+  color: #68756e;
+  font:
+    700 11px/1 Georgia,
+    serif;
+  cursor: help;
+}
+.context-help-trigger:hover,
+.context-help-trigger:focus-visible {
+  border-color: #1766d6;
+  color: #1766d6;
+  outline: 2px solid rgba(23, 102, 214, 0.32);
+  outline-offset: 2px;
+}
+.context-tooltip {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  bottom: calc(100% + 9px);
+  box-sizing: border-box;
+  width: min(300px, calc(100vw - 36px));
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #cbd6d0;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(27, 42, 34, 0.14);
+  color: #33433a;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: left;
+  white-space: pre-line;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 120ms ease 300ms,
+    transform 120ms ease 300ms,
+    visibility 0s linear 420ms;
+}
+.context-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 7px;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid #cbd6d0;
+  border-bottom: 1px solid #cbd6d0;
+  background: #fff;
+  transform: translateY(-4px) rotate(45deg);
+}
+.context-help:hover .context-tooltip,
+.context-help:focus-within .context-tooltip,
+.context-help.is-auto-visible .context-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 300ms, 300ms, 0s;
+}
+.context-help:focus-within .context-tooltip {
+  transition-delay: 0s;
+}
+.context-help.is-auto-visible .context-tooltip {
+  transition-delay: 0s;
 }
 .safety-hint ul {
   margin: 0;
-  padding-left: 16px;
+  padding-left: 17px;
   display: grid;
   gap: 3px;
 }
 .safety-hint li {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1b3f73;
-  line-height: 1.45;
-}
-.safety-field[data-level='standard'] .safety-hint {
-  border-color: #f0d9a8;
-  background: #fff7e6;
-}
-.safety-field[data-level='standard'] .safety-hint li {
-  color: #7a4d00;
-}
-.safety-field[data-level='secure'] .safety-hint {
-  border-color: #b7e0c6;
-  background: #ecf8f0;
-}
-.safety-field[data-level='secure'] .safety-hint li {
-  color: #145c33;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
 }
 .run-group {
   display: flex;
@@ -3196,7 +3334,7 @@ details.menu > summary[aria-label]::after {
 @media (min-width: 1101px) {
   .simulation-config-bar.option-board {
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: 'sc pc rc' 'sh ph rh' 'sh sec sec';
+    grid-template-areas: 'sc pc rc' 'sec sec sec';
     gap: 12px 18px;
     align-items: stretch;
   }
@@ -3208,23 +3346,11 @@ details.menu > summary[aria-label]::after {
   .option-board .safety-field > .field-control {
     grid-area: sc;
   }
-  .option-board .safety-field > .safety-hint {
-    grid-area: sh;
-    margin: 0;
-    display: flex;
-    align-items: center;
-  }
   .option-board .pref-field > .field-control {
     grid-area: pc;
   }
-  .option-board .pref-field > .segment-hint {
-    grid-area: ph;
-  }
   .option-board .route-field > .field-control {
     grid-area: rc;
-  }
-  .option-board .route-field > .segment-hint {
-    grid-area: rh;
   }
   .option-board .field-control {
     align-self: end;
@@ -3470,7 +3596,6 @@ details.menu > summary[aria-label]::after {
   color: #16734f;
   font-weight: 600;
 }
-.auto-review-flag,
 .auto-review-scope {
   margin: 10px 0 0;
   font-size: 12px;
@@ -4302,17 +4427,7 @@ details.account-menu[open] > summary::after {
 /* 설정 판(넓은 화면): 안전 수준 설명 상자를 옆 상자들과 같은 줄에 두고 3줄 높이로 고정해 세로 가운데 정렬. 고정재는 아래 한 줄 전체. */
 @media (min-width: 1101px) {
   .simulation-config-bar.option-board {
-    grid-template-areas: 'sc pc rc' 'sh ph rh' 'sec sec sec';
-  }
-  .option-board .safety-field > .safety-hint,
-  .option-board .segment-hint {
-    min-height: 76px;
-    align-self: stretch;
-    display: flex;
-    align-items: center;
-  }
-  .option-board .safety-field > .safety-hint ul {
-    width: 100%;
+    grid-template-areas: 'sc pc rc' 'sec sec sec';
   }
   .option-board > .securing-field {
     align-self: start;
@@ -4529,37 +4644,6 @@ details.account-menu[open] > summary::after {
   .sample-featured {
     grid-template-columns: 1fr;
   }
-}
-/* 알고리즘 점검 기록: 다시 계산 · JSON 내려받기 · 삭제 */
-.flag-actions {
-  display: inline-grid;
-  grid-template-columns: auto auto;
-  gap: 6px;
-}
-.flag-actions button[data-flag-replay] {
-  grid-column: 1 / -1;
-}
-#algorithmFlagList td:nth-child(3),
-#algorithmFlagList td:nth-child(4) {
-  min-width: 120px;
-  white-space: normal;
-}
-.flag-actions button {
-  padding: 6px 10px;
-  border: 1px solid var(--v3-line);
-  border-radius: 8px;
-  background: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.flag-actions button[data-flag-replay] {
-  border-color: #0071e3;
-  background: #0071e3;
-  color: #fff;
-}
-.flag-actions button[data-flag-delete] {
-  color: #b3261e;
 }
 /* 휴대폰·태블릿(한 줄 배치): 입력 / 결과 탭. 넓은 화면에서는 숨기고 둘 다 보인다. 화면에 고정하지 않는다. */
 .mobile-tabs {

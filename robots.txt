@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cubestow.onharu.app/sitemap.xml

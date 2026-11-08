@@ -40,7 +40,7 @@ const run = (id, safety) => {
   return context.LoadwiseReview.review(shipment);
 };
 
-test('the automatic review grades a clean single-product load as good with no algorithm flags', () => {
+test('the automatic review grades a clean single-product load as good with no anomalies', () => {
   const r = run('2', 'strict');
   assert.notEqual(r.grade.key, 'bad');
   assert.equal(r.anomalies.length, 0, JSON.stringify(r.anomalies));
